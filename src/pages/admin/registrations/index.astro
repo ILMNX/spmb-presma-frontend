@@ -1,0 +1,1128 @@
+---
+import DashboardLayout from '../../../layouts/DashboardLayout.astro';
+
+export const prerender = false;
+---
+
+<DashboardLayout title="Registration Management">
+  <div class="space-y-6">
+    <!-- Header with Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="bg-gradient-to-br from-purple-500 to-purple-700 rounded-lg shadow p-4">
+      <div class="flex items-center justify-between">
+        <div>
+        <p class="text-sm text-purple-100">Total Pendaftar</p>
+        <p id="stat-total" class="text-2xl font-bold text-white">0</p>
+        </div>
+        <div class="p-3 bg-white/20 rounded-lg">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+        </svg>
+        </div>
+      </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-lg shadow p-4">
+      <div class="flex items-center justify-between">
+        <div>
+        <p class="text-sm text-yellow-100">Menunggu Pembayaran</p>
+        <p id="stat-pending" class="text-2xl font-bold text-white">0</p>
+        </div>
+        <div class="p-3 bg-white/20 rounded-lg">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        </div>
+      </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow p-4">
+      <div class="flex items-center justify-between">
+        <div>
+        <p class="text-sm text-green-100">Sudah Bayar</p>
+        <p id="stat-paid" class="text-2xl font-bold text-white">0</p>
+        </div>
+        <div class="p-3 bg-white/20 rounded-lg">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        </div>
+      </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow p-4">
+      <div class="flex items-center justify-between">
+        <div>
+        <p class="text-sm text-blue-100">7 Hari Terakhir</p>
+        <p id="stat-recent" class="text-2xl font-bold text-white">0</p>
+        </div>
+        <div class="p-3 bg-white/20 rounded-lg">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+        </svg>
+        </div>
+      </div>
+      </div>
+    </div>
+
+    <!-- Status Filter Tabs -->
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900">Filter Status</h3>
+        <span id="schoolTypeLabel" class="text-sm text-gray-500"></span>
+      </div>
+      
+      <div class="flex flex-wrap gap-2">
+        <button
+          data-status="all"
+          class="status-tab px-4 py-2 rounded-lg font-medium transition-colors bg-purple-600 text-white"
+        >
+          Semua Status
+        </button>
+        <button
+          data-status="draft"
+          class="status-tab px-4 py-2 rounded-lg font-medium transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200"
+        >
+          Draft
+        </button>
+        <button
+          data-status="pending_payment"
+          class="status-tab px-4 py-2 rounded-lg font-medium transition-colors bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+        >
+          Menunggu Pembayaran
+        </button>
+        <button
+          data-status="payment_confirmed"
+          class="status-tab px-4 py-2 rounded-lg font-medium transition-colors bg-blue-100 text-blue-700 hover:bg-blue-200"
+        >
+          Pembayaran Dikonfirmasi
+        </button>
+        <button
+          data-status="approved"
+          class="status-tab px-4 py-2 rounded-lg font-medium transition-colors bg-green-100 text-green-700 hover:bg-green-200"
+        >
+          Diterima
+        </button>
+        <button
+          data-status="rejected"
+          class="status-tab px-4 py-2 rounded-lg font-medium transition-colors bg-red-100 text-red-700 hover:bg-red-200"
+        >
+          Ditolak
+        </button>
+      </div>
+    </div>
+
+    <!-- Search and Refresh -->
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="flex gap-4">
+        <div class="flex-1">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Cari nama, email, no. registrasi..."
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          />
+        </div>
+
+        <button
+          id="btnRefresh"
+          class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <span>Refresh</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <!-- Loading State -->
+      <div id="loadingState" class="flex items-center justify-center p-8">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      </div>
+
+      <!-- Table Content -->
+      <div id="tableContent" class="hidden">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  No. Registrasi
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Nama
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Jenis/Jurusan
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Pembayaran
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Validasi
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Tanggal
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Aksi
+                </th>
+              </tr>
+            </thead>
+            <tbody id="tableBody" class="bg-white divide-y divide-gray-200">
+              <!-- Dynamic content -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+          <div class="flex-1 flex justify-between sm:hidden">
+            <button id="btnPrevMobile" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+              Previous
+            </button>
+            <button id="btnNextMobile" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+              Next
+            </button>
+          </div>
+          <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p class="text-sm text-gray-700">
+                Menampilkan <span id="paginationFrom" class="font-medium">1</span> sampai <span id="paginationTo" class="font-medium">10</span> dari <span id="paginationTotal" class="font-medium">0</span> hasil
+              </p>
+            </div>
+            <div>
+              <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" id="paginationNav">
+                <!-- Dynamic pagination buttons -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden text-center p-8">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">Tidak ada data</h3>
+        <p class="mt-1 text-sm text-gray-500">Belum ada pendaftar atau coba ubah filter pencarian.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div id="detailModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-4 border-b">
+        <h3 class="text-xl font-semibold text-gray-900">Detail Pendaftar</h3>
+        <button id="closeModal" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div id="modalContent" class="mt-4">
+        <!-- Dynamic content -->
+      </div>
+    </div>
+  </div>
+</DashboardLayout>
+
+<script>
+  import { authStore, getToken } from '../../../stores/authStore';
+  import { escapeHtml } from '../../../utils/security';
+
+  const API_BASE_URL = import.meta.env.PUBLIC_API_URL ;
+
+  const DEBUG = false;
+  const log = (...args: any[]) => {
+    if (DEBUG) console.log('[REGISTRATION DEBUG]', ...args);
+  };
+
+  interface Registration {
+    id: number;
+    registration_number: string;
+    type: string;
+    name: string;
+    email: string;
+    phone_student: string;
+    phone_parent: string;
+    major: string;
+    major_name: string;
+    previous_school: string;
+    status: string;
+    status_label: string;
+    payment_status: string;
+    payment_status_label: string;
+    payment_amount: number;
+    payment_method: string;
+    payment_confirmed_at: string | null;
+    registered_at: string;
+    has_user_account: boolean;
+    // Validation fields
+    validation_status: string;
+    validation_status_label: string;
+    validation_progress: {
+      checked: number;
+      total: number;
+      percentage: number;
+      is_complete: boolean;
+    };
+    validation_checklist: {
+      [key: string]: {
+        key: string;
+        label: string;
+        description: string;
+        checked: boolean;
+      };
+    };
+    validation_payment: boolean;
+    validation_personal_data: boolean;
+    validation_documents: boolean;
+    validation_photo: boolean;
+    validation_files_complete: boolean;
+  }
+
+  interface PaginationMeta {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number | null;
+    to: number | null;
+  }
+
+  let currentPage = 1;
+  let currentFilters = {
+    search: '',
+    type: '',
+    status: 'all'
+  };
+
+  function getUserSchoolType(): string {
+    const state = authStore.get();
+    const user = state.user as any;
+    
+    if (!user) return '';
+    
+    log('User school_type:', user.school_type);
+    
+    if (user.role === 'superadmin' || user.school_type === 'both' || user.school_type === null) {
+      return 'both';
+    }
+    
+    return user.school_type || '';
+  }
+
+  function initializeFilters() {
+    const userSchoolType = getUserSchoolType();
+    
+    log('Initialized filters with school type:', userSchoolType);
+    
+    // Update school type label
+    const schoolTypeLabel = document.getElementById('schoolTypeLabel');
+    if (schoolTypeLabel) {
+      if (userSchoolType === 'both') {
+        schoolTypeLabel.textContent = 'Menampilkan: SMA & SMK';
+      } else {
+        schoolTypeLabel.textContent = `Menampilkan: ${userSchoolType.toUpperCase()} Only`;
+      }
+    }
+  }
+
+  function setActiveStatusTab(status: string) {
+    const tabs = document.querySelectorAll('.status-tab');
+    tabs.forEach(tab => {
+      const tabStatus = tab.getAttribute('data-status');
+      if (tabStatus === status) {
+        // Active state
+        const statusColors: Record<string, string> = {
+          'all': 'bg-purple-600 text-white',
+          'draft': 'bg-gray-600 text-white',
+          'pending_payment': 'bg-yellow-600 text-white',
+          'payment_confirmed': 'bg-blue-600 text-white',
+          'approved': 'bg-green-600 text-white',
+          'rejected': 'bg-red-600 text-white'
+        };
+        
+        tab.className = `status-tab px-4 py-2 rounded-lg font-medium transition-colors ${statusColors[tabStatus!] || 'bg-gray-600 text-white'}`;
+      } else {
+        // Inactive state
+        const inactiveColors: Record<string, string> = {
+          'all': 'bg-purple-100 text-purple-700 hover:bg-purple-200',
+          'draft': 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+          'pending_payment': 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200',
+          'payment_confirmed': 'bg-blue-100 text-blue-700 hover:bg-blue-200',
+          'approved': 'bg-green-100 text-green-700 hover:bg-green-200',
+          'rejected': 'bg-red-100 text-red-700 hover:bg-red-200'
+        };
+        
+        tab.className = `status-tab px-4 py-2 rounded-lg font-medium transition-colors ${inactiveColors[tabStatus!] || 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`;
+      }
+    });
+  }
+
+  async function loadStatistics() {
+    log('Loading statistics...');
+    
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const url = `${API_BASE_URL}/api/admin/registrations/statistics`;
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const result = await response.json();
+      log('Statistics data:', result);
+      
+      if (result.success && result.data) {
+        const stats = result.data;
+        document.getElementById('stat-total')!.textContent = stats.total.toString();
+        document.getElementById('stat-pending')!.textContent = stats.by_status.pending_payment.toString();
+        document.getElementById('stat-paid')!.textContent = stats.by_payment.paid.toString();
+        document.getElementById('stat-recent')!.textContent = stats.recent.toString();
+      }
+    } catch (err: any) {
+      console.error('Failed to load statistics:', err);
+    }
+  }
+
+  async function loadRegistrations(page: number = 1) {
+    log('Loading registrations, page:', page);
+    
+    const token = getToken();
+    if (!token) return;
+
+    const loadingState = document.getElementById('loadingState')!;
+    const tableContent = document.getElementById('tableContent')!;
+    const emptyState = document.getElementById('emptyState')!;
+
+    loadingState.classList.remove('hidden');
+    tableContent.classList.add('hidden');
+    emptyState.classList.add('hidden');
+
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        per_page: '10',
+        ...currentFilters
+      });
+
+      const url = `${API_BASE_URL}/api/admin/registrations?${params}`;
+      log('Fetching from:', url);
+
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const result = await response.json();
+      log('Data received:', result);
+      
+      if (result.success && result.data) {
+        const { data, meta } = result;
+        
+        if (!data || data.length === 0) {
+          emptyState.classList.remove('hidden');
+        } else {
+          renderTable(data);
+          renderPagination(meta);
+          tableContent.classList.remove('hidden');
+        }
+      }
+    } catch (err: any) {
+      console.error('Failed to load registrations:', err);
+      emptyState.classList.remove('hidden');
+    } finally {
+      loadingState.classList.add('hidden');
+    }
+  }
+
+  // Render table
+  function renderTable(data: Registration[]) {
+    log('Rendering table with', data.length, 'rows');
+    const tbody = document.getElementById('tableBody')!;
+    tbody.innerHTML = data.map(reg => {
+      // Escape user-provided data to prevent XSS
+      const safeRegNumber = escapeHtml(reg.registration_number || '');
+      const safeName = escapeHtml(reg.name || '');
+      const safeEmail = escapeHtml(reg.email || '');
+      const safeType = escapeHtml(reg.type || '');
+      const safeMajor = escapeHtml(reg.major || '');
+      
+      // Check if delete is allowed (draft/pending_payment + unpaid/pending/expired)
+      const allowedStatuses = ['draft', 'pending_payment', 'waiting_va'];
+      const allowedPaymentStatuses = ['unpaid', 'pending', 'expired'];
+      const canDelete = allowedStatuses.includes(reg.status) && 
+                       allowedPaymentStatuses.includes(reg.payment_status);
+      
+      return `
+      <tr class="hover:bg-gray-50">
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+          ${safeRegNumber}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+          <div class="text-sm font-medium text-gray-900">${safeName}</div>
+          <div class="text-sm text-gray-500">${safeEmail}</div>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+          <div class="text-sm font-medium text-gray-900">${safeType}</div>
+          <div class="text-sm text-gray-500">${safeMajor}</div>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+          ${getStatusBadge(reg.status, reg.status_label)}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+          ${getPaymentBadge(reg.payment_status, reg.payment_status_label)}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+          ${getValidationBadge(reg)}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+          ${formatDate(reg.registered_at)}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+          <div class="flex items-center gap-2">
+            
+            <button
+              onclick="window.showDetail(${reg.id})"
+              class="text-purple-600 hover:text-purple-900"
+              title="Detail"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            </button>
+            
+            ${canDelete ? `
+            <button
+              onclick="window.confirmDeleteRegistration(${reg.id}, '${safeName}', '${safeRegNumber}')"
+              class="text-red-600 hover:text-red-900"
+              title="Hapus untuk Daftar Ulang"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            </button>
+            ` : ''}
+          </div>
+        </td>
+      </tr>
+    `}).join('');
+    log('Table rendered successfully');
+  }
+
+  // Validation badge
+  function getValidationBadge(reg: Registration): string {
+    const progress = reg.validation_progress || { checked: 0, total: 5, percentage: 0, is_complete: false };
+    const status = reg.validation_status || 'pending';
+    
+    const colors: Record<string, { bg: string; text: string; border: string }> = {
+      pending: { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300' },
+      partial: { bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-300' },
+      complete: { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300' }
+    };
+    
+    const color = colors[status] || colors.pending;
+    const label = reg.validation_status_label || 'Belum Divalidasi';
+    
+    // Build checklist icons
+    const checklistHtml = Object.entries(reg.validation_checklist || {}).map(([key, item]) => {
+      const iconClass = item.checked 
+        ? 'text-green-500' 
+        : 'text-gray-300';
+      const checkIcon = item.checked
+        ? '<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 11.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>'
+        : '<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>';
+      return `<span class="${iconClass}" title="${item.label}">${checkIcon}</span>`;
+    }).join('');
+    
+    return `
+      <div class="flex flex-col items-start gap-1">
+        <span class="px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${color.bg} ${color.text}">
+          ${label}
+        </span>
+        <div class="flex items-center gap-0.5" title="Progress: ${progress.checked}/${progress.total}">
+          ${checklistHtml}
+        </div>
+        <span class="text-xs text-gray-500">${progress.checked}/${progress.total} item</span>
+      </div>
+    `;
+  }
+
+  // Status badge
+  function getStatusBadge(status: string, label: string): string {
+    const colors: Record<string, string> = {
+      draft: 'gray',
+      pending_payment: 'yellow',
+      payment_confirmed: 'blue',
+      approved: 'green',
+      rejected: 'red'
+    };
+    const color = colors[status] || 'gray';
+    return `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-${color}-100 text-${color}-800">${label}</span>`;
+  }
+
+  // Payment badge
+  function getPaymentBadge(status: string, label: string): string {
+    const colors: Record<string, string> = {
+      paid: 'green',
+      unpaid: 'red',
+      pending: 'yellow',
+      expired: 'gray'
+    };
+    const color = colors[status] || 'gray';
+
+    return `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-${color}-100 text-${color}-800">${label}</span>`;
+  }
+
+  // Format date
+  function formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  }
+
+  // Render pagination
+  function renderPagination(meta: PaginationMeta) {
+    log('Rendering pagination:', meta);
+    document.getElementById('paginationFrom')!.textContent = meta.from?.toString() || '0';
+    document.getElementById('paginationTo')!.textContent = meta.to?.toString() || '0';
+    document.getElementById('paginationTotal')!.textContent = meta.total.toString();
+
+    const nav = document.getElementById('paginationNav')!;
+    let buttons = '';
+
+    // Previous button
+    buttons += `
+      <button
+        ${meta.current_page === 1 ? 'disabled' : ''}
+        onclick="window.changePage(${meta.current_page - 1})"
+        class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${meta.current_page === 1 ? 'text-gray-300' : 'text-gray-500 hover:bg-gray-50'}"
+      >
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+        </svg>
+      </button>
+    `;
+
+    // Page numbers
+    for (let i = 1; i <= meta.last_page; i++) {
+      if (i === 1 || i === meta.last_page || (i >= meta.current_page - 1 && i <= meta.current_page + 1)) {
+        buttons += `
+          <button
+            onclick="window.changePage(${i})"
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${i === meta.current_page ? 'bg-purple-50 text-purple-600 border-purple-500' : 'bg-white text-gray-700 hover:bg-gray-50'}"
+          >
+            ${i}
+          </button>
+        `;
+      } else if (i === meta.current_page - 2 || i === meta.current_page + 2) {
+        buttons += `<span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>`;
+      }
+    }
+
+    // Next button
+    buttons += `
+      <button
+        ${meta.current_page === meta.last_page ? 'disabled' : ''}
+        onclick="window.changePage(${meta.current_page + 1})"
+        class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${meta.current_page === meta.last_page ? 'text-gray-300' : 'text-gray-500 hover:bg-gray-50'}"
+      >
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+      </button>
+    `;
+
+    nav.innerHTML = buttons;
+  }
+
+  // Show detail modal
+  async function showDetail(id: number) {
+    log('Showing detail for ID:', id);
+    const modal = document.getElementById('detailModal')!;
+    const modalContent = document.getElementById('modalContent')!;
+
+    modal.classList.remove('hidden');
+    modalContent.innerHTML = '<div class="flex justify-center p-8"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div></div>';
+
+    try {
+      const token = getToken();
+      const response = await fetch(`${API_BASE_URL}/api/admin/registrations/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const result = await response.json();
+      log('Detail response:', result);
+      
+      if (result.success) {
+        const reg = result.data;
+        
+        // Escape all user-provided data
+        const safeRegNumber = escapeHtml(reg.registration_number || '');
+        const safeName = escapeHtml(reg.name || '');
+        const safeEmail = escapeHtml(reg.email || '');
+        const safePhoneStudent = escapeHtml(reg.phone_student || '-');
+        const safePhoneParent = escapeHtml(reg.phone_parent || '-');
+        const safeAddress = escapeHtml(reg.address || '-');
+        const safeReligion = escapeHtml(reg.religion || '-');
+        const safeType = escapeHtml(reg.type || '-');
+        const safeMajorName = escapeHtml(reg.major_name || '-');
+        const safePreviousSchool = escapeHtml(reg.previous_school || '-');
+        const safeInfoSource = escapeHtml(reg.information_source || '-');
+        const safePaymentMethod = escapeHtml(reg.payment_method || '-');
+        
+        const showPaymentButton =
+          reg.payment_method === 'cash' &&
+          ['unpaid', 'pending'].includes(reg.payment_status);
+        const showVAInfo = reg.payment_method === 'virtual_account';
+        const paymentAmountDisplay =
+          reg.payment_amount !== null && reg.payment_amount !== undefined
+            ? 'Rp ' + Number(reg.payment_amount).toLocaleString('id-ID')
+            : '-';
+        const cashPaymentForm = `
+          <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <h5 class="font-semibold text-yellow-800 mb-3">Konfirmasi Pembayaran Tunai</h5>
+            <form id="cashPaymentForm" class="space-y-3">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah Pembayaran</label>
+                <input
+                  type="number"
+                  id="paymentAmount"
+                  name="amount"
+                  placeholder="Masukkan jumlah pembayaran"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Catatan (Opsional)</label>
+                <textarea
+                  id="paymentNotes"
+                  name="notes"
+                  rows="2"
+                  placeholder="Catatan pembayaran..."
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                ></textarea>
+              </div>
+              <button
+                type="submit"
+                class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                Konfirmasi Pembayaran Tunai
+              </button>
+            </form>
+          </div>
+        `;
+        const vaInfoNotice = `
+          <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-800">
+            Pembayaran Virtual Account akan terkonfirmasi otomatis melalui callback Website Keuangan dan tidak dapat diproses manual.
+          </div>
+        `;
+
+        modalContent.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 class="font-semibold text-gray-700 mb-3">Informasi Pribadi</h4>
+              <dl class="space-y-2">
+                <div>
+                  <dt class="text-sm text-gray-500">No. Registrasi</dt>
+                  <dd class="text-sm font-medium text-gray-900">${safeRegNumber}</dd>
+                </div>
+                <div>
+                  <dt class="text-sm text-gray-500">Nama Lengkap</dt>
+                  <dd class="text-sm font-medium text-gray-900">${safeName}</dd>
+                </div>
+                <div>
+                  <dt class="text-sm text-gray-500">Email</dt>
+                  <dd class="text-sm font-medium text-gray-900">${safeEmail}</dd>
+                </div>
+                <div>
+                  <dt class="text-sm text-gray-500">No. HP Siswa</dt>
+                  <dd class="text-sm font-medium text-gray-900">${safePhoneStudent}</dd>
+                </div>
+                <div>
+                  <dt class="text-sm text-gray-500">No. HP Orang Tua</dt>
+                  <dd class="text-sm font-medium text-gray-900">${safePhoneParent}</dd>
+                </div>
+                <div>
+                  <dt class="text-sm text-gray-500">Alamat</dt>
+                  <dd class="text-sm font-medium text-gray-900">${safeAddress}</dd>
+                </div>
+                <div>
+                  <dt class="text-sm text-gray-500">Agama</dt>
+                  <dd class="text-sm font-medium text-gray-900">${safeReligion}</dd>
+                </div>
+              </dl>
+            </div>
+
+            <div>
+              <h4 class="font-semibold text-gray-700 mb-3">Informasi Pendaftaran</h4>
+              <dl class="space-y-2">
+                <div>
+                  <dt class="text-sm text-gray-500">Jenis</dt>
+                  <dd class="text-sm font-medium text-gray-900">${safeType}</dd>
+                </div>
+                <div>
+                  <dt class="text-sm text-gray-500">Jurusan</dt>
+                  <dd class="text-sm font-medium text-gray-900">${safeMajorName}</dd>
+                </div>
+                <div>
+                  <dt class="text-sm text-gray-500">Asal Sekolah</dt>
+                  <dd class="text-sm font-medium text-gray-900">${safePreviousSchool}</dd>
+                </div>
+                <div>
+                  <dt class="text-sm text-gray-500">Sumber Informasi</dt>
+                  <dd class="text-sm font-medium text-gray-900">${safeInfoSource}</dd>
+                </div>
+                <div>
+                  <dt class="text-sm text-gray-500">Status</dt>
+                  <dd class="text-sm font-medium">${getStatusBadge(reg.status, reg.status_label)}</dd>
+                </div>
+                <div>
+                  <dt class="text-sm text-gray-500">Status Pembayaran</dt>
+                  <dd class="text-sm font-medium">${getPaymentBadge(reg.payment_status, reg.payment_status_label)}</dd>
+                </div>
+                <div>
+                  <dt class="text-sm text-gray-500">Metode Pembayaran</dt>
+                  <dd class="text-sm font-medium text-gray-900">${safePaymentMethod}</dd>
+                </div>
+                <div>
+                  <dt class="text-sm text-gray-500">Jumlah Pembayaran</dt>
+                  <dd class="text-sm font-medium text-gray-900">${paymentAmountDisplay}</dd>
+                </div>
+                <div>
+                  <dt class="text-sm text-gray-500">Tanggal Daftar</dt>
+                  <dd class="text-sm font-medium text-gray-900">${formatDate(reg.registered_at)}</dd>
+                </div>
+                ${reg.payment_confirmed_at ? `
+                <div>
+                  <dt class="text-sm text-gray-500">Tanggal Konfirmasi Pembayaran</dt>
+                  <dd class="text-sm font-medium text-gray-900">${formatDate(reg.payment_confirmed_at)}</dd>
+                </div>
+                ` : ''}
+              </dl>
+            </div>
+          </div>
+
+          ${showPaymentButton ? cashPaymentForm : ''}
+          ${showVAInfo ? vaInfoNotice : ''}
+          <div class="mt-6 flex justify-end space-x-3">
+            <button
+              onclick="document.getElementById('detailModal').classList.add('hidden')"
+              class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+            >
+              Tutup
+            </button>
+          </div>
+        `;
+
+        // Add form submit handler
+        if (showPaymentButton) {
+          const form = document.getElementById('cashPaymentForm');
+          form?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            confirmCashPayment(reg.id);
+          });
+        }
+      }
+    } catch (error: any) {
+      console.error('Failed to load detail:', error);
+      modalContent.innerHTML = '<div class="text-center text-red-600 p-4">Gagal memuat detail</div>';
+    }
+  }
+
+  // Confirm cash payment
+  async function confirmCashPayment(id: number) {
+    try {
+      log('Confirming cash payment for ID:', id);
+      
+      // Get form values
+      const amountInput = document.getElementById('paymentAmount') as HTMLInputElement;
+      const notesInput = document.getElementById('paymentNotes') as HTMLTextAreaElement;
+      const amount = parseFloat(amountInput.value);
+      const notes = notesInput.value;
+
+      if (!amount || amount <= 0) {
+        alert('Jumlah pembayaran tidak valid');
+        return;
+      }
+
+      const token = getToken();
+      const response = await fetch(`${API_BASE_URL}/api/admin/registrations/${id}/confirm-cash-payment`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          amount: amount,
+          notes: notes
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const result = await response.json();
+      log('Cash payment confirmation response:', result);
+
+      if (result.success) {
+        alert('Pembayaran tunai berhasil dikonfirmasi!');
+        document.getElementById('detailModal')!.classList.add('hidden');
+        loadStatistics();
+        loadRegistrations(currentPage);
+      } else {
+        alert('Gagal mengkonfirmasi pembayaran: ' + result.message);
+      }
+    } catch (err: any) {
+      console.error('Failed to confirm cash payment:', err);
+      alert('Terjadi kesalahan saat mengkonfirmasi pembayaran');
+    }
+  }
+
+  // Confirm delete registration dialog
+  function confirmDeleteRegistration(id: number, name: string, regNumber: string) {
+    const modal = document.createElement('div');
+    modal.id = 'deleteConfirmModal';
+    modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center';
+    modal.innerHTML = `
+      <div class="relative mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+        <div class="text-center">
+          <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+            <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">Hapus Pendaftaran?</h3>
+          <p class="text-sm text-gray-500 mb-4">
+            Anda akan menghapus pendaftaran:<br>
+            <strong class="text-gray-900">${name}</strong><br>
+            <span class="text-gray-600">${regNumber}</span>
+          </p>
+          <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 text-left">
+            <div class="flex">
+              <svg class="h-5 w-5 text-yellow-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              <div class="text-sm text-yellow-700">
+                <p class="font-medium">Perhatian:</p>
+                <ul class="list-disc list-inside mt-1 text-xs">
+                  <li>Data pendaftaran akan dihapus</li>
+                  <li>Invoice di Finance akan dihapus (jika ada)</li>
+                  <li>Siswa dapat mendaftar ulang dengan data yang sama</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 text-left mb-1">Alasan penghapusan:</label>
+            <textarea 
+              id="deleteReason" 
+              rows="2" 
+              class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-red-500 focus:border-red-500"
+              placeholder="Contoh: Siswa minta daftar ulang karena lupa bayar"
+            ></textarea>
+          </div>
+          <div class="flex gap-3">
+            <button
+              id="cancelDelete"
+              class="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium"
+            >
+              Batal
+            </button>
+            <button
+              id="confirmDelete"
+              class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
+            >
+              Hapus
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    document.getElementById('cancelDelete')?.addEventListener('click', () => {
+      modal.remove();
+    });
+
+    document.getElementById('confirmDelete')?.addEventListener('click', async () => {
+      const reason = (document.getElementById('deleteReason') as HTMLTextAreaElement).value;
+      modal.remove();
+      await deleteRegistration(id, reason);
+    });
+
+    // Close on backdrop click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
+  }
+
+  // Delete registration
+  async function deleteRegistration(id: number, reason: string = '') {
+    try {
+      log('Deleting registration ID:', id);
+      
+      const token = getToken();
+      const response = await fetch(`${API_BASE_URL}/api/admin/registrations/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ reason })
+      });
+
+      const result = await response.json();
+      log('Delete response:', result);
+
+      if (result.success) {
+        showNotification('success', 'Pendaftaran berhasil dihapus. Siswa dapat mendaftar ulang.');
+        loadStatistics();
+        loadRegistrations(currentPage);
+      } else {
+        showNotification('error', result.message || 'Gagal menghapus pendaftaran');
+      }
+    } catch (err: any) {
+      console.error('Failed to delete registration:', err);
+      showNotification('error', 'Terjadi kesalahan saat menghapus pendaftaran');
+    }
+  }
+
+  // Show notification
+  function showNotification(type: 'success' | 'error', message: string) {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+      type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+    } transition-opacity duration-300`;
+    notification.innerHTML = `
+      <div class="flex items-center gap-2">
+        ${type === 'success' 
+          ? '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>'
+          : '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>'
+        }
+        <span>${message}</span>
+      </div>
+    `;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      setTimeout(() => notification.remove(), 300);
+    }, 3000);
+  }
+
+  // Change page function
+  function changePage(page: number) {
+    log('Changing to page:', page);
+    currentPage = page;
+    loadRegistrations(page);
+  }
+
+  // Global functions
+  (window as any).showDetail = showDetail;
+  (window as any).changePage = changePage;
+  (window as any).confirmCashPayment = confirmCashPayment;
+  (window as any).confirmDeleteRegistration = confirmDeleteRegistration;
+
+  // Event listeners
+  document.addEventListener('DOMContentLoaded', () => {
+    log('=== PAGE LOADED ===');
+    
+    const state = authStore.get();
+    if (state.user) {
+      initializeFilters();
+      loadStatistics();
+      loadRegistrations();
+    } else {
+      const unsubscribe = authStore.subscribe((state) => {
+        if (state.user) {
+          initializeFilters();
+          loadStatistics();
+          loadRegistrations();
+          unsubscribe();
+        }
+      });
+    }
+
+    // Status tab click handlers
+    document.querySelectorAll('.status-tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        const status = (e.target as HTMLElement).getAttribute('data-status') || 'all';
+        currentFilters.status = status;
+        setActiveStatusTab(status);
+        currentPage = 1;
+        loadRegistrations();
+      });
+    });
+
+    // Search
+    let searchTimeout: number;
+    document.getElementById('searchInput')!.addEventListener('input', (e) => {
+      clearTimeout(searchTimeout);
+      searchTimeout = window.setTimeout(() => {
+        currentFilters.search = (e.target as HTMLInputElement).value;
+        currentPage = 1;
+        loadRegistrations();
+      }, 500);
+    });
+
+    // Refresh
+    document.getElementById('btnRefresh')!.addEventListener('click', () => {
+      loadStatistics();
+      loadRegistrations(currentPage);
+    });
+
+    // Close modal on X button click
+    document.getElementById('closeModal')?.addEventListener('click', () => {
+      document.getElementById('detailModal')!.classList.add('hidden');
+    });
+
+    // Close modal on backdrop click
+    document.getElementById('detailModal')?.addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) {
+        document.getElementById('detailModal')!.classList.add('hidden');
+      }
+    });
+  });
+</script>

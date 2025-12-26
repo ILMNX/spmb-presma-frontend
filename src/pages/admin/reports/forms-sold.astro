@@ -1,0 +1,538 @@
+---
+import DashboardLayout from '../../../layouts/DashboardLayout.astro';
+
+export const prerender = false;
+---
+
+<DashboardLayout title="Formulir Terjual">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">Formulir Terjual</h1>
+        <p class="text-gray-600 mt-1">Laporan formulir pendaftaran yang sudah dibayar (Virtual Account & Tunai)</p>
+      </div>
+      <div class="flex gap-3">
+        <button id="btnExport" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          Export
+        </button>
+        <button id="btnRefresh" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- Date Filter -->
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="flex flex-wrap gap-4 items-end">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
+          <input type="date" id="dateFrom" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
+          <input type="date" id="dateTo" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <button id="btnApplyFilter" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          Terapkan Filter
+        </button>
+        <button id="btnClearFilter" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+          Reset
+        </button>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <!-- Total Terjual -->
+      <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg shadow-lg p-6 text-white">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-blue-100">Total Formulir Terjual</p>
+            <p id="totalSold" class="text-3xl font-bold">0</p>
+          </div>
+          <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Pendapatan -->
+      <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg shadow-lg p-6 text-white">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-emerald-100">Total Pendapatan</p>
+            <p id="totalRevenue" class="text-2xl font-bold">Rp 0</p>
+          </div>
+          <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Via VA -->
+      <div class="bg-gradient-to-br from-violet-500 to-purple-700 rounded-lg shadow-lg p-6 text-white">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-violet-100">Via Virtual Account</p>
+            <p id="viaVA" class="text-3xl font-bold">0</p>
+            <p id="viaVARevenue" class="text-sm text-violet-200 mt-1">Rp 0</p>
+          </div>
+          <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Via Cash -->
+      <div class="bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg shadow-lg p-6 text-white">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-amber-100">Via Tunai (Cash)</p>
+            <p id="viaCash" class="text-3xl font-bold">0</p>
+            <p id="viaCashRevenue" class="text-sm text-amber-200 mt-1">Rp 0</p>
+          </div>
+          <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Partial/Cicilan Section -->
+    <div id="partialSection" class="hidden">
+      <div class="bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg shadow-lg p-6 text-white">
+        <div class="flex items-center justify-between">
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-3">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+              </svg>
+              <h3 class="text-lg font-semibold">Statistik Pembayaran Cicilan</h3>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
+              <div>
+                <p class="text-sm text-orange-100">Total Cicilan</p>
+                <p id="totalInstallment" class="text-3xl font-bold mt-1">0</p>
+                <p class="text-xs text-orange-200">Termasuk yang lunas</p>
+              </div>
+              <div>
+                <p class="text-sm text-orange-100">Cicilan Lunas</p>
+                <p id="installmentCompleted" class="text-2xl font-bold mt-1">0</p>
+              </div>
+              <div>
+                <p class="text-sm text-orange-100">Masih Berjalan</p>
+                <p id="installmentOngoing" class="text-2xl font-bold mt-1">0</p>
+              </div>
+              <div>
+                <p class="text-sm text-orange-100">Sudah Dibayar</p>
+                <p id="partialPaidAmount" class="text-2xl font-bold mt-1">Rp 0</p>
+                <p class="text-xs text-orange-200">Dari yang berjalan</p>
+              </div>
+              <div>
+                <p class="text-sm text-orange-100">Sisa Piutang</p>
+                <p id="partialRemaining" class="text-2xl font-bold mt-1">Rp 0</p>
+              </div>
+            </div>
+          </div>
+          <div class="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center ml-4">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- School Type Cards (for Superadmin) -->
+    <div id="schoolTypeSection" class="hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- SMA -->
+        <div class="bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-cyan-100">Formulir SMA Terjual</p>
+              <p id="smaSold" class="text-4xl font-bold mt-2">0</p>
+              <p id="smaRevenue" class="text-cyan-100 mt-1">Rp 0</p>
+            </div>
+            <div class="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center">
+              <span class="text-2xl font-bold">SMA</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SMK -->
+        <div class="bg-gradient-to-r from-fuchsia-500 to-pink-600 rounded-lg shadow-lg p-6 text-white">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-fuchsia-100">Formulir SMK Terjual</p>
+              <p id="smkSold" class="text-4xl font-bold mt-2">0</p>
+              <p id="smkRevenue" class="text-fuchsia-100 mt-1">Rp 0</p>
+            </div>
+            <div class="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center">
+              <span class="text-2xl font-bold">SMK</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- By Major -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-lg font-semibold mb-4">Per Jurusan/Program</h3>
+      <div id="byMajorGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <!-- Dynamic content -->
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="hidden text-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+      <p class="mt-4 text-gray-600">Memuat data...</p>
+    </div>
+
+    <!-- Table -->
+    <div id="tableContainer" class="bg-white rounded-lg shadow">
+      <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+        <h3 class="text-lg font-semibold">Daftar Formulir Terjual</h3>
+        <span id="schoolTypeBadge" class="hidden px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"></span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">No. Registrasi</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">No. Formulir</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jurusan</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jenis</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Metode</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nominal</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal Bayar</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody" class="divide-y divide-gray-200">
+            <tr>
+              <td colspan="9" class="px-6 py-4 text-center text-gray-500">Memuat data...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div id="pagination" class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+        <div class="text-sm text-gray-600">
+          Menampilkan <span id="showingFrom">0</span> - <span id="showingTo">0</span> dari <span id="totalItems">0</span>
+        </div>
+        <div class="flex gap-2">
+          <button id="btnPrev" class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50" disabled>
+            Previous
+          </button>
+          <button id="btnNext" class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50" disabled>
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Meta Info -->
+    <div class="text-center text-sm text-gray-500">
+      <span>Data diperbarui: </span>
+      <span id="generatedAt">-</span>
+    </div>
+  </div>
+
+  <script>
+    import { api } from '../../../lib/api';
+
+    let currentPage = 1;
+    let totalPages = 1;
+    let currentFilters = {
+      date_from: '',
+      date_to: ''
+    };
+
+    function formatCurrency(amount: number): string {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+      }).format(amount);
+    }
+
+    function formatDate(dateString: string): string {
+      if (!dateString) return '-';
+      return new Date(dateString).toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    function formatDateShort(dateString: string): string {
+      if (!dateString) return '-';
+      return new Date(dateString).toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
+
+    async function loadData() {
+      const loading = document.getElementById('loading');
+      loading?.classList.remove('hidden');
+
+      try {
+        const params = new URLSearchParams();
+        params.append('page', currentPage.toString());
+        params.append('per_page', '15');
+        if (currentFilters.date_from) params.append('date_from', currentFilters.date_from);
+        if (currentFilters.date_to) params.append('date_to', currentFilters.date_to);
+
+        const response = await api.get(`/api/admin/reports/forms-sold?${params}`);
+        
+        if (response.data.success) {
+          renderSummary(response.data.summary, response.data.meta);
+          renderTable(response.data.data);
+          renderPagination(response.data.meta);
+          
+          // Update generated at
+          const generatedAt = document.getElementById('generatedAt');
+          if (generatedAt && response.data.meta.generated_at) {
+            generatedAt.textContent = formatDate(response.data.meta.generated_at);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        loading?.classList.add('hidden');
+      }
+    }
+
+    function renderSummary(summary: any, meta: any) {
+      // Total stats
+      document.getElementById('totalSold')!.textContent = summary.total_sold || 0;
+      document.getElementById('totalRevenue')!.textContent = formatCurrency(summary.total_revenue || 0);
+
+      // By payment method
+      const vaData = summary.by_payment_method?.find((m: any) => m.payment_method === 'virtual_account');
+      const cashData = summary.by_payment_method?.find((m: any) => m.payment_method === 'cash');
+
+      document.getElementById('viaVA')!.textContent = vaData?.count || 0;
+      document.getElementById('viaVARevenue')!.textContent = formatCurrency(vaData?.revenue || 0);
+      document.getElementById('viaCash')!.textContent = cashData?.count || 0;
+      document.getElementById('viaCashRevenue')!.textContent = formatCurrency(cashData?.revenue || 0);
+
+      // Partial/Cicilan section - menggunakan data baru is_installment
+      const partialSection = document.getElementById('partialSection');
+      const hasInstallments = (summary.total_installment > 0) || (summary.partial_ongoing > 0);
+      
+      if (hasInstallments && partialSection) {
+        partialSection.classList.remove('hidden');
+        document.getElementById('totalInstallment')!.textContent = summary.total_installment || 0;
+        document.getElementById('installmentCompleted')!.textContent = summary.fully_paid_installment || 0;
+        document.getElementById('installmentOngoing')!.textContent = summary.partial_ongoing || 0;
+        document.getElementById('partialPaidAmount')!.textContent = formatCurrency(summary.partial_paid_amount || 0);
+        document.getElementById('partialRemaining')!.textContent = formatCurrency(summary.partial_remaining || 0);
+      } else if (partialSection) {
+        partialSection.classList.add('hidden');
+      }
+
+      // School type section (for superadmin)
+      const schoolTypeSection = document.getElementById('schoolTypeSection');
+      const schoolTypeBadge = document.getElementById('schoolTypeBadge');
+      
+      if (meta.school_type === 'both') {
+        schoolTypeSection?.classList.remove('hidden');
+        schoolTypeBadge?.classList.add('hidden');
+        
+        const smaData = summary.by_school_type?.find((s: any) => s.type === 'SMA');
+        const smkData = summary.by_school_type?.find((s: any) => s.type === 'SMK');
+        
+        document.getElementById('smaSold')!.textContent = smaData?.count || 0;
+        document.getElementById('smaRevenue')!.textContent = formatCurrency(smaData?.revenue || 0);
+        document.getElementById('smkSold')!.textContent = smkData?.count || 0;
+        document.getElementById('smkRevenue')!.textContent = formatCurrency(smkData?.revenue || 0);
+      } else {
+        schoolTypeSection?.classList.add('hidden');
+        schoolTypeBadge?.classList.remove('hidden');
+        if (schoolTypeBadge) {
+          schoolTypeBadge.textContent = `Data: ${meta.school_type.toUpperCase()}`;
+        }
+      }
+
+      // By major grid
+      const byMajorGrid = document.getElementById('byMajorGrid');
+      if (byMajorGrid && summary.by_major) {
+        if (summary.by_major.length === 0) {
+          byMajorGrid.innerHTML = '<p class="text-gray-500 col-span-full text-center py-4">Tidak ada data</p>';
+        } else {
+          byMajorGrid.innerHTML = summary.by_major.map((m: any) => `
+            <div class="bg-gray-50 rounded-lg p-4 border border-gray-100">
+              <div class="flex items-center justify-between mb-2">
+                <span class="px-2 py-0.5 rounded text-xs font-medium ${m.type === 'SMA' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}">${m.type}</span>
+              </div>
+              <div class="text-2xl font-bold text-gray-800">${m.count}</div>
+              <div class="text-sm text-gray-600 truncate" title="${m.display_name || m.major}">${m.display_name || m.major}</div>
+              <div class="text-xs text-green-600 mt-1">${formatCurrency(m.revenue || 0)}</div>
+            </div>
+          `).join('');
+        }
+      }
+    }
+
+    function renderTable(data: any[]) {
+      const tbody = document.getElementById('tableBody');
+      if (!tbody) return;
+
+      if (data.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="px-6 py-8 text-center text-gray-500">
+              <svg class="w-12 h-12 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              Belum ada formulir yang terjual
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = data.map((item: any) => {
+        // Determine payment method label
+        let methodLabel = item.payment_method === 'virtual_account' ? 'VA' : 'Tunai';
+        let methodClass = item.payment_method === 'virtual_account' ? 'bg-purple-100 text-purple-800' : 'bg-orange-100 text-orange-800';
+        
+        // Add cicilan indicator if applicable
+        if (item.is_installment) {
+          if (item.payment_status === 'partial') {
+            methodLabel = 'Cicilan (Berjalan)';
+            methodClass = 'bg-amber-100 text-amber-800';
+          } else {
+            methodLabel = 'Cicilan (Lunas)';
+            methodClass = 'bg-green-100 text-green-800';
+          }
+        }
+        
+        // Show paid amount for partial payments
+        const amountDisplay = item.payment_status === 'partial' 
+          ? `${formatCurrency(item.paid_amount || 0)} / ${formatCurrency(item.amount)}`
+          : formatCurrency(item.amount);
+        const amountClass = item.payment_status === 'partial' ? 'text-amber-600' : 'text-green-600';
+        
+        return `
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 text-sm font-medium text-gray-900">${item.registration_number}</td>
+            <td class="px-6 py-4 text-sm text-gray-700">${item.form_number || '-'}</td>
+            <td class="px-6 py-4 text-sm text-gray-700">${item.name}</td>
+            <td class="px-6 py-4 text-sm text-gray-700">${item.display_name || item.major}</td>
+            <td class="px-6 py-4">
+              <span class="px-2 py-1 text-xs rounded ${item.type === 'SMA' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}">
+                ${item.type}
+              </span>
+            </td>
+            <td class="px-6 py-4">
+              <span class="px-2 py-1 text-xs rounded ${methodClass}">
+                ${methodLabel}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-sm font-semibold ${amountClass}">${amountDisplay}</td>
+            <td class="px-6 py-4 text-sm text-gray-700">${formatDateShort(item.confirmed_at)}</td>
+            <td class="px-6 py-4">
+              <a href="/admin/registrations/${item.id}" class="text-blue-600 hover:text-blue-800 text-sm">
+                Detail
+              </a>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderPagination(meta: any) {
+      currentPage = meta.current_page;
+      totalPages = meta.last_page;
+
+      const from = meta.total > 0 ? ((currentPage - 1) * meta.per_page + 1) : 0;
+      const to = Math.min(currentPage * meta.per_page, meta.total);
+
+      document.getElementById('showingFrom')!.textContent = from.toString();
+      document.getElementById('showingTo')!.textContent = to.toString();
+      document.getElementById('totalItems')!.textContent = meta.total.toString();
+
+      const btnPrev = document.getElementById('btnPrev') as HTMLButtonElement;
+      const btnNext = document.getElementById('btnNext') as HTMLButtonElement;
+      
+      btnPrev.disabled = currentPage <= 1;
+      btnNext.disabled = currentPage >= totalPages;
+    }
+
+    // Event listeners
+    document.getElementById('btnPrev')?.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        loadData();
+      }
+    });
+
+    document.getElementById('btnNext')?.addEventListener('click', () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        loadData();
+      }
+    });
+
+    document.getElementById('btnRefresh')?.addEventListener('click', () => {
+      loadData();
+    });
+
+    document.getElementById('btnApplyFilter')?.addEventListener('click', () => {
+      currentFilters.date_from = (document.getElementById('dateFrom') as HTMLInputElement).value;
+      currentFilters.date_to = (document.getElementById('dateTo') as HTMLInputElement).value;
+      currentPage = 1;
+      loadData();
+    });
+
+    document.getElementById('btnClearFilter')?.addEventListener('click', () => {
+      currentFilters.date_from = '';
+      currentFilters.date_to = '';
+      (document.getElementById('dateFrom') as HTMLInputElement).value = '';
+      (document.getElementById('dateTo') as HTMLInputElement).value = '';
+      currentPage = 1;
+      loadData();
+    });
+
+    document.getElementById('btnExport')?.addEventListener('click', async () => {
+      try {
+        const params = new URLSearchParams();
+        if (currentFilters.date_from) params.append('date_from', currentFilters.date_from);
+        if (currentFilters.date_to) params.append('date_to', currentFilters.date_to);
+        
+        // For now, just show alert - can implement actual export later
+        alert('Fitur export akan segera hadir!');
+      } catch (error) {
+        console.error('Error exporting:', error);
+      }
+    });
+
+    // Initial load
+    loadData();
+  </script>
+</DashboardLayout>

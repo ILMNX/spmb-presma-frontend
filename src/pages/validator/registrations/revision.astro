@@ -1,0 +1,633 @@
+---
+import DashboardLayout from '../../../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout title="Pendaftaran Perlu Revisi">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <a
+          href="/validator/registrations"
+          class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+          </svg>
+        </a>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Pendaftaran Perlu Revisi</h1>
+          <p class="text-sm text-gray-500">Daftar pendaftaran yang memerlukan perbaikan dari siswa</p>
+        </div>
+      </div>
+      <button
+        id="btnRefresh"
+        class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        Refresh
+      </button>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg p-5">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-red-100">Perlu Revisi</p>
+            <p class="text-3xl font-bold text-white" id="statRevision">0</p>
+          </div>
+          <div class="p-3 bg-white/20 rounded-lg">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-yellow-500 to-amber-500 rounded-xl shadow-lg p-5">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-yellow-100">Menunggu Update</p>
+            <p class="text-3xl font-bold text-white" id="statWaiting">0</p>
+          </div>
+          <div class="p-3 bg-white/20 rounded-lg">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl shadow-lg p-5">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-green-100">Sudah Diperbaiki</p>
+            <p class="text-3xl font-bold text-white" id="statFixed">0</p>
+          </div>
+          <div class="p-3 bg-white/20 rounded-lg">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+      <div class="flex gap-4">
+        <div class="flex-1">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Cari nama, nomor pendaftaran, atau email..."
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          />
+        </div>
+        <button
+          id="btnSearch"
+          class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="flex justify-center py-12">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+      <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-900 mb-2">Tidak Ada Revisi</h3>
+      <p class="text-gray-500">Semua pendaftaran sudah lengkap dan tidak memerlukan revisi.</p>
+    </div>
+
+    <!-- Revision List -->
+    <div id="revisionList" class="hidden space-y-4">
+      <!-- Items will be rendered here -->
+    </div>
+
+    <!-- Pagination -->
+    <div id="paginationContainer" class="hidden bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+      <div class="flex items-center justify-between">
+        <div class="text-sm text-gray-600">
+          Menampilkan <span id="paginationFrom">0</span> - <span id="paginationTo">0</span> dari <span id="paginationTotal">0</span> data
+        </div>
+        <div class="flex gap-2" id="paginationNav">
+          <!-- Pagination buttons will be rendered here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div id="detailModal" class="hidden fixed inset-0 bg-black/50 z-50 overflow-y-auto">
+    <div class="min-h-screen flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl">
+        <div class="flex items-center justify-between p-6 border-b border-gray-200">
+          <h3 class="text-xl font-semibold text-gray-900">Detail Revisi</h3>
+          <button id="closeModal" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div id="modalContent" class="p-6">
+          <!-- Modal content will be rendered here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-4 right-4 transform translate-y-full opacity-0 transition-all duration-300 z-50">
+    <div class="bg-gray-900 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
+      <svg id="toastIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+      </svg>
+      <span id="toastMessage">Berhasil</span>
+    </div>
+  </div>
+</DashboardLayout>
+
+<script>
+  import api from '../../../lib/api';
+
+  interface Registration {
+    id: number;
+    registration_number: string;
+    name: string;
+    email: string;
+    type: string;
+    major: string;
+    major_name: string;
+    phone_student: string;
+    phone_parent: string;
+    status: string;
+    status_label: string;
+    payment_status: string;
+    payment_status_label: string;
+    validation_status: string;
+    validation_status_label: string;
+    validation_notes: string | null;
+    notes: string | null;
+    validation_progress: {
+      checked: number;
+      total: number;
+      percentage: number;
+      is_complete: boolean;
+    };
+    validation_checklist: Record<string, {
+      key: string;
+      label: string;
+      description: string;
+      checked: boolean;
+    }>;
+    created_at: string;
+    updated_at: string;
+  }
+
+  interface PaginationMeta {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number | null;
+    to: number | null;
+  }
+
+  let currentPage = 1;
+  let searchQuery = '';
+
+  // Show toast notification
+  function showToast(message: string, type: 'success' | 'error' = 'success') {
+    const toast = document.getElementById('toast')!;
+    const toastMessage = document.getElementById('toastMessage')!;
+    const toastIcon = document.getElementById('toastIcon')!;
+    
+    toastMessage.textContent = message;
+    
+    if (type === 'success') {
+      toast.querySelector('div')!.className = 'bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3';
+      toastIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>';
+    } else {
+      toast.querySelector('div')!.className = 'bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3';
+      toastIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>';
+    }
+    
+    toast.classList.remove('translate-y-full', 'opacity-0');
+    
+    setTimeout(() => {
+      toast.classList.add('translate-y-full', 'opacity-0');
+    }, 3000);
+  }
+
+  // Format date
+  function formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  // Load revision registrations
+  async function loadRevisionRegistrations(page: number = 1) {
+    document.getElementById('loadingState')!.classList.remove('hidden');
+    document.getElementById('emptyState')!.classList.add('hidden');
+    document.getElementById('revisionList')!.classList.add('hidden');
+    document.getElementById('paginationContainer')!.classList.add('hidden');
+
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        per_page: '10',
+        validation_status: 'revision_needed'
+      });
+
+      if (searchQuery) {
+        params.set('search', searchQuery);
+      }
+
+      const response = await api.get(`/api/validator/registrations?${params}`);
+
+      if (response.data?.success) {
+        const { data, current_page, last_page, per_page, total, from, to } = response.data.data;
+        
+        // Update stats
+        updateStats(total);
+        
+        if (!data || data.length === 0) {
+          document.getElementById('emptyState')!.classList.remove('hidden');
+        } else {
+          renderRevisionList(data);
+          renderPagination({ current_page, last_page, per_page, total, from, to });
+          document.getElementById('revisionList')!.classList.remove('hidden');
+          document.getElementById('paginationContainer')!.classList.remove('hidden');
+        }
+      }
+    } catch (error: any) {
+      console.error('Load revision registrations error:', error);
+      showToast(error.message || 'Gagal memuat data', 'error');
+      document.getElementById('emptyState')!.classList.remove('hidden');
+    } finally {
+      document.getElementById('loadingState')!.classList.add('hidden');
+    }
+  }
+
+  // Update stats
+  function updateStats(revisionCount: number) {
+    document.getElementById('statRevision')!.textContent = revisionCount.toString();
+    // These could be calculated from additional API data if available
+    document.getElementById('statWaiting')!.textContent = revisionCount.toString();
+    document.getElementById('statFixed')!.textContent = '0';
+  }
+
+  // Render revision list
+  function renderRevisionList(registrations: Registration[]) {
+    const container = document.getElementById('revisionList')!;
+    
+    container.innerHTML = registrations.map(reg => `
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+        <div class="p-6">
+          <div class="flex items-start justify-between">
+            <div class="flex items-start gap-4">
+              <!-- Avatar -->
+              <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+              </div>
+              
+              <!-- Info -->
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <h3 class="text-lg font-semibold text-gray-900">${reg.name}</h3>
+                  <span class="px-2 py-0.5 text-xs font-medium rounded-full ${reg.type.toUpperCase() === 'SMA' ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700'}">
+                    ${reg.type.toUpperCase()}
+                  </span>
+                </div>
+                <p class="text-sm text-gray-500">${reg.registration_number}</p>
+                <p class="text-sm text-gray-500">${reg.email}</p>
+                <div class="flex items-center gap-4 mt-2">
+                  <span class="text-sm text-gray-500">
+                    <span class="font-medium">Jurusan:</span> ${reg.major_name || reg.major}
+                  </span>
+                  <span class="text-sm text-gray-500">
+                    <span class="font-medium">Tanggal:</span> ${formatDate(reg.created_at)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Status Badge -->
+            <span class="px-3 py-1 text-sm font-semibold rounded-full bg-red-100 text-red-700">
+              Perlu Revisi
+            </span>
+          </div>
+
+          <!-- Revision Notes -->
+          ${reg.validation_notes || reg.notes ? `
+            <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div class="flex items-start gap-2">
+                <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <div>
+                  <p class="text-sm font-medium text-red-800">Catatan Revisi:</p>
+                  <p class="text-sm text-red-700 mt-1">${reg.validation_notes || reg.notes}</p>
+                </div>
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- Validation Progress -->
+          <div class="mt-4">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-sm text-gray-600">Progress Validasi</span>
+              <span class="text-sm font-medium text-gray-900">${reg.validation_progress?.checked || 0}/${reg.validation_progress?.total || 5}</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              <div class="bg-red-500 h-2 rounded-full transition-all duration-300" style="width: ${reg.validation_progress?.percentage || 0}%"></div>
+            </div>
+          </div>
+
+          <!-- Checklist Items -->
+          <div class="mt-4 flex flex-wrap gap-2">
+            ${Object.entries(reg.validation_checklist || {}).map(([key, item]) => `
+              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${item.checked ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">
+                ${item.checked 
+                  ? '<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>'
+                  : '<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>'
+                }
+                ${item.label}
+              </span>
+            `).join('')}
+          </div>
+
+          <!-- Actions -->
+          <div class="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+            <div class="flex items-center gap-2 text-sm text-gray-500">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Menunggu perbaikan dari siswa
+            </div>
+            <div class="flex gap-2">
+              <button
+                onclick="window.showDetailModal(${reg.id})"
+                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Lihat Detail
+              </button>
+              <a
+                href="/validator/registrations/${reg.id}/validate"
+                class="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                Validasi Ulang
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Render pagination
+  function renderPagination(meta: PaginationMeta) {
+    document.getElementById('paginationFrom')!.textContent = (meta.from || 0).toString();
+    document.getElementById('paginationTo')!.textContent = (meta.to || 0).toString();
+    document.getElementById('paginationTotal')!.textContent = meta.total.toString();
+
+    const nav = document.getElementById('paginationNav')!;
+    let buttons = '';
+
+    // Previous button
+    buttons += `
+      <button
+        ${meta.current_page === 1 ? 'disabled' : ''}
+        onclick="window.changePage(${meta.current_page - 1})"
+        class="px-3 py-1 rounded-lg border ${meta.current_page === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </button>
+    `;
+
+    // Page numbers
+    for (let i = 1; i <= meta.last_page; i++) {
+      if (i === 1 || i === meta.last_page || (i >= meta.current_page - 1 && i <= meta.current_page + 1)) {
+        buttons += `
+          <button
+            onclick="window.changePage(${i})"
+            class="px-3 py-1 rounded-lg border ${i === meta.current_page ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-700 hover:bg-gray-50'}"
+          >
+            ${i}
+          </button>
+        `;
+      } else if (i === meta.current_page - 2 || i === meta.current_page + 2) {
+        buttons += `<span class="px-2 text-gray-500">...</span>`;
+      }
+    }
+
+    // Next button
+    buttons += `
+      <button
+        ${meta.current_page === meta.last_page ? 'disabled' : ''}
+        onclick="window.changePage(${meta.current_page + 1})"
+        class="px-3 py-1 rounded-lg border ${meta.current_page === meta.last_page ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+      </button>
+    `;
+
+    nav.innerHTML = buttons;
+  }
+
+  // Show detail modal
+  async function showDetailModal(id: number) {
+    const modal = document.getElementById('detailModal')!;
+    const modalContent = document.getElementById('modalContent')!;
+    
+    modal.classList.remove('hidden');
+    modalContent.innerHTML = `
+      <div class="flex justify-center py-8">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      </div>
+    `;
+
+    try {
+      const response = await api.get(`/api/validator/registrations/${id}`);
+      
+      if (response.data?.success) {
+        const reg = response.data.data;
+        renderModalContent(reg);
+      } else {
+        throw new Error(response.data?.message || 'Gagal memuat detail');
+      }
+    } catch (error: any) {
+      modalContent.innerHTML = `
+        <div class="text-center py-8 text-red-500">
+          <svg class="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <p>Gagal memuat detail. ${error.message}</p>
+        </div>
+      `;
+    }
+  }
+
+  // Render modal content
+  function renderModalContent(reg: Registration) {
+    const modalContent = document.getElementById('modalContent')!;
+    
+    modalContent.innerHTML = `
+      <div class="space-y-6">
+        <!-- Student Info -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm text-gray-500">Nama</label>
+            <p class="font-medium text-gray-900">${reg.name}</p>
+          </div>
+          <div>
+            <label class="text-sm text-gray-500">No. Pendaftaran</label>
+            <p class="font-medium text-gray-900">${reg.registration_number}</p>
+          </div>
+          <div>
+            <label class="text-sm text-gray-500">Email</label>
+            <p class="font-medium text-gray-900">${reg.email}</p>
+          </div>
+          <div>
+            <label class="text-sm text-gray-500">Tipe</label>
+            <p class="font-medium text-gray-900">${reg.type.toUpperCase()}</p>
+          </div>
+          <div>
+            <label class="text-sm text-gray-500">Jurusan</label>
+            <p class="font-medium text-gray-900">${reg.major_name || reg.major}</p>
+          </div>
+          <div>
+            <label class="text-sm text-gray-500">HP Siswa</label>
+            <p class="font-medium text-gray-900">${reg.phone_student || '-'}</p>
+          </div>
+        </div>
+
+        <!-- Revision Notes -->
+        ${reg.validation_notes || reg.notes ? `
+          <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+            <h4 class="font-medium text-red-800 mb-2">Catatan Revisi:</h4>
+            <p class="text-sm text-red-700">${reg.validation_notes || reg.notes}</p>
+          </div>
+        ` : ''}
+
+        <!-- Validation Checklist -->
+        <div>
+          <h4 class="font-medium text-gray-900 mb-3">Status Validasi:</h4>
+          <div class="space-y-2">
+            ${Object.entries(reg.validation_checklist || {}).map(([key, item]) => `
+              <div class="flex items-center justify-between p-3 rounded-lg ${item.checked ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}">
+                <div class="flex items-center gap-3">
+                  ${item.checked 
+                    ? '<svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>'
+                    : '<svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>'
+                  }
+                  <div>
+                    <p class="font-medium ${item.checked ? 'text-green-800' : 'text-red-800'}">${item.label}</p>
+                    <p class="text-sm ${item.checked ? 'text-green-600' : 'text-red-600'}">${item.description}</p>
+                  </div>
+                </div>
+                <span class="text-sm font-medium ${item.checked ? 'text-green-600' : 'text-red-600'}">
+                  ${item.checked ? 'Valid' : 'Belum Valid'}
+                </span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+          <button
+            onclick="window.closeDetailModal()"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Tutup
+          </button>
+          <a
+            href="/validator/registrations/${reg.id}/validate"
+            class="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            Validasi Ulang
+          </a>
+        </div>
+      </div>
+    `;
+  }
+
+  // Close detail modal
+  function closeDetailModal() {
+    document.getElementById('detailModal')!.classList.add('hidden');
+  }
+
+  // Change page
+  function changePage(page: number) {
+    currentPage = page;
+    loadRevisionRegistrations(page);
+  }
+
+  // Expose functions to window
+  (window as any).showDetailModal = showDetailModal;
+  (window as any).closeDetailModal = closeDetailModal;
+  (window as any).changePage = changePage;
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', () => {
+    loadRevisionRegistrations();
+
+    // Search
+    let searchTimeout: number;
+    document.getElementById('searchInput')!.addEventListener('input', (e) => {
+      clearTimeout(searchTimeout);
+      searchTimeout = window.setTimeout(() => {
+        searchQuery = (e.target as HTMLInputElement).value;
+        currentPage = 1;
+        loadRevisionRegistrations();
+      }, 500);
+    });
+
+    document.getElementById('btnSearch')!.addEventListener('click', () => {
+      searchQuery = (document.getElementById('searchInput') as HTMLInputElement).value;
+      currentPage = 1;
+      loadRevisionRegistrations();
+    });
+
+    // Refresh
+    document.getElementById('btnRefresh')!.addEventListener('click', () => {
+      loadRevisionRegistrations(currentPage);
+    });
+
+    // Close modal
+    document.getElementById('closeModal')!.addEventListener('click', closeDetailModal);
+    document.getElementById('detailModal')!.addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) {
+        closeDetailModal();
+      }
+    });
+  });
+</script>

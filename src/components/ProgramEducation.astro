@@ -1,0 +1,179 @@
+---
+// Static data for education programs
+const programs = {
+  sma: {
+    title: "SMA",
+    subtitle: "(Sekolah Menengah Atas)",
+    description: "Program 3 tahun dengan kurikulum nasional dan internasional",
+    majors: [
+      {
+      name: "IPA (Ilmu Pengetahuan Alam)",
+      description: "Fokus pada Matematika, Fisika, Kimia, dan Biologi",
+      career: "Kedokteran, Teknik, Farmasi, Sains Murni",
+      universities: "FK UI, ITB, ITS, UGM"
+      },
+      {
+      name: "IPS (Ilmu Pengetahuan Sosial)",
+      description: "Fokus pada Ekonomi, Sosiologi, Geografi, dan Sejarah",
+      career: "Ekonomi, Hukum, Bisnis, Politik",
+      universities: "FEB UI, FH UGM, FISIP Unpad"
+      },
+      {
+      name: "IPA Bilingual (Ilmu Pengetahuan Alam - Bilingual)",
+      description: "Kurikulum IPA diajarkan dalam Bahasa Indonesia dan Inggris untuk memperkuat kompetensi sains dan bahasa",
+      career: "Kedokteran, Teknik, Farmasi, Peneliti internasional",
+      universities: "FK UI (Bilingual), ITB (Program Internasional), Universitas Luar Negeri"
+      },
+      {
+      name: "IPS Bilingual (Ilmu Pengetahuan Sosial - Bilingual)",
+      description: "Kurikulum IPS dengan pengantar bilingual, fokus pada ekonomi, sosial, dan kebijakan publik dengan perspektif global",
+      career: "Hubungan Internasional, Ekonomi, Hukum, Bisnis Internasional",
+      universities: "FISIP UI (Bilingual), FH UGM (Program Internasional), Universitas Luar Negeri"
+      }
+    ]
+  },
+  smk: {
+    title: "SMK",
+    subtitle: "(Sekolah Menengah Kejuruan)",
+    description: "Program 3-4 tahun dengan fokus keahlian siap kerja",
+    majors: [
+      {
+        name: "PPLG (Pengembangan Perangkat Lunak dan Gim)",
+        description: "Belajar coding, web development, mobile apps, dan game development",
+        career: "Software Developer, Web Developer, Game Developer, UI/UX Designer",
+        universities: "Teknik Informatika, Sistem Informasi"
+      },
+      {
+        name: "TJKT (Teknik Jaringan Komputer dan Telekomunikasi)",
+        description: "Instalasi jaringan, konfigurasi server, dan teknologi telekomunikasi",
+        career: "Network Administrator, IT Support, Teknisi Telekomunikasi",
+        universities: "Teknik Elektro, Teknik Telekomunikasi"
+      },
+      {
+        name: "DKV (Desain Komunikasi Visual)",
+        description: "Graphic design, branding, multimedia, dan komunikasi visual",
+        career: "Graphic Designer, Art Director, Content Creator, Brand Designer",
+        universities: "DKV, Seni Rupa, Multimedia"
+      },
+      {
+        name: "BCF (Broadcasting dan Perfilman)",
+        description: "Produksi video, editing, cinematography, dan broadcasting",
+        career: "Video Editor, Cameraman, Content Producer, Broadcaster",
+        universities: "Broadcasting, Perfilman, Komunikasi"
+      }
+    ]
+  }
+};
+---
+
+<div class="bg-white">
+  <!-- Header + Tabs Navigation in one row -->
+  <div class="border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 py-6">
+        <!-- Header Left -->
+        <div class="flex-shrink-0">
+          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 text-center md:text-left">
+            Program Pendidikan 
+          </h2>
+        </div>
+        
+        <!-- Tabs Navigation Right -->
+        <nav class="flex gap-4 justify-center md:justify-end">
+          <button 
+            class="tab-button flex flex-col items-center py-3 px-4 rounded-lg border-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium transition-all active"
+            data-tab="sma"
+          >
+            <img src="/logo/sma.png" alt="SMA Logo" class="h-14 mb-1" />
+            <span class="text-sm">SMA</span>
+          </button>
+          <button 
+            class="tab-button flex flex-col items-center py-3 px-4 rounded-lg border-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium transition-all"
+            data-tab="smk"
+          >
+            <img src="/logo/smk.png" alt="SMK Logo" class="h-14 mb-1" />
+            <span class="text-sm">SMK</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Content -->
+  {Object.entries(programs).map(([key, program]) => (
+    <div 
+      class={`tab-content px-6 py-8 max-w-7xl mx-auto ${key === 'sma' ? 'active' : 'hidden'}`} 
+      data-tab={key}
+    >
+      <div class="mb-8">
+        <h3 class="text-2xl font-bold text-gray-900 mb-2 text-center md:text-left">{program.title}</h3>
+        <h4 class="text-xl text-gray-600 mb-4 text-center md:text-left">{program.subtitle}</h4>
+        <p class="text-gray-600 text-lg">{program.description}</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        {program.majors.map((major) => (
+          <div class="bg-gradient-to-br from-purple-100 to-orange-100 p-6 rounded-xl border border-purple-200">
+            <h4 class="text-xl font-bold text-blue-900 mb-3">{major.name}</h4>
+            <p class="text-gray-700 mb-4">{major.description}</p>
+            
+            <div class="space-y-3">
+              <div>
+                <span class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Peluang Karier:</span>
+                <p class="text-gray-800 text-sm mt-1">{major.career}</p>
+              </div>
+              
+              <div>
+                <span class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+                  {key === 'sma' ? 'Universitas Tujuan:' : 'Lanjut Kuliah:'}
+                </span>
+                <p class="text-gray-800 text-sm mt-1">{major.universities}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  ))}
+</div>
+
+<script>
+  // Tab functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabId = button.getAttribute('data-tab');
+        
+        // Remove active class from all buttons and contents
+        tabButtons.forEach(btn => {
+          btn.classList.remove('active', 'border-blue-500', 'text-blue-600', 'bg-blue-50');
+          btn.classList.add('border-transparent', 'text-gray-500');
+        });
+        
+        tabContents.forEach(content => {
+          content.classList.remove('active');
+          content.classList.add('hidden');
+        });
+        
+        // Add active class to clicked button and corresponding content
+        button.classList.remove('border-transparent', 'text-gray-500');
+        button.classList.add('active', 'border-blue-500', 'text-blue-600', 'bg-blue-50');
+        
+        const targetContent = document.querySelector(`[data-tab="${tabId}"].tab-content`);
+        if (targetContent) {
+          targetContent.classList.remove('hidden');
+          targetContent.classList.add('active');
+        }
+      });
+    });
+  });
+</script>
+
+<style>
+  .tab-button.active {
+    @apply border-blue-500 text-blue-600 bg-blue-50;
+  }
+</style>

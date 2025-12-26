@@ -1,0 +1,307 @@
+---
+import AdminLayout from '../../layouts/DashboardLayout.astro';
+---
+
+<AdminLayout title="Validator Dashboard">
+  <div class="p-6">
+    <h1 class="text-3xl font-bold mb-6">Dashboard Validator</h1>
+    <p class="text-gray-500 mb-6">Selamat datang di dashboard validator. Anda dapat memverifikasi dokumen pendaftar dari menu di sidebar.</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-lg shadow-md p-6">
+      <div class="flex items-center justify-between">
+        <div>
+        <h3 class="text-sm font-medium text-orange-700 mb-2">Menunggu Validasi</h3>
+        <p id="pending-validation" class="text-3xl font-bold text-orange-600">
+          <span class="loading-spinner">...</span>
+        </p>
+        </div>
+        <div class="p-3 bg-orange-200 rounded-full">
+        <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        </div>
+      </div>
+      <p class="text-xs text-orange-600 mt-2">Dokumen perlu divalidasi</p>
+      </div>
+      
+      <div class="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg shadow-md p-6">
+      <div class="flex items-center justify-between">
+        <div>
+        <h3 class="text-sm font-medium text-blue-700 mb-2">Sebagian Valid</h3>
+        <p id="partial-validation" class="text-3xl font-bold text-blue-600">
+          <span class="loading-spinner">...</span>
+        </p>
+        </div>
+        <div class="p-3 bg-blue-200 rounded-full">
+        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+        </div>
+      </div>
+      <p class="text-xs text-blue-600 mt-2">Dokumen sedang divalidasi</p>
+      </div>
+
+      <div class="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg shadow-md p-6">
+      <div class="flex items-center justify-between">
+        <div>
+        <h3 class="text-sm font-medium text-green-700 mb-2">Semua Valid</h3>
+        <p id="complete-validation" class="text-3xl font-bold text-green-600">
+          <span class="loading-spinner">...</span>
+        </p>
+        </div>
+        <div class="p-3 bg-green-200 rounded-full">
+        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        </div>
+      </div>
+      <p class="text-xs text-green-600 mt-2">Dokumen lengkap dan valid</p>
+      </div>
+
+      <div class="bg-gradient-to-br from-red-50 to-red-100 border border-red-200 rounded-lg shadow-md p-6">
+      <div class="flex items-center justify-between">
+        <div>
+        <h3 class="text-sm font-medium text-red-700 mb-2">Perlu Revisi</h3>
+        <p id="needs-revision" class="text-3xl font-bold text-red-600">
+          <span class="loading-spinner">...</span>
+        </p>
+        </div>
+        <div class="p-3 bg-red-200 rounded-full">
+        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        </div>
+      </div>
+      <p class="text-xs text-red-600 mt-2">Dokumen perlu diperbaiki</p>
+      <a href="/validator/registrations/revision" class="mt-3 inline-flex items-center gap-1 text-sm text-red-600 hover:text-red-800 font-medium">
+        Lihat Semua
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+      </a>
+      </div>
+    </div>
+
+    <!-- Recent Pending Registrations -->
+    <div class="mt-8">
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-semibold mb-4">Pendaftaran Menunggu Validasi</h3>
+        <div id="recent-pending-list" class="space-y-3">
+          <div class="text-center py-4 text-gray-500">
+            <span class="loading-spinner">Memuat data...</span>
+          </div>
+        </div>
+        <div class="mt-4 pt-4 border-t">
+          <a href="/validator/registrations" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+            Lihat Semua Pendaftaran →
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div id="error-message" class="hidden mt-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg" role="alert">
+      <div class="flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        <span id="error-text">Gagal memuat data. Silakan refresh halaman.</span>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  import { initAuth, getToken } from '../../stores/authStore';
+  import { initAuthGuard } from '../../utils/authGuard';
+  import { escapeHtml } from '../../utils/security';
+
+  const API_BASE_URL = import.meta.env.PUBLIC_API_URL;
+
+  // Helper function to safely update element text
+  function updateElement(id: string, value: string | number) {
+    const element = document.getElementById(id);
+    if (element) {
+      element.textContent = String(value);
+    }
+  }
+
+  // Helper function to show error
+  function showError(message: string) {
+    const errorDiv = document.getElementById('error-message');
+    const errorText = document.getElementById('error-text');
+    
+    if (errorDiv && errorText) {
+      errorText.textContent = message;
+      errorDiv.classList.remove('hidden');
+    }
+  }
+
+  // Helper function to hide error
+  function hideError() {
+    const errorDiv = document.getElementById('error-message');
+    if (errorDiv) {
+      errorDiv.classList.add('hidden');
+    }
+  }
+
+  // Format date
+  function formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  }
+
+  // Get status badge HTML
+  function getStatusBadge(status: string): string {
+    const badges: Record<string, { bg: string; text: string; label: string }> = {
+      'pending': { bg: 'bg-orange-100', text: 'text-orange-800', label: 'Menunggu' },
+      'partial': { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Sebagian Valid' },
+      'complete': { bg: 'bg-green-100', text: 'text-green-800', label: 'Semua Valid' },
+      'revision_needed': { bg: 'bg-red-100', text: 'text-red-800', label: 'Perlu Revisi' },
+    };
+    
+    const badge = badges[status] || { bg: 'bg-gray-100', text: 'text-gray-800', label: status };
+    return `<span class="px-2 py-1 text-xs font-medium rounded-full ${badge.bg} ${badge.text}">${badge.label}</span>`;
+  }
+
+  // Fetch dashboard data
+  async function fetchDashboard() {
+    try {
+      hideError();
+      
+      const token = getToken();
+      
+      if (!token) {
+        throw new Error('Token tidak ditemukan. Silakan login kembali.');
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/validator/dashboard`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+          return;
+        }
+        if (response.status === 403) {
+          throw new Error('Anda tidak memiliki akses ke halaman ini.');
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.message || 'Gagal mengambil data dashboard');
+      }
+
+      const data = result.data;
+      const stats = data.statistics;
+
+      // Update dashboard statistics
+      updateElement('pending-validation', stats.pending_validation || 0);
+      updateElement('partial-validation', stats.partial_validation || 0);
+      updateElement('complete-validation', stats.complete_validation || 0);
+      updateElement('needs-revision', stats.needs_revision || 0);
+
+      // Render recent pending registrations
+      const listEl = document.getElementById('recent-pending-list');
+      if (listEl) {
+        const recentPending = data.recent_pending || [];
+        
+        if (recentPending.length === 0) {
+          listEl.innerHTML = `
+            <div class="text-center py-4 text-gray-500">
+              Tidak ada pendaftaran yang menunggu validasi.
+            </div>
+          `;
+        } else {
+          listEl.innerHTML = recentPending.map((reg: any) => {
+            const safeName = escapeHtml(reg.name || '');
+            const safeRegNumber = escapeHtml(reg.registration_number || '');
+            return `
+            <a href="/validator/registrations/${reg.id}/validate" class="block p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="font-medium text-gray-900">${safeName}</p>
+                  <p class="text-sm text-gray-500">${safeRegNumber}</p>
+                </div>
+                <div class="text-right">
+                  ${getStatusBadge(reg.validation_status)}
+                  <p class="text-xs text-gray-400 mt-1">${formatDate(reg.created_at)}</p>
+                </div>
+              </div>
+            </a>
+          `;
+          }).join('');
+        }
+      }
+
+    } catch (error) {
+      console.error('Error fetching dashboard:', error);
+      
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Gagal memuat data. Silakan refresh halaman.';
+      
+      showError(errorMessage);
+      
+      // Set all values to error state
+      const ids = ['pending-validation', 'partial-validation', 'complete-validation', 'needs-revision'];
+      ids.forEach(id => updateElement(id, '-'));
+      
+      const listEl = document.getElementById('recent-pending-list');
+      if (listEl) {
+        listEl.innerHTML = `
+          <div class="text-center py-4 text-red-500">
+            Gagal memuat data.
+          </div>
+        `;
+      }
+    }
+  }
+
+  // Initialize when page loads
+  document.addEventListener('DOMContentLoaded', () => {
+    initAuth();
+    initAuthGuard();
+
+    setTimeout(() => {
+      fetchDashboard();
+    }, 100);
+  });
+
+  // Auto-refresh every 30 seconds
+  setInterval(() => {
+    fetchDashboard();
+  }, 30000);
+</script>
+
+<style>
+  .loading-spinner {
+    display: inline-block;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+</style>

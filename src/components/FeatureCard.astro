@@ -1,0 +1,8 @@
+---
+const { feature } = Astro.props;
+---
+<div class="p-6 rounded-2xl shadow bg-white hover:shadow-lg transition">
+  <div class="text-3xl mb-4">{feature.icon || "⭐"}</div>
+  <h3 class="text-xl font-semibold">{feature.title}</h3>
+  <p class="text-gray-600 mt-2">{feature.description}</p>
+</div>

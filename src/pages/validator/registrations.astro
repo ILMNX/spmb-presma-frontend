@@ -1,0 +1,767 @@
+---
+import AdminLayout from '../../layouts/DashboardLayout.astro';
+---
+
+<AdminLayout title="Verifikasi Berkas">
+  <div class="p-6">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-3xl font-bold">Verifikasi Berkas</h1>
+        <p class="text-gray-500 mt-1">Kelola dan validasi dokumen pendaftar</p>
+      </div>
+      <a 
+        href="/validator/registrations/revision"
+        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <span>Perlu Revisi</span>
+        <span id="revisionBadge" class="hidden px-2 py-0.5 bg-white text-red-600 text-xs font-bold rounded-full">0</span>
+      </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+      <div class="flex flex-wrap gap-4">
+        <div class="flex-1 min-w-[200px]">
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Cari nama, nomor pendaftaran, atau email..."
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        <div>
+          <select
+            id="status-filter"
+            class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Semua Status</option>
+            <option value="pending">Menunggu Validasi</option>
+            <option value="partial">Sebagian Valid</option>
+            <option value="complete">Semua Valid</option>
+            <option value="revision_needed">Perlu Revisi</option>
+          </select>
+        </div>
+        <div>
+          <button
+            id="search-btn"
+            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            Cari
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Registrations Table -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Pendaftar
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                No. Pendaftaran
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Jenis
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status Dokumen
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status Validasi
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Tanggal Daftar
+              </th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Aksi
+              </th>
+            </tr>
+          </thead>
+          <tbody id="registrations-table" class="bg-white divide-y divide-gray-200">
+            <tr>
+              <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                <span class="loading-spinner">Memuat data...</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-gray-700">
+            Menampilkan <span id="showing-from">0</span> - <span id="showing-to">0</span> dari <span id="total-records">0</span> data
+          </div>
+          <div class="flex gap-2" id="pagination-container">
+            <!-- Pagination buttons will be rendered here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div id="error-message" class="hidden mt-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg" role="alert">
+      <div class="flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        <span id="error-text">Gagal memuat data.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div id="detail-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+        <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+      </div>
+      <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-semibold text-gray-900" id="modal-title">Detail Pendaftaran</h3>
+            <button id="close-modal" class="text-gray-400 hover:text-gray-500">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div id="modal-content">
+            <!-- Content will be loaded here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  import { initAuth, getToken } from '../../stores/authStore';
+  import { initAuthGuard } from '../../utils/authGuard';
+  import { escapeHtml, escapeAttr } from '../../utils/security';
+
+  const API_BASE_URL = import.meta.env.PUBLIC_API_URL;
+
+  let currentPage = 1;
+  let currentSearch = '';
+  let currentStatus = '';
+
+  // Format date
+  function formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  }
+
+  // Get status badge HTML
+  function getStatusBadge(status: string): string {
+    const badges: Record<string, { bg: string; text: string; label: string }> = {
+      'pending': { bg: 'bg-orange-100', text: 'text-orange-800', label: 'Menunggu' },
+      'partial': { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Sebagian Valid' },
+      'complete': { bg: 'bg-green-100', text: 'text-green-800', label: 'Semua Valid' },
+      'revision_needed': { bg: 'bg-red-100', text: 'text-red-800', label: 'Perlu Revisi' },
+    };
+    
+    const badge = badges[status] || { bg: 'bg-gray-100', text: 'text-gray-800', label: status };
+    return `<span class="px-2 py-1 text-xs font-medium rounded-full ${badge.bg} ${badge.text}">${badge.label}</span>`;
+  }
+
+  // Get validation status badge HTML
+  function getValidationBadge(status: string, progress: any): string {
+    const badges: Record<string, { bg: string; text: string; label: string }> = {
+      'pending': { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Belum Validasi' },
+      'partial': { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Sebagian' },
+      'complete': { bg: 'bg-green-100', text: 'text-green-700', label: 'Lengkap' },
+      'revision_needed': { bg: 'bg-red-100', text: 'text-red-700', label: 'Perlu Revisi' },
+    };
+    
+    const badge = badges[status] || { bg: 'bg-gray-100', text: 'text-gray-800', label: status };
+    const progressText = progress ? ` (${progress.checked}/${progress.total})` : '';
+    return `<span class="px-2 py-1 text-xs font-medium rounded-full ${badge.bg} ${badge.text}">${badge.label}${progressText}</span>`;
+  }
+
+  // Show error
+  function showError(message: string) {
+    const errorDiv = document.getElementById('error-message');
+    const errorText = document.getElementById('error-text');
+    if (errorDiv && errorText) {
+      errorText.textContent = message;
+      errorDiv.classList.remove('hidden');
+    }
+  }
+
+  // Hide error
+  function hideError() {
+    const errorDiv = document.getElementById('error-message');
+    if (errorDiv) {
+      errorDiv.classList.add('hidden');
+    }
+  }
+
+  // Fetch registrations
+  async function fetchRegistrations(page = 1) {
+    try {
+      hideError();
+      
+      const token = getToken();
+      if (!token) {
+        window.location.href = '/login';
+        return;
+      }
+
+      const params = new URLSearchParams();
+      params.set('page', page.toString());
+      if (currentSearch) params.set('search', currentSearch);
+      if (currentStatus) params.set('document_status', currentStatus);
+
+      const response = await fetch(`${API_BASE_URL}/api/validator/registrations?${params}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+          return;
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.message || 'Gagal mengambil data');
+      }
+
+      renderTable(result.data.data || []);
+      renderPagination(result.data);
+      updatePaginationInfo(result.data);
+
+    } catch (error) {
+      console.error('Error fetching registrations:', error);
+      showError(error instanceof Error ? error.message : 'Gagal memuat data');
+      
+      const tbody = document.getElementById('registrations-table');
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="px-6 py-4 text-center text-red-500">
+              Gagal memuat data. Silakan refresh halaman.
+            </td>
+          </tr>
+        `;
+      }
+    }
+  }
+
+  // Render table
+  function renderTable(registrations: any[]) {
+    const tbody = document.getElementById('registrations-table');
+    if (!tbody) return;
+
+    if (registrations.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+            Tidak ada data ditemukan.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = registrations.map(reg => {
+      const isRevisionNeeded = reg.validation_status === 'revision_needed' || reg.document_status === 'revision_needed';
+      const rowClass = isRevisionNeeded ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-gray-50';
+      
+      // Escape all user-provided data to prevent XSS
+      const safeName = escapeHtml(reg.name);
+      const safeEmail = escapeHtml(reg.email);
+      const safeRegNumber = escapeHtml(reg.registration_number);
+      const safeFormNumber = reg.form_number ? escapeHtml(reg.form_number) : '';
+      const safeType = escapeHtml(reg.type || '');
+      const safeValidationNotes = reg.validation_notes ? escapeAttr(reg.validation_notes) : '';
+      const safeValidationNotesDisplay = reg.validation_notes ? escapeHtml(reg.validation_notes) : '';
+      
+      return `
+      <tr class="${rowClass}">
+        <td class="px-6 py-4 whitespace-nowrap">
+          <div class="flex items-center">
+            ${isRevisionNeeded ? '<div class="w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse"></div>' : ''}
+            <div>
+              <div class="text-sm font-medium text-gray-900">${safeName}</div>
+              <div class="text-sm text-gray-500">${safeEmail}</div>
+            </div>
+          </div>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+          <div class="text-sm text-gray-900">${safeRegNumber}</div>
+          ${safeFormNumber ? `<div class="text-xs text-green-600">${safeFormNumber}</div>` : ''}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+          <span class="px-2 py-1 text-xs font-medium rounded-full ${safeType.toUpperCase() === 'SMA' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}">
+            ${safeType.toUpperCase()}
+          </span>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+          ${getStatusBadge(reg.document_status || 'pending')}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+          ${getValidationBadge(reg.validation_status || 'pending', reg.validation_progress)}
+          ${isRevisionNeeded && safeValidationNotesDisplay ? `
+            <div class="text-xs text-red-600 mt-1 max-w-[150px] truncate" title="${safeValidationNotes}">
+              ${safeValidationNotesDisplay}
+            </div>
+          ` : ''}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+          ${formatDate(reg.created_at)}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+          <a
+            href="/validator/registrations/${encodeURIComponent(reg.id)}/validate"
+            class="inline-flex items-center gap-1 ${isRevisionNeeded ? 'text-red-600 hover:text-red-900' : 'text-purple-600 hover:text-purple-900'} mr-3"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            ${isRevisionNeeded ? 'Periksa Revisi' : 'Validasi'}
+          </a>
+          <button
+            onclick="window.showDetail(${parseInt(reg.id, 10)})"
+            class="text-blue-600 hover:text-blue-900"
+          >
+            Detail
+          </button>
+        </td>
+      </tr>
+    `}).join('');
+  }
+
+  // Render pagination
+  function renderPagination(data: any) {
+    const container = document.getElementById('pagination-container');
+    if (!container) return;
+
+    const currentPage = data.current_page;
+    const lastPage = data.last_page;
+
+    if (lastPage <= 1) {
+      container.innerHTML = '';
+      return;
+    }
+
+    let buttons = '';
+
+    // Previous button
+    buttons += `
+      <button 
+        onclick="window.goToPage(${currentPage - 1})"
+        class="px-3 py-1 rounded border ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}"
+        ${currentPage === 1 ? 'disabled' : ''}
+      >
+        ←
+      </button>
+    `;
+
+    // Page numbers
+    for (let i = 1; i <= lastPage; i++) {
+      if (i === 1 || i === lastPage || (i >= currentPage - 1 && i <= currentPage + 1)) {
+        buttons += `
+          <button 
+            onclick="window.goToPage(${i})"
+            class="px-3 py-1 rounded border ${i === currentPage ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}"
+          >
+            ${i}
+          </button>
+        `;
+      } else if (i === currentPage - 2 || i === currentPage + 2) {
+        buttons += `<span class="px-2">...</span>`;
+      }
+    }
+
+    // Next button
+    buttons += `
+      <button 
+        onclick="window.goToPage(${currentPage + 1})"
+        class="px-3 py-1 rounded border ${currentPage === lastPage ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}"
+        ${currentPage === lastPage ? 'disabled' : ''}
+      >
+        →
+      </button>
+    `;
+
+    container.innerHTML = buttons;
+  }
+
+  // Update pagination info
+  function updatePaginationInfo(data: any) {
+    const fromEl = document.getElementById('showing-from');
+    const toEl = document.getElementById('showing-to');
+    const totalEl = document.getElementById('total-records');
+
+    if (fromEl) fromEl.textContent = data.from || '0';
+    if (toEl) toEl.textContent = data.to || '0';
+    if (totalEl) totalEl.textContent = data.total || '0';
+  }
+
+  // Go to page
+  (window as any).goToPage = function(page: number) {
+    currentPage = page;
+    fetchRegistrations(page);
+  };
+
+  // Show detail modal
+  (window as any).showDetail = async function(id: number) {
+    const modal = document.getElementById('detail-modal');
+    const modalContent = document.getElementById('modal-content');
+    
+    if (!modal || !modalContent) return;
+
+    modal.classList.remove('hidden');
+    modalContent.innerHTML = '<div class="text-center py-8"><span class="loading-spinner">Memuat...</span></div>';
+
+    try {
+      const token = getToken();
+      const response = await fetch(`${API_BASE_URL}/api/validator/registrations/${encodeURIComponent(String(id))}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch');
+
+      const result = await response.json();
+      const reg = result.data;
+
+      // Escape all user-provided data
+      const safeName = escapeHtml(reg.name);
+      const safeEmail = escapeHtml(reg.email);
+      const safeRegNumber = escapeHtml(reg.registration_number);
+      const safeFormNumber = escapeHtml(reg.form_number || '-');
+      const safeType = escapeHtml(reg.type || '');
+      const safeMajorName = escapeHtml(reg.major_name || '-');
+      const safeStatusLabel = escapeHtml(reg.status_label || '');
+      const safePaymentStatusLabel = escapeHtml(reg.payment_status_label || '');
+
+      modalContent.innerHTML = `
+        <div class="grid grid-cols-2 gap-6">
+          <div>
+            <h4 class="font-semibold text-gray-900 mb-3">Data Pendaftar</h4>
+            <dl class="space-y-2 text-sm">
+              <div class="flex">
+                <dt class="w-32 text-gray-500">Nama:</dt>
+                <dd class="text-gray-900">${safeName}</dd>
+              </div>
+              <div class="flex">
+                <dt class="w-32 text-gray-500">Email:</dt>
+                <dd class="text-gray-900">${safeEmail}</dd>
+              </div>
+              <div class="flex">
+                <dt class="w-32 text-gray-500">No. Pendaftaran:</dt>
+                <dd class="text-gray-900">${safeRegNumber}</dd>
+              </div>
+              <div class="flex">
+                <dt class="w-32 text-gray-500">No. Formulir:</dt>
+                <dd class="text-gray-900">${safeFormNumber}</dd>
+              </div>
+              <div class="flex">
+                <dt class="w-32 text-gray-500">Jenis:</dt>
+                <dd>${safeType}</dd>
+              </div>
+              <div class="flex">
+                <dt class="w-32 text-gray-500">Jurusan:</dt>
+                <dd class="text-gray-900">${safeMajorName}</dd>
+              </div>
+            </dl>
+          </div>
+          <div>
+            <h4 class="font-semibold text-gray-900 mb-3">Status</h4>
+            <dl class="space-y-2 text-sm">
+              <div class="flex">
+                <dt class="w-32 text-gray-500">Status:</dt>
+                <dd>${safeStatusLabel}</dd>
+              </div>
+              <div class="flex">
+                <dt class="w-32 text-gray-500">Dokumen:</dt>
+                <dd>${getStatusBadge(reg.document_status || 'pending')}</dd>
+              </div>
+              <div class="flex">
+                <dt class="w-32 text-gray-500">Pembayaran:</dt>
+                <dd class="text-gray-900">${safePaymentStatusLabel}</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <h4 class="font-semibold text-gray-900 mb-3">Dokumen</h4>
+          <div class="space-y-3" id="documents-list">
+            ${renderDocuments(reg.documents || [])}
+          </div>
+        </div>
+
+        <div class="mt-6 flex justify-end gap-3">
+          <button
+            onclick="window.validateAllDocs(${parseInt(reg.id, 10)})"
+            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          >
+            Validasi Semua
+          </button>
+          <button
+            onclick="window.closeModal()"
+            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+          >
+            Tutup
+          </button>
+        </div>
+      `;
+
+    } catch (error) {
+      modalContent.innerHTML = `
+        <div class="text-center py-8 text-red-500">
+          Gagal memuat data. Silakan coba lagi.
+        </div>
+      `;
+    }
+  };
+
+  // Render documents
+  function renderDocuments(documents: any[]): string {
+    if (documents.length === 0) {
+      return '<p class="text-gray-500 text-sm">Belum ada dokumen yang diunggah.</p>';
+    }
+
+    return documents.map(doc => {
+      const safeDocTypeLabel = escapeHtml(doc.document_type_label || 'Dokumen');
+      const safeFilename = escapeHtml(doc.original_filename || 'Dokumen');
+      const safeFilePath = doc.file_path ? encodeURI(doc.file_path) : '';
+      
+      return `
+      <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+        <div class="flex items-center gap-3">
+          <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <div>
+            <p class="font-medium text-gray-900">${safeDocTypeLabel}</p>
+            <p class="text-xs text-gray-500">${safeFilename}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          ${getDocStatusBadge(doc.status)}
+          ${safeFilePath ? `
+            <a href="${API_BASE_URL}/storage/${safeFilePath}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 text-sm">
+              Lihat
+            </a>
+          ` : ''}
+          ${doc.status === 'pending' ? `
+            <button onclick="window.validateDoc(${doc.id}, 'valid')" class="text-green-600 hover:text-green-800 text-sm">
+              Valid
+            </button>
+            <button onclick="window.showRevisionModal(${doc.id})" class="text-red-600 hover:text-red-800 text-sm">
+              Revisi
+            </button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+    }).join('');
+  }
+
+  // Get document status badge
+  function getDocStatusBadge(status: string): string {
+    const badges: Record<string, { bg: string; text: string; label: string }> = {
+      'pending': { bg: 'bg-orange-100', text: 'text-orange-800', label: 'Menunggu' },
+      'valid': { bg: 'bg-green-100', text: 'text-green-800', label: 'Valid' },
+      'revision': { bg: 'bg-red-100', text: 'text-red-800', label: 'Revisi' },
+    };
+    
+    const badge = badges[status] || { bg: 'bg-gray-100', text: 'text-gray-800', label: status };
+    return `<span class="px-2 py-1 text-xs font-medium rounded-full ${badge.bg} ${badge.text}">${badge.label}</span>`;
+  }
+
+  // Validate document
+  (window as any).validateDoc = async function(docId: number, status: string, notes?: string) {
+    try {
+      const token = getToken();
+      const response = await fetch(`${API_BASE_URL}/api/validator/documents/${docId}/validate`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ status, revision_notes: notes })
+      });
+
+      if (!response.ok) throw new Error('Failed to validate');
+
+      const result = await response.json();
+      
+      if (result.success) {
+        alert('Dokumen berhasil divalidasi');
+        fetchRegistrations(currentPage);
+        (window as any).closeModal();
+      } else {
+        throw new Error(result.message);
+      }
+
+    } catch (error) {
+      alert('Gagal memvalidasi dokumen. Silakan coba lagi.');
+    }
+  };
+
+  // Validate all documents
+  (window as any).validateAllDocs = async function(regId: number) {
+    if (!confirm('Validasi semua dokumen yang belum divalidasi?')) return;
+
+    try {
+      const token = getToken();
+      const response = await fetch(`${API_BASE_URL}/api/validator/registrations/${regId}/validate-all`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) throw new Error('Failed to validate');
+
+      const result = await response.json();
+      
+      if (result.success) {
+        alert('Semua dokumen berhasil divalidasi');
+        fetchRegistrations(currentPage);
+        (window as any).closeModal();
+      } else {
+        throw new Error(result.message);
+      }
+
+    } catch (error) {
+      alert('Gagal memvalidasi dokumen. Silakan coba lagi.');
+    }
+  };
+
+  // Show revision modal
+  (window as any).showRevisionModal = function(docId: number) {
+    const notes = prompt('Masukkan catatan revisi:');
+    if (notes) {
+      (window as any).validateDoc(docId, 'revision', notes);
+    }
+  };
+
+  // Close modal
+  (window as any).closeModal = function() {
+    const modal = document.getElementById('detail-modal');
+    if (modal) {
+      modal.classList.add('hidden');
+    }
+  };
+
+  // Fetch revision count
+  async function fetchRevisionCount() {
+    try {
+      const token = getToken();
+      if (!token) return;
+
+      const response = await fetch(`${API_BASE_URL}/api/validator/registrations?validation_status=revision_needed&per_page=1`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) return;
+
+      const result = await response.json();
+      if (result.success && result.data?.total > 0) {
+        const badge = document.getElementById('revisionBadge');
+        if (badge) {
+          badge.textContent = result.data.total.toString();
+          badge.classList.remove('hidden');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching revision count:', error);
+    }
+  }
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', () => {
+    initAuth();
+    initAuthGuard();
+
+    // Set up search
+    const searchBtn = document.getElementById('search-btn');
+    const searchInput = document.getElementById('search-input') as HTMLInputElement;
+    const statusFilter = document.getElementById('status-filter') as HTMLSelectElement;
+
+    searchBtn?.addEventListener('click', () => {
+      currentSearch = searchInput?.value || '';
+      currentStatus = statusFilter?.value || '';
+      currentPage = 1;
+      fetchRegistrations(1);
+    });
+
+    searchInput?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        currentSearch = searchInput.value;
+        currentStatus = statusFilter?.value || '';
+        currentPage = 1;
+        fetchRegistrations(1);
+      }
+    });
+
+    // Close modal on backdrop click
+    document.getElementById('detail-modal')?.addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) {
+        (window as any).closeModal();
+      }
+    });
+
+    document.getElementById('close-modal')?.addEventListener('click', () => {
+      (window as any).closeModal();
+    });
+
+    // Initial fetch
+    setTimeout(() => {
+      fetchRegistrations(1);
+      fetchRevisionCount();
+    }, 100);
+  });
+</script>
+
+<style>
+  .loading-spinner {
+    display: inline-block;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+</style>

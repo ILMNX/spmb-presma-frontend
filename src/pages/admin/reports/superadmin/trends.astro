@@ -1,0 +1,467 @@
+---
+import DashboardLayout from '../../../../layouts/DashboardLayout.astro';
+
+export const prerender = false;
+---
+
+<DashboardLayout title="Registration Trends">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">Tren Pendaftaran</h1>
+        <p class="text-gray-600 mt-1">Analisis tren pendaftaran harian, mingguan, dan bulanan</p>
+      </div>
+      <div class="flex gap-3">
+        <select id="filterPeriod" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+          <option value="daily">Harian (7 Hari)</option>
+          <option value="weekly">Mingguan (8 Minggu)</option>
+          <option value="monthly">Bulanan (12 Bulan)</option>
+        </select>
+        <select id="filterSchool" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+          <option value="all">Semua Unit</option>
+          <option value="SMA">SMA</option>
+          <option value="SMK">SMK</option>
+        </select>
+        <button id="btnExport" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          Export
+        </button>
+      </div>
+    </div>
+
+    <!-- Period Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-600">Periode Ini</p>
+            <p id="currentPeriod" class="text-3xl font-bold text-blue-600">0</p>
+          </div>
+          <div id="currentPeriodTrend" class="flex items-center text-green-500">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+            </svg>
+            <span class="text-sm ml-1">0%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-600">Periode Lalu</p>
+            <p id="previousPeriod" class="text-3xl font-bold text-gray-600">0</p>
+          </div>
+          <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-600">Rata-rata</p>
+            <p id="average" class="text-3xl font-bold text-purple-600">0</p>
+          </div>
+          <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+            <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-600">Puncak</p>
+            <p id="peak" class="text-3xl font-bold text-orange-600">0</p>
+            <p id="peakDate" class="text-xs text-gray-500"></p>
+          </div>
+          <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+            <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Trend Chart -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-lg font-semibold mb-4">Grafik Tren Pendaftaran</h3>
+      <div class="h-80">
+        <canvas id="trendChart"></canvas>
+      </div>
+    </div>
+
+    <!-- School Comparison Trend -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-lg font-semibold mb-4">Perbandingan SMA vs SMK</h3>
+      <div class="h-80">
+        <canvas id="comparisonChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Payment Trend -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold mb-4">Tren Pembayaran</h3>
+        <div class="h-64">
+          <canvas id="paymentTrendChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Validation Trend -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold mb-4">Tren Validasi</h3>
+        <div class="h-64">
+          <canvas id="validationTrendChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="hidden text-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+      <p class="mt-4 text-gray-600">Memuat data...</p>
+    </div>
+
+    <!-- Data Table -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="p-6 border-b border-gray-200">
+        <h3 class="text-lg font-semibold">Detail Data</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Periode</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">SMA</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">SMK</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Pembayaran</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Perubahan</th>
+            </tr>
+          </thead>
+          <tbody id="trendTable" class="divide-y divide-gray-200">
+            <tr>
+              <td colspan="6" class="px-6 py-4 text-center text-gray-500">Memuat data...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { api } from '../../../../lib/api';
+    import Chart from 'chart.js/auto';
+
+    let trendChart: Chart | null = null;
+    let comparisonChart: Chart | null = null;
+    let paymentTrendChart: Chart | null = null;
+    let validationTrendChart: Chart | null = null;
+
+    async function loadData() {
+      const loading = document.getElementById('loading');
+      loading?.classList.remove('hidden');
+
+      const period = (document.getElementById('filterPeriod') as HTMLSelectElement).value;
+      const school = (document.getElementById('filterSchool') as HTMLSelectElement).value;
+
+      try {
+        const response = await api.get(`/api/admin/reports/superadmin/trends?period=${period}&school=${school}`);
+        
+        if (response.data.success) {
+          renderData(response.data.data);
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        loading?.classList.add('hidden');
+      }
+    }
+
+    function renderData(data: any) {
+      // Period stats
+      const current = data.summary?.current_period || 0;
+      const previous = data.summary?.previous_period || 0;
+      const change = previous > 0 ? Math.round(((current - previous) / previous) * 100) : 0;
+
+      document.getElementById('currentPeriod')!.textContent = current.toString();
+      document.getElementById('previousPeriod')!.textContent = previous.toString();
+      document.getElementById('average')!.textContent = data.summary?.average?.toString() || '0';
+      document.getElementById('peak')!.textContent = data.summary?.peak?.count?.toString() || '0';
+      document.getElementById('peakDate')!.textContent = data.summary?.peak?.date || '';
+
+      // Trend indicator
+      const trendEl = document.getElementById('currentPeriodTrend');
+      if (trendEl) {
+        const isUp = change >= 0;
+        trendEl.className = `flex items-center ${isUp ? 'text-green-500' : 'text-red-500'}`;
+        trendEl.innerHTML = `
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${isUp ? 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6' : 'M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6'}"/>
+          </svg>
+          <span class="text-sm ml-1">${Math.abs(change)}%</span>
+        `;
+      }
+
+      // Charts
+      renderTrendChart(data.trends);
+      renderComparisonChart(data.school_trends);
+      renderPaymentTrendChart(data.payment_trends);
+      renderValidationTrendChart(data.validation_trends);
+
+      // Table
+      renderTrendTable(data.trends);
+    }
+
+    function renderTrendChart(trends: any[]) {
+      const canvas = document.getElementById('trendChart') as HTMLCanvasElement;
+      if (!canvas || !trends) return;
+
+      if (trendChart) {
+        trendChart.destroy();
+      }
+
+      const labels = trends.map(t => t.label);
+      const data = trends.map(t => t.count);
+
+      trendChart = new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Pendaftaran',
+            data,
+            borderColor: 'rgba(59, 130, 246, 1)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    function renderComparisonChart(schoolTrends: any) {
+      const canvas = document.getElementById('comparisonChart') as HTMLCanvasElement;
+      if (!canvas || !schoolTrends) return;
+
+      if (comparisonChart) {
+        comparisonChart.destroy();
+      }
+
+      const labels = schoolTrends.SMA?.map((t: any) => t.label) || [];
+      const smaData = schoolTrends.SMA?.map((t: any) => t.count) || [];
+      const smkData = schoolTrends.SMK?.map((t: any) => t.count) || [];
+
+      comparisonChart = new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'SMA',
+              data: smaData,
+              borderColor: 'rgba(59, 130, 246, 1)',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              borderWidth: 2,
+              tension: 0.4
+            },
+            {
+              label: 'SMK',
+              data: smkData,
+              borderColor: 'rgba(147, 51, 234, 1)',
+              backgroundColor: 'rgba(147, 51, 234, 0.1)',
+              borderWidth: 2,
+              tension: 0.4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true }
+          },
+          plugins: {
+            legend: { position: 'top' }
+          }
+        }
+      });
+    }
+
+    function renderPaymentTrendChart(paymentTrends: any[]) {
+      const canvas = document.getElementById('paymentTrendChart') as HTMLCanvasElement;
+      if (!canvas || !paymentTrends) return;
+
+      if (paymentTrendChart) {
+        paymentTrendChart.destroy();
+      }
+
+      const labels = paymentTrends.map(t => t.label);
+      const paidData = paymentTrends.map(t => t.paid);
+      const pendingData = paymentTrends.map(t => t.pending);
+
+      paymentTrendChart = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Lunas',
+              data: paidData,
+              backgroundColor: 'rgba(34, 197, 94, 0.8)',
+              borderColor: 'rgba(34, 197, 94, 1)',
+              borderWidth: 1
+            },
+            {
+              label: 'Pending',
+              data: pendingData,
+              backgroundColor: 'rgba(251, 191, 36, 0.8)',
+              borderColor: 'rgba(251, 191, 36, 1)',
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { stacked: true },
+            y: { stacked: true, beginAtZero: true }
+          },
+          plugins: {
+            legend: { position: 'top' }
+          }
+        }
+      });
+    }
+
+    function renderValidationTrendChart(validationTrends: any[]) {
+      const canvas = document.getElementById('validationTrendChart') as HTMLCanvasElement;
+      if (!canvas || !validationTrends) return;
+
+      if (validationTrendChart) {
+        validationTrendChart.destroy();
+      }
+
+      const labels = validationTrends.map(t => t.label);
+      const validData = validationTrends.map(t => t.valid);
+      const notValidData = validationTrends.map(t => t.not_valid);
+
+      validationTrendChart = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Valid',
+              data: validData,
+              backgroundColor: 'rgba(59, 130, 246, 0.8)',
+              borderColor: 'rgba(59, 130, 246, 1)',
+              borderWidth: 1
+            },
+            {
+              label: 'Belum Valid',
+              data: notValidData,
+              backgroundColor: 'rgba(239, 68, 68, 0.8)',
+              borderColor: 'rgba(239, 68, 68, 1)',
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { stacked: true },
+            y: { stacked: true, beginAtZero: true }
+          },
+          plugins: {
+            legend: { position: 'top' }
+          }
+        }
+      });
+    }
+
+    function renderTrendTable(trends: any[]) {
+      const tbody = document.getElementById('trendTable');
+      if (!tbody || !trends) return;
+
+      tbody.innerHTML = trends.map((t, idx) => {
+        const prev = trends[idx + 1]?.count || t.count;
+        const change = prev > 0 ? Math.round(((t.count - prev) / prev) * 100) : 0;
+        const isUp = change >= 0;
+
+        return `
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 font-medium">${t.label}</td>
+            <td class="px-6 py-4 text-center font-bold">${t.count}</td>
+            <td class="px-6 py-4 text-center text-blue-600">${t.sma || '-'}</td>
+            <td class="px-6 py-4 text-center text-purple-600">${t.smk || '-'}</td>
+            <td class="px-6 py-4 text-center text-green-600">${t.paid || '-'}</td>
+            <td class="px-6 py-4 text-center">
+              <span class="inline-flex items-center ${isUp ? 'text-green-600' : 'text-red-600'}">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${isUp ? 'M5 10l7-7m0 0l7 7m-7-7v18' : 'M19 14l-7 7m0 0l-7-7m7 7V3'}"/>
+                </svg>
+                ${Math.abs(change)}%
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Filters
+    document.getElementById('filterPeriod')?.addEventListener('change', loadData);
+    document.getElementById('filterSchool')?.addEventListener('change', loadData);
+
+    // Export
+    document.getElementById('btnExport')?.addEventListener('click', async () => {
+      const period = (document.getElementById('filterPeriod') as HTMLSelectElement).value;
+      const school = (document.getElementById('filterSchool') as HTMLSelectElement).value;
+
+      try {
+        const response = await api.get(`/api/admin/reports/superadmin/trends?period=${period}&school=${school}&export=true`, {
+          responseType: 'blob'
+        });
+        
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `trends-${period}-${new Date().toISOString().split('T')[0]}.xlsx`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } catch (error) {
+        console.error('Export error:', error);
+        alert('Gagal export data');
+      }
+    });
+
+    // Initial load
+    loadData();
+  </script>
+</DashboardLayout>

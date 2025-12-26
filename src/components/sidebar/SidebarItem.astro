@@ -1,0 +1,68 @@
+---
+import { iconSvgs } from './sidebarConfig.js';
+
+interface Props {
+  item: {
+    title: string;
+    icon?: string;
+    link: string;
+    dataPage?: string;
+    submenu?: Array<{
+      title: string;
+      link: string;
+      icon?: string;
+      dataPage?: string;
+    }>;
+  };
+  index: number;
+}
+
+const { item, index } = Astro.props;
+const hasSubmenu = item.submenu && item.submenu.length > 0;
+const iconPath = item.icon ? iconSvgs[item.icon as keyof typeof iconSvgs] || iconSvgs['file'] : iconSvgs['file'];
+---
+
+{hasSubmenu ? (
+  <div class="nav-group">
+    <button class="nav-link nav-toggle w-full" data-toggle={`menu-${index}`}>
+      <div class="flex items-center space-x-3 flex-1">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <Fragment set:html={iconPath} />
+        </svg>
+        <span>{item.title}</span>
+      </div>
+      <svg class="w-4 h-4 transition-transform nav-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+      </svg>
+    </button>
+    <div id={`menu-${index}-submenu`} class="nav-submenu hidden ml-8 mt-1 space-y-1">
+      {item.submenu?.map((subItem) => (
+        <a 
+          href={subItem.link} 
+          class="nav-sublink"
+          data-page={subItem.dataPage}
+        >
+          {subItem.icon ? (
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <Fragment set:html={iconSvgs[subItem.icon as keyof typeof iconSvgs] || iconSvgs['file']} />
+            </svg>
+          ) : (
+            <span class="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
+          )}
+          <span>{subItem.title}</span>
+        </a>
+      ))}
+    </div>
+  </div>
+) : (
+  <a 
+    href={item.link} 
+    class="nav-link" 
+    data-page={item.dataPage}
+  >
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <Fragment set:html={iconPath} />
+    </svg>
+    <span>{item.title}</span>
+  </a>
+)}

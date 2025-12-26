@@ -1,0 +1,715 @@
+---
+import { sidebarMenus } from './sidebarConfig.js';
+
+export const prerender = false;
+---
+
+<!-- Mobile Menu Button -->
+<button 
+  id="mobileMenuBtn"
+  class="fixed top-4 left-4 z-50 lg:hidden p-2 bg-white rounded-lg shadow-lg text-gray-600 hover:text-purple-600 transition-colors"
+>
+  <svg id="menuIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+  </svg>
+  <svg id="closeIcon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+  </svg>
+</button>
+
+<!-- Overlay -->
+<div 
+  id="sidebarOverlay" 
+  class="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden hidden transition-opacity"
+></div>
+
+<!-- Sidebar -->
+<aside id="sidebar" class="fixed top-0 left-0 bottom-0 lg:sticky lg:top-0 w-64 bg-white shadow-xl z-40 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out lg:h-screen overflow-hidden flex flex-col">
+  <!-- Logo -->
+  <div id="sidebarHeader" class="p-4 border-b border-gray-200 flex-shrink-0 bg-gradient-to-r from-purple-600 to-purple-700">
+    <div class="flex items-center space-x-3">
+      <img 
+        id="schoolLogo" 
+        src="/logo/sma.png" 
+        alt="School Logo" 
+        class="w-12 h-12 object-contain rounded-full bg-white p-1"
+      />
+      <div>
+        <h1 id="schoolName" class="text-xl font-bold text-white">PRESMA</h1>
+        <p id="schoolType" class="text-xs text-purple-100">SMA Prestasi Prima</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Info -->
+  <div id="userInfoSection" class="p-4 border-b border-gray-200 flex-shrink-0 bg-gray-50">
+    <div class="flex items-center space-x-3">
+      <div id="userAvatar" class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
+        <span id="userInitial" class="text-white font-semibold text-lg"></span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p id="userName" class="text-sm font-semibold text-gray-900 truncate"></p>
+        <p id="userRole" class="text-xs text-gray-500 capitalize"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation - Scrollable Area -->
+  <nav id="mainNav" class="flex-1 p-4 space-y-1 overflow-y-auto">
+    <!-- Menu items will be rendered dynamically -->
+  </nav>
+
+  <!-- Logout - Fixed at bottom -->
+  <div class="p-4 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+    <button 
+      id="logoutBtn"
+      class="w-full flex space-x-2 px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 font-medium hover:shadow-sm"
+    >
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+      </svg>
+      <span>Logout</span>
+    </button>
+  </div>
+</aside>
+
+<style>
+  /* Theme color variables */
+  :root {
+    --theme-primary: #7c3aed;
+    --theme-primary-dark: #6d28d9;
+    --theme-primary-light: #f5f3ff;
+    --theme-primary-lighter: #ede9fe;
+  }
+
+  .theme-smk {
+    --theme-primary: #ea580c;
+    --theme-primary-dark: #c2410c;
+    --theme-primary-light: #fff7ed;
+    --theme-primary-lighter: #ffedd5;
+  }
+
+  /* Hover effects for navigation items */
+  a[href]:hover,
+  .nav-toggle:hover {
+    transform: translateX(2px);
+    box-shadow: 0 2px 4px rgba(147, 51, 234, 0.1);
+  }
+
+  .theme-smk a[href]:hover,
+  .theme-smk .nav-toggle:hover {
+    box-shadow: 0 2px 4px rgba(234, 88, 12, 0.1);
+  }
+
+  /* Arrow animation for toggle buttons */
+  .nav-toggle.active .nav-arrow {
+    transform: rotate(180deg);
+  }
+
+  /* --- NEW: make parent menu (nav-toggle) show hover/active styles like links --- */
+  .nav-toggle {
+    transition: all 0.18s ease;
+    position: relative; /* needed for active indicator */
+  }
+
+  .nav-toggle:hover {
+    background-color: var(--theme-primary-light);
+    color: var(--theme-primary);
+  }
+
+  .nav-toggle.active {
+    background: linear-gradient(to right, var(--theme-primary-lighter), var(--theme-primary-light));
+    color: var(--theme-primary-dark);
+    font-weight: 600;
+    box-shadow: 0 6px 18px rgba(99, 102, 241, 0.06);
+  }
+
+  .theme-smk .nav-toggle.active {
+    box-shadow: 0 6px 18px rgba(234, 88, 12, 0.06);
+  }
+
+  /* left indicator for active parent menu (same visual as sublinks) */
+  .nav-toggle.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 60%;
+    background: linear-gradient(to bottom, var(--theme-primary), var(--theme-primary-dark));
+    border-radius: 0 4px 4px 0;
+  }
+
+  /* make svg icons follow text color when hovered/active */
+  .nav-toggle svg,
+  a[href] svg {
+    transition: transform 0.18s ease, color 0.18s ease;
+  }
+
+  .nav-toggle:hover svg,
+  a[href]:hover svg {
+    transform: scale(1.06);
+    filter: drop-shadow(0 2px 4px rgba(147, 51, 234, 0.12));
+  }
+
+  .theme-smk .nav-toggle:hover svg,
+  .theme-smk a[href]:hover svg {
+    filter: drop-shadow(0 2px 4px rgba(234, 88, 12, 0.12));
+  }
+
+  .nav-toggle.active svg,
+  a[href].active svg {
+    color: var(--theme-primary-dark);
+  }
+  /* --- END NEW --- */
+
+  /* Submenu slide animation */
+  .nav-submenu:not(.hidden) {
+    animation: slideDown 0.3s ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      max-height: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      max-height: 500px;
+      transform: translateY(0);
+    }
+  }
+
+  /* Icon hover effects */
+  a[href]:hover svg,
+  .nav-toggle:hover svg {
+    transform: scale(1.1);
+    filter: drop-shadow(0 2px 4px rgba(147, 51, 234, 0.2));
+  }
+
+  .theme-smk a[href]:hover svg,
+  .theme-smk .nav-toggle:hover svg {
+    filter: drop-shadow(0 2px 4px rgba(234, 88, 12, 0.2));
+  }
+
+  /* Dot indicator hover */
+  a[href]:hover .w-1\.5 {
+    background-color: var(--theme-primary);
+    transform: scale(1.3);
+  }
+
+  /* Custom Scrollbar */
+  nav::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  nav::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  nav::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+  }
+
+  nav::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
+
+  nav {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db transparent;
+  }
+
+  /* Mobile touch feedback */
+  @media (max-width: 1023px) {
+    a[href]:active,
+    .nav-toggle:active {
+      transform: scale(0.98);
+    }
+  }
+</style>
+
+<script>
+  import { authStore, getToken, clearAuth } from '../../stores/authStore';
+  import { getMenuForUser, iconSvgs } from './sidebarConfig.js';
+
+  const API_BASE_URL = import.meta.env.PUBLIC_API_URL;
+
+  // ============================================================================
+  // THEME CONFIGURATION
+  // ============================================================================
+  const themeConfig = {
+    sma: {
+      logo: '/logo/sma.png',
+      name: 'PRESMA',
+      subtitle: 'SMA Prestasi Prima',
+      headerGradient: 'from-purple-600 to-purple-700',
+      avatarGradient: 'from-purple-500 to-purple-600',
+      hoverBg: 'hover:bg-purple-50',
+      hoverText: 'hover:text-purple-600',
+      activeBg: 'from-purple-50 to-purple-100',
+      activeText: 'text-purple-700',
+      indicatorGradient: 'from-purple-600 to-purple-700',
+      themeClass: 'theme-sma'
+    },
+    smk: {
+      logo: '/logo/smk.png',
+      name: 'PRESMA',
+      subtitle: 'SMK Prestasi Prima',
+      headerGradient: 'from-orange-500 to-orange-600',
+      avatarGradient: 'from-orange-500 to-orange-600',
+      hoverBg: 'hover:bg-orange-50',
+      hoverText: 'hover:text-orange-600',
+      activeBg: 'from-orange-50 to-orange-100',
+      activeText: 'text-orange-700',
+      indicatorGradient: 'from-orange-500 to-orange-600',
+      themeClass: 'theme-smk'
+    }
+  };
+
+  function getSchoolType(user: any): 'sma' | 'smk' {
+    // Check user's school_type property
+    if (user?.school_type === 'smk') return 'smk';
+    if (user?.school_type === 'sma') return 'sma';
+    
+    // For 'both' or superadmin, default to SMA theme
+    // You can change this logic as needed
+    if (user?.school_type === 'both') return 'sma';
+    
+    // For students, check their registration or assigned school
+    if (user?.school_type) {
+      return user.school_type.toLowerCase() === 'smk' ? 'smk' : 'sma';
+    }
+    
+    // Default to SMA
+    return 'sma';
+  }
+
+  function applyTheme(schoolType: 'sma' | 'smk') {
+    const config = themeConfig[schoolType];
+    const sidebar = document.getElementById('sidebar');
+    const sidebarHeader = document.getElementById('sidebarHeader');
+    const schoolLogo = document.getElementById('schoolLogo') as HTMLImageElement;
+    const schoolName = document.getElementById('schoolName');
+    const schoolTypeEl = document.getElementById('schoolType');
+    const userAvatar = document.getElementById('userAvatar');
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+
+    // Apply theme class to sidebar for CSS variable switching
+    sidebar?.classList.remove('theme-sma', 'theme-smk');
+    sidebar?.classList.add(config.themeClass);
+
+    // Update header gradient
+    if (sidebarHeader) {
+      sidebarHeader.className = `p-4 border-b border-gray-200 flex-shrink-0 bg-gradient-to-r ${config.headerGradient}`;
+    }
+
+    // Update logo
+    if (schoolLogo) {
+      schoolLogo.src = config.logo;
+      schoolLogo.alt = `${schoolType.toUpperCase()} Logo`;
+    }
+
+    // Update school name and subtitle
+    if (schoolName) schoolName.textContent = config.name;
+    if (schoolTypeEl) {
+      schoolTypeEl.textContent = config.subtitle;
+      schoolTypeEl.className = schoolType === 'smk' 
+        ? 'text-xs text-orange-100' 
+        : 'text-xs text-purple-100';
+    }
+
+    // Update user avatar gradient
+    if (userAvatar) {
+      userAvatar.className = `w-10 h-10 bg-gradient-to-br ${config.avatarGradient} rounded-full flex items-center justify-center shadow-md`;
+    }
+
+    // Update mobile menu button hover color
+    if (mobileMenuBtn) {
+      mobileMenuBtn.className = schoolType === 'smk'
+        ? 'fixed top-4 left-4 z-50 lg:hidden p-2 bg-white rounded-lg shadow-lg text-gray-600 hover:text-orange-600 transition-colors'
+        : 'fixed top-4 left-4 z-50 lg:hidden p-2 bg-white rounded-lg shadow-lg text-gray-600 hover:text-purple-600 transition-colors';
+    }
+
+    // Store current theme for menu rendering
+    return config;
+  }
+
+  // ============================================================================
+  // TOKEN VALIDATION
+  // ============================================================================
+  let isValidating = false;
+
+  async function validateToken(token: string): Promise<boolean> {
+    if (isValidating) return true;
+    
+    try {
+      isValidating = true;
+      
+      const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+
+      if (response.status === 401) {
+        handleTokenExpired();
+        return false;
+      }
+
+      return response.ok;
+    } catch (error) {
+      console.error('❌ Token validation error:', error);
+      return true;
+    } finally {
+      isValidating = false;
+    }
+  }
+
+  function handleTokenExpired() {
+    // Don't do redirect here - let authGuard handle it
+    // This prevents race conditions with multiple redirects
+    clearAuth();
+  }
+
+  // ============================================================================
+  // MOBILE MENU FUNCTIONALITY
+  // ============================================================================
+  const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+  const sidebar = document.getElementById('sidebar');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  const menuIcon = document.getElementById('menuIcon');
+  const closeIcon = document.getElementById('closeIcon');
+
+  function toggleSidebar() {
+    sidebar?.classList.toggle('-translate-x-full');
+    sidebarOverlay?.classList.toggle('hidden');
+    menuIcon?.classList.toggle('hidden');
+    closeIcon?.classList.toggle('hidden');
+  }
+
+  mobileMenuBtn?.addEventListener('click', toggleSidebar);
+  sidebarOverlay?.addEventListener('click', toggleSidebar);
+
+  // ============================================================================
+  // MENU RENDERING BASED ON USER ROLE AND SCHOOL TYPE
+  // ============================================================================
+  let currentTheme: typeof themeConfig.sma;
+
+  function renderMenu(user: any) {
+    const mainNav = document.getElementById('mainNav');
+    if (!mainNav) return;
+
+    const menuConfig = getMenuForUser(user);
+    
+    mainNav.innerHTML = '';
+
+    menuConfig.forEach((item: any, index: number) => {
+      const hasSubmenu = item.submenu && item.submenu.length > 0;
+      const iconPath = item.icon ? iconSvgs[item.icon as keyof typeof iconSvgs] : iconSvgs['file'];
+
+      if (hasSubmenu) {
+        mainNav.appendChild(createMenuWithSubmenu(item, iconPath, index));
+      } else {
+        mainNav.appendChild(createSimpleLink(item, iconPath));
+      }
+    });
+
+    attachSubmenuListeners();
+    attachNavigationListeners();
+    applyActiveStates();
+    attachMobileListeners();
+  }
+
+  function createMenuWithSubmenu(item: any, iconPath: string, index: number) {
+    const navGroup = document.createElement('div');
+    navGroup.className = 'nav-group mb-1';
+    
+    const hoverClasses = currentTheme === themeConfig.smk 
+      ? 'hover:bg-orange-50 hover:text-orange-600' 
+      : 'hover:bg-purple-50 hover:text-purple-600';
+    
+    navGroup.innerHTML = `
+      <button class="flex items-center justify-between w-full px-3 py-2.5 text-gray-700 ${hoverClasses} rounded-lg transition-all duration-200 cursor-pointer font-medium relative nav-toggle" data-toggle="menu-${index}">
+        <div class="flex items-center space-x-3 flex-1">
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            ${iconPath}
+          </svg>
+          <span>${item.title}</span>
+        </div>
+        <svg class="w-4 h-4 flex-shrink-0 transition-transform nav-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+      </button>
+      <div id="menu-${index}-submenu" class="nav-submenu hidden space-y-1 mt-1 ml-3 pl-4 border-l-2 border-gray-200">
+        ${item.submenu.map((subItem: any) => createSubmenuLink(subItem)).join('')}
+      </div>
+    `;
+    
+    return navGroup;
+  }
+
+  function createSubmenuLink(subItem: any) {
+    const icon = subItem.icon 
+      ? `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">${iconSvgs[subItem.icon as keyof typeof iconSvgs] || iconSvgs['file']}</svg>`
+      : `<span class="w-1.5 h-1.5 bg-gray-400 rounded-full transition-all duration-200"></span>`;
+
+    const hoverClasses = currentTheme === themeConfig.smk 
+      ? 'hover:bg-orange-50 hover:text-orange-600' 
+      : 'hover:bg-purple-50 hover:text-purple-600';
+
+    return `
+      <a href="${subItem.link}" class="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 ${hoverClasses} rounded-lg transition-all duration-200 cursor-pointer relative nav-link" ${subItem.dataPage ? `data-page="${subItem.dataPage}"` : ''}>
+        ${icon}
+        <span>${subItem.title}</span>
+      </a>
+    `;
+  }
+
+  function createSimpleLink(item: any, iconPath: string) {
+    const link = document.createElement('a');
+    link.href = item.link;
+    
+    const hoverClasses = currentTheme === themeConfig.smk 
+      ? 'hover:bg-orange-50 hover:text-orange-600' 
+      : 'hover:bg-purple-50 hover:text-purple-600';
+    
+    link.className = `flex items-center justify-between w-full px-3 py-2.5 text-gray-700 ${hoverClasses} rounded-lg transition-all duration-200 cursor-pointer font-medium relative nav-link`;
+    if (item.dataPage) link.setAttribute('data-page', item.dataPage);
+    
+    link.innerHTML = `
+      <div class="flex items-center space-x-3 flex-1">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          ${iconPath}
+        </svg>
+        <span>${item.title}</span>
+      </div>
+    `;
+    
+    return link;
+  }
+
+  // ============================================================================
+  // EVENT LISTENERS
+  // ============================================================================
+  function attachSubmenuListeners() {
+    document.querySelectorAll('.nav-toggle').forEach(toggle => {
+      toggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetId = toggle.getAttribute('data-toggle');
+        const submenu = document.getElementById(`${targetId}-submenu`);
+        
+        toggle.classList.toggle('active');
+        submenu?.classList.toggle('hidden');
+      });
+    });
+  }
+
+  function attachNavigationListeners() {
+    document.querySelectorAll('a.nav-link').forEach(link => {
+      link.addEventListener('click', async (e) => {
+        e.preventDefault();
+        
+        const href = (link as HTMLAnchorElement).getAttribute('href');
+        if (!href) return;
+
+        const token = getToken();
+        
+        if (!token) {
+          window.location.href = '/login';
+          return;
+        }
+
+        const isValid = await validateToken(token);
+        
+        if (isValid) {
+          window.location.href = href;
+        }
+      });
+    });
+  }
+
+  function attachMobileListeners() {
+    if (window.innerWidth < 1024) {
+      document.querySelectorAll('a.nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+          if (!sidebar?.classList.contains('-translate-x-full')) {
+            setTimeout(() => toggleSidebar(), 100);
+          }
+        });
+      });
+    }
+  }
+
+  function buildDataPageMap(user: any) {
+    const dataPagePathMap: Record<string, string> = {};
+    const menuConfig = getMenuForUser(user);
+    
+    menuConfig.forEach((item: any) => {
+      if (item.dataPage) dataPagePathMap[item.dataPage] = item.link;
+      if (item.submenu && Array.isArray(item.submenu)) {
+        item.submenu.forEach((sub: any) => {
+          if (sub.dataPage) dataPagePathMap[sub.dataPage] = sub.link;
+        });
+      }
+    });
+    
+    return dataPagePathMap;
+  }
+
+  function normalizePath(path: string) {
+    return path.replace(/\/+$/, '') || '/';
+  }
+
+  // ============================================================================
+  // ACTIVE STATE MANAGEMENT
+  // ============================================================================
+  function isLinkActive(link: Element, dataPagePathMap: Record<string, string>): boolean {
+    const href = link.getAttribute('href');
+    if (!href || href === '#') return false;
+
+    try {
+      const currentPath = normalizePath(window.location.pathname);
+      const currentParams = new URLSearchParams(window.location.search);
+      const currentTab = currentParams.get('tab');
+      const currentSection = currentParams.get('section');
+
+      const linkUrl = new URL(href, window.location.origin);
+      const linkPath = normalizePath(linkUrl.pathname);
+      const linkTab = new URLSearchParams(linkUrl.search).get('tab');
+      const linkSection = new URLSearchParams(linkUrl.search).get('section');
+
+      const dataPage = link.getAttribute('data-page');
+
+      if (dataPage === 'dashboard') {
+        return currentPath.endsWith('/dashboard') && !currentTab && !currentSection;
+      }
+
+      if (dataPage && dataPagePathMap[dataPage]) {
+        const mappedUrl = new URL(dataPagePathMap[dataPage], window.location.origin);
+        const mappedPath = normalizePath(mappedUrl.pathname);
+        const mappedTab = new URLSearchParams(mappedUrl.search).get('tab');
+        const mappedSection = new URLSearchParams(mappedUrl.search).get('section');
+
+        return mappedPath === currentPath &&
+               (mappedTab === currentTab) &&
+               (mappedSection === currentSection);
+      }
+
+      return linkPath === currentPath &&
+             linkTab === currentTab &&
+             linkSection === currentSection;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function applyActiveStates() {
+    const state = authStore.get();
+    const dataPagePathMap = buildDataPageMap(state.user);
+    const schoolType = getSchoolType(state.user);
+
+    const activeClasses = schoolType === 'smk'
+      ? ['bg-gradient-to-r', 'from-orange-50', 'to-orange-100', 'text-orange-700', 'font-semibold', 'shadow-sm']
+      : ['bg-gradient-to-r', 'from-purple-50', 'to-purple-100', 'text-purple-700', 'font-semibold', 'shadow-sm'];
+
+    const indicatorClasses = schoolType === 'smk'
+      ? 'bg-gradient-to-b from-orange-500 to-orange-600'
+      : 'bg-gradient-to-b from-purple-600 to-purple-700';
+
+    document.querySelectorAll('a.nav-link').forEach(link => {
+      // Remove all possible active classes
+      link.classList.remove(
+        'bg-gradient-to-r', 'from-purple-50', 'to-purple-100', 'text-purple-700',
+        'from-orange-50', 'to-orange-100', 'text-orange-700', 'font-semibold', 'shadow-sm'
+      );
+      
+      const existingIndicator = link.querySelector('.active-indicator');
+      if (existingIndicator) existingIndicator.remove();
+      
+      if (isLinkActive(link, dataPagePathMap)) {
+        activeClasses.forEach(cls => link.classList.add(cls));
+        
+        const indicator = document.createElement('span');
+        indicator.className = `active-indicator absolute left-0 top-1/2 -translate-y-1/2 w-1 h-3/4 ${indicatorClasses} rounded-r`;
+        link.prepend(indicator);
+        
+        const submenu = link.closest('.nav-submenu');
+        if (submenu) {
+          const toggle = submenu.previousElementSibling;
+          if (toggle && toggle.classList.contains('nav-toggle')) {
+            toggle.classList.add('active');
+            submenu.classList.remove('hidden');
+          }
+        }
+      }
+    });
+  }
+
+  // ============================================================================
+  // USER INFO UPDATE
+  // ============================================================================
+  function updateUserInfo(user: any) {
+    const userNameEl = document.getElementById('userName');
+    const userRoleEl = document.getElementById('userRole');
+    const userInitialEl = document.getElementById('userInitial');
+
+    if (userNameEl) userNameEl.textContent = user.name;
+    
+    if (userRoleEl) {
+      let roleText = user.role;
+      if (user.role === 'admin' && user.school_type) {
+        const schoolTypeLabel = user.school_type === 'both' ? 'Superadmin' : `Admin ${user.school_type.toUpperCase()}`;
+        roleText = schoolTypeLabel;
+      }
+      userRoleEl.textContent = roleText;
+    }
+    
+    if (userInitialEl) userInitialEl.textContent = user.name.charAt(0).toUpperCase();
+  }
+
+  // ============================================================================
+  // INITIALIZATION
+  // ============================================================================
+  function initializeSidebar() {
+    const state = authStore.get();
+    
+    if (state?.user) {
+      // Apply theme based on school type
+      const schoolType = getSchoolType(state.user);
+      currentTheme = applyTheme(schoolType);
+      
+      updateUserInfo(state.user);
+      renderMenu(state.user);
+    } else {
+      // Default theme for guests
+      currentTheme = applyTheme('sma');
+      
+      const mainNav = document.getElementById('mainNav');
+      if (mainNav) mainNav.innerHTML = '<p class="text-sm text-gray-500 px-3">Please login to continue</p>';
+    }
+  }
+
+  // Initial render
+  initializeSidebar();
+
+  // Auth state listener - re-render when user changes
+  authStore.subscribe(auth => {
+    if (auth?.user) {
+      const schoolType = getSchoolType(auth.user);
+      currentTheme = applyTheme(schoolType);
+      
+      updateUserInfo(auth.user);
+      renderMenu(auth.user);
+    } else {
+      currentTheme = applyTheme('sma');
+      
+      const mainNav = document.getElementById('mainNav');
+      if (mainNav) mainNav.innerHTML = '<p class="text-sm text-gray-500 px-3">Please login to continue</p>';
+    }
+  });
+</script>

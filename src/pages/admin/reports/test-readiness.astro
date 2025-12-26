@@ -1,0 +1,486 @@
+---
+import DashboardLayout from '../../../layouts/DashboardLayout.astro';
+
+export const prerender = false;
+---
+
+<DashboardLayout title="Test Readiness">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">Kesiapan Tes</h1>
+        <p class="text-gray-600 mt-1">Monitoring siswa yang siap dan belum siap mengikuti tes</p>
+      </div>
+      <div class="flex gap-3">
+        <button id="btnExport" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          Export
+        </button>
+        <button id="btnRefresh" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-600">Total Pendaftar</p>
+            <p id="totalRegistrations" class="text-3xl font-bold text-gray-800">0</p>
+          </div>
+          <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-600">Siap Tes</p>
+            <p id="readyCount" class="text-3xl font-bold text-green-600">0</p>
+          </div>
+          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-600">Belum Siap</p>
+            <p id="notReadyCount" class="text-3xl font-bold text-red-600">0</p>
+          </div>
+          <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-600">Tingkat Kesiapan</p>
+            <p id="readinessRate" class="text-3xl font-bold text-blue-600">0%</p>
+          </div>
+          <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Requirements Overview -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-lg font-semibold mb-4">Persyaratan Kesiapan Tes</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div id="paymentReq" class="border rounded-lg p-4">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <div>
+              <h4 class="font-semibold">Pembayaran</h4>
+              <p class="text-sm text-gray-600">Status pembayaran terkonfirmasi</p>
+            </div>
+          </div>
+          <div class="flex justify-between items-center mt-3">
+            <span id="paymentCompleted" class="text-2xl font-bold text-green-600">0</span>
+            <span id="paymentPercentage" class="text-sm text-gray-500">0%</span>
+          </div>
+        </div>
+
+        <div id="validationReq" class="border rounded-lg p-4">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+              </svg>
+            </div>
+            <div>
+              <h4 class="font-semibold">Validasi</h4>
+              <p class="text-sm text-gray-600">Berkas tervalidasi lengkap</p>
+            </div>
+          </div>
+          <div class="flex justify-between items-center mt-3">
+            <span id="validationCompleted" class="text-2xl font-bold text-blue-600">0</span>
+            <span id="validationPercentage" class="text-sm text-gray-500">0%</span>
+          </div>
+        </div>
+
+        <div id="statusReq" class="border rounded-lg p-4">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+              <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <div>
+              <h4 class="font-semibold">Status Aktif</h4>
+              <p class="text-sm text-gray-600">Status pendaftaran aktif</p>
+            </div>
+          </div>
+          <div class="flex justify-between items-center mt-3">
+            <span id="statusCompleted" class="text-2xl font-bold text-purple-600">0</span>
+            <span id="statusPercentage" class="text-sm text-gray-500">0%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Pie Chart -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold mb-4">Distribusi Kesiapan</h3>
+        <div class="h-64">
+          <canvas id="readinessChart"></canvas>
+        </div>
+      </div>
+
+      <!-- By Major Chart -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold mb-4">Per Jurusan</h3>
+        <div class="h-64">
+          <canvas id="byMajorChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="hidden text-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+      <p class="mt-4 text-gray-600">Memuat data...</p>
+    </div>
+
+    <!-- Table -->
+    <div id="tableContainer" class="bg-white rounded-lg shadow">
+      <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+        <h3 class="text-lg font-semibold">Detail Per Jurusan</h3>
+        <div class="flex gap-2">
+          <button id="btnShowReady" class="px-3 py-1 text-sm rounded border border-green-500 text-green-600 hover:bg-green-50">
+            Siap Tes
+          </button>
+          <button id="btnShowNotReady" class="px-3 py-1 text-sm rounded border border-red-500 text-red-600 hover:bg-red-50">
+            Belum Siap
+          </button>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jurusan</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Siap</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Belum Siap</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Tingkat Kesiapan</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody" class="divide-y divide-gray-200">
+            <tr>
+              <td colspan="5" class="px-6 py-4 text-center text-gray-500">Memuat data...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Not Ready List -->
+    <div id="notReadyContainer" class="bg-white rounded-lg shadow">
+      <div class="p-6 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-red-600">Siswa Belum Siap Tes</h3>
+        <p class="text-sm text-gray-600 mt-1">Daftar siswa yang belum memenuhi persyaratan tes</p>
+      </div>
+      <div id="notReadyList" class="divide-y divide-gray-200">
+        <!-- Dynamic content -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { api } from '../../../lib/api';
+    import Chart from 'chart.js/auto';
+
+    let readinessChart: Chart | null = null;
+    let byMajorChart: Chart | null = null;
+
+    async function loadData() {
+      const loading = document.getElementById('loading');
+      loading?.classList.remove('hidden');
+
+      try {
+        const response = await api.get('/api/admin/reports/test-readiness');
+        
+        if (response.data.success) {
+          renderData(response.data.data);
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        loading?.classList.add('hidden');
+      }
+    }
+
+    function renderData(data: any) {
+      // Summary - API returns: ready.count, not_ready.count (as strings)
+      const ready = parseInt(data.ready?.count) || 0;
+      const notReady = parseInt(data.not_ready?.count) || 0;
+      const total = data.total || (ready + notReady);
+      const rate = total > 0 ? Math.round((ready / total) * 100) : 0;
+
+      document.getElementById('totalRegistrations')!.textContent = total.toString();
+      document.getElementById('readyCount')!.textContent = ready.toString();
+      document.getElementById('notReadyCount')!.textContent = notReady.toString();
+      document.getElementById('readinessRate')!.textContent = `${rate}%`;
+
+      // Requirements breakdown (if available)
+      if (data.requirements_breakdown) {
+        const rb = data.requirements_breakdown;
+        
+        document.getElementById('paymentCompleted')!.textContent = rb.payment_completed?.toString() || '0';
+        document.getElementById('paymentPercentage')!.textContent = total > 0 ? `${Math.round((rb.payment_completed / total) * 100)}%` : '0%';
+        
+        document.getElementById('validationCompleted')!.textContent = rb.validation_completed?.toString() || '0';
+        document.getElementById('validationPercentage')!.textContent = total > 0 ? `${Math.round((rb.validation_completed / total) * 100)}%` : '0%';
+        
+        document.getElementById('statusCompleted')!.textContent = rb.status_active?.toString() || '0';
+        document.getElementById('statusPercentage')!.textContent = total > 0 ? `${Math.round((rb.status_active / total) * 100)}%` : '0%';
+      } else {
+        // Use ready count as proxy for completed requirements
+        document.getElementById('paymentCompleted')!.textContent = total.toString();
+        document.getElementById('paymentPercentage')!.textContent = '100%';
+        
+        document.getElementById('validationCompleted')!.textContent = ready.toString();
+        document.getElementById('validationPercentage')!.textContent = `${rate}%`;
+        
+        document.getElementById('statusCompleted')!.textContent = total.toString();
+        document.getElementById('statusPercentage')!.textContent = '100%';
+      }
+
+      // Charts
+      renderReadinessChart(ready, notReady);
+      
+      if (data.by_major) {
+        renderByMajorChart(data.by_major);
+        renderByMajorTable(data.by_major);
+      }
+
+      // Not ready list
+      if (data.not_ready_details) {
+        renderNotReadyList(data.not_ready_details);
+      }
+    }
+
+    function renderReadinessChart(ready: number, notReady: number) {
+      const canvas = document.getElementById('readinessChart') as HTMLCanvasElement;
+      if (!canvas) return;
+
+      if (readinessChart) {
+        readinessChart.destroy();
+      }
+
+      readinessChart = new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+          labels: ['Siap Tes', 'Belum Siap'],
+          datasets: [{
+            data: [ready, notReady],
+            backgroundColor: ['rgba(34, 197, 94, 0.8)', 'rgba(239, 68, 68, 0.8)'],
+            borderColor: ['rgba(34, 197, 94, 1)', 'rgba(239, 68, 68, 1)'],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' }
+          }
+        }
+      });
+    }
+
+    function renderByMajorChart(byMajor: any[]) {
+      const canvas = document.getElementById('byMajorChart') as HTMLCanvasElement;
+      if (!canvas) return;
+
+      if (byMajorChart) {
+        byMajorChart.destroy();
+      }
+
+      if (!byMajor || byMajor.length === 0) {
+        return;
+      }
+
+      const labels = byMajor.map(m => m.display_name || m.major || '-');
+      const readyData = byMajor.map(m => parseInt(m.ready) || 0);
+      const notReadyData = byMajor.map(m => parseInt(m.not_ready) || 0);
+
+      byMajorChart = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Siap',
+              data: readyData,
+              backgroundColor: 'rgba(34, 197, 94, 0.8)',
+              borderColor: 'rgba(34, 197, 94, 1)',
+              borderWidth: 1
+            },
+            {
+              label: 'Belum Siap',
+              data: notReadyData,
+              backgroundColor: 'rgba(239, 68, 68, 0.8)',
+              borderColor: 'rgba(239, 68, 68, 1)',
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { stacked: true },
+            y: { stacked: true, beginAtZero: true }
+          },
+          plugins: {
+            legend: { position: 'top' }
+          }
+        }
+      });
+    }
+
+    function renderByMajorTable(byMajor: any[]) {
+      const tbody = document.getElementById('tableBody');
+      if (!tbody) return;
+
+      if (!byMajor || byMajor.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+              Tidak ada data per jurusan
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = byMajor.map(row => {
+        const ready = parseInt(row.ready) || 0;
+        const notReady = parseInt(row.not_ready) || 0;
+        const total = ready + notReady;
+        const rate = total > 0 ? Math.round((ready / total) * 100) : 0;
+        
+        return `
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 font-medium">${row.display_name || row.major || '-'}</td>
+            <td class="px-6 py-4 text-center">${total}</td>
+            <td class="px-6 py-4 text-center">
+              <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">${ready}</span>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-sm">${notReady}</span>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-2">
+                <div class="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div class="bg-green-500 h-full rounded-full" style="width: ${rate}%"></div>
+                </div>
+                <span class="text-sm font-medium w-12 text-right">${rate}%</span>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderNotReadyList(list: any[]) {
+      const container = document.getElementById('notReadyList');
+      if (!container) return;
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="px-6 py-8 text-center text-gray-500">
+            <svg class="w-12 h-12 mx-auto text-green-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Semua pendaftar siap mengikuti tes
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = list.slice(0, 10).map((item: any) => {
+        const missingReqs = [];
+        if (!item.payment_confirmed) missingReqs.push('Pembayaran');
+        if (!item.is_validated) missingReqs.push('Validasi');
+        if (item.status !== 'active') missingReqs.push('Status');
+
+        return `
+          <div class="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
+            <div>
+              <div class="font-medium">${item.name}</div>
+              <div class="text-sm text-gray-600">${item.registration_number} • ${item.display_name || item.major}</div>
+              <div class="flex gap-2 mt-2">
+                ${missingReqs.map(req => `
+                  <span class="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded">${req}</span>
+                `).join('')}
+              </div>
+            </div>
+            <a href="/admin/registrations/${item.id}" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
+              Detail
+            </a>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Export
+    document.getElementById('btnExport')?.addEventListener('click', async () => {
+      try {
+        const response = await api.get('/api/admin/reports/test-readiness?export=true', {
+          responseType: 'blob'
+        });
+        
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `test-readiness-${new Date().toISOString().split('T')[0]}.xlsx`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } catch (error) {
+        console.error('Export error:', error);
+        alert('Gagal export data');
+      }
+    });
+
+    document.getElementById('btnRefresh')?.addEventListener('click', () => {
+      loadData();
+    });
+
+    // Initial load
+    loadData();
+  </script>
+</DashboardLayout>

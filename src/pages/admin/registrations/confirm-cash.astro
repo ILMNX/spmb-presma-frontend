@@ -1,0 +1,793 @@
+---
+import DashboardLayout from '../../../layouts/DashboardLayout.astro';
+
+export const prerender = false;
+---
+
+<DashboardLayout title="Konfirmasi Pembayaran Tunai">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Konfirmasi Pembayaran Tunai</h1>
+          <p class="text-gray-500 mt-1">Daftar pendaftar dengan metode pembayaran tunai (termasuk cicilan)</p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <div class="text-right">
+            <p class="text-sm text-gray-500">Menunggu/Cicilan</p>
+            <p id="stat-pending" class="text-2xl font-bold text-yellow-600">0</p>
+          </div>
+          <button
+            id="btnRefresh"
+            class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            <span>Refresh</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="flex gap-4">
+        <div class="flex-1">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Cari nama, email, no. registrasi..."
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          />
+        </div>
+        <select
+          id="statusFilter"
+          class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        >
+          <option value="all">Semua Status</option>
+          <option value="unpaid">Belum Bayar</option>
+          <option value="partial">Cicilan</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <!-- Loading State -->
+      <div id="loadingState" class="flex items-center justify-center p-8">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      </div>
+
+      <!-- Table Content -->
+      <div id="tableContent" class="hidden">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  No. Registrasi
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Nama
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Jenis/Jurusan
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status Pembayaran
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Progress
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Tanggal Daftar
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Aksi
+                </th>
+              </tr>
+            </thead>
+            <tbody id="tableBody" class="bg-white divide-y divide-gray-200">
+              <!-- Dynamic content -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+          <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p class="text-sm text-gray-700">
+                Menampilkan <span id="paginationFrom" class="font-medium">1</span> sampai <span id="paginationTo" class="font-medium">10</span> dari <span id="paginationTotal" class="font-medium">0</span> hasil
+              </p>
+            </div>
+            <div>
+              <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" id="paginationNav">
+                <!-- Dynamic pagination buttons -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden text-center p-8">
+        <svg class="mx-auto h-12 w-12 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">Tidak ada pembayaran tunai yang menunggu</h3>
+        <p class="mt-1 text-sm text-gray-500">Semua pembayaran tunai sudah lunas.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Payment Modal -->
+  <div id="confirmModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-10 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-4 border-b">
+        <h3 class="text-xl font-semibold text-gray-900">Konfirmasi Pembayaran Tunai</h3>
+        <button id="closeModal" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div id="modalContent" class="mt-4">
+        <!-- Registration Info -->
+        <div class="mb-4 p-3 bg-gray-50 rounded-lg">
+          <p class="text-sm text-gray-600">Pendaftar:</p>
+          <p id="modalName" class="font-semibold text-gray-900"></p>
+          <p id="modalRegNumber" class="text-sm text-gray-500"></p>
+        </div>
+
+        <!-- Payment Summary -->
+        <div id="paymentSummary" class="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div class="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <p class="text-gray-600">Total Tagihan:</p>
+              <p id="modalRequiredAmount" class="font-bold text-gray-900">Rp 0</p>
+            </div>
+            <div>
+              <p class="text-gray-600">Sudah Dibayar:</p>
+              <p id="modalPaidAmount" class="font-bold text-green-600">Rp 0</p>
+            </div>
+            <div class="col-span-2">
+              <p class="text-gray-600">Sisa Pembayaran:</p>
+              <p id="modalRemainingAmount" class="font-bold text-xl text-red-600">Rp 0</p>
+            </div>
+          </div>
+          <!-- Progress Bar -->
+          <div class="mt-3">
+            <div class="flex justify-between text-xs text-gray-500 mb-1">
+              <span>Progress Pembayaran</span>
+              <span id="modalProgressPercent">0%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              <div id="modalProgressBar" class="bg-green-500 h-2 rounded-full transition-all" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment History -->
+        <div id="paymentHistorySection" class="mb-4 hidden">
+          <p class="text-sm font-medium text-gray-700 mb-2">Riwayat Pembayaran:</p>
+          <div id="paymentHistoryList" class="max-h-32 overflow-y-auto space-y-2 text-sm">
+            <!-- Dynamic history items -->
+          </div>
+        </div>
+
+        <form id="cashPaymentForm" class="space-y-4">
+          <input type="hidden" id="registrationId" />
+          <input type="hidden" id="remainingAmount" />
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Jumlah Pembayaran <span class="text-red-500">*</span>
+              <span class="text-xs text-gray-500 font-normal">(bisa kurang dari tagihan untuk cicilan)</span>
+            </label>
+            <div class="relative">
+              <span class="absolute left-3 top-2 text-gray-500">Rp</span>
+              <input
+                type="number"
+                id="paymentAmount"
+                name="amount"
+                min="1"
+                placeholder="Masukkan jumlah pembayaran"
+                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                required
+              />
+            </div>
+            <div class="flex gap-2 mt-2">
+              <button type="button" id="btnPayFull" class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200">
+                Bayar Lunas
+              </button>
+              <button type="button" id="btnPayHalf" class="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200">
+                Bayar 50%
+              </button>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Catatan (Opsional)</label>
+            <textarea
+              id="paymentNotes"
+              name="notes"
+              rows="2"
+              placeholder="Catatan pembayaran..."
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            ></textarea>
+          </div>
+
+          <!-- Payment Preview -->
+          <div id="paymentPreview" class="p-3 bg-yellow-50 rounded-lg border border-yellow-200 text-sm">
+            <p class="font-medium text-yellow-800">Preview setelah pembayaran ini:</p>
+            <p id="previewStatus" class="text-yellow-700"></p>
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-4">
+            <button
+              type="button"
+              onclick="document.getElementById('confirmModal').classList.add('hidden')"
+              class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              id="btnConfirm"
+              class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span>Konfirmasi Pembayaran</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</DashboardLayout>
+
+<script>
+  import { authStore, getToken } from '../../../stores/authStore';
+
+  const API_BASE_URL = import.meta.env.PUBLIC_API_URL;
+
+  interface PaymentHistory {
+    amount: number;
+    paid_at: string;
+    notes: string | null;
+    confirmed_by: number | null;
+    running_total: number;
+  }
+
+  interface Payment {
+    id: number;
+    payment_method: string;
+    payment_status: string;
+    amount: number;
+    paid_amount: number;
+    payment_history: PaymentHistory[] | null;
+  }
+
+  interface Registration {
+    id: number;
+    registration_number: string;
+    type: string;
+    name: string;
+    email: string;
+    major: string;
+    payment_amount: number;
+    payment_status: string;
+    payment_method: string;
+    registered_at: string;
+    payment?: Payment;
+  }
+
+  interface PaginationMeta {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number | null;
+    to: number | null;
+  }
+
+  let currentPage = 1;
+  let searchQuery = '';
+  let statusFilter = 'all';
+  let currentModalData: {
+    id: number;
+    requiredAmount: number;
+    paidAmount: number;
+    remainingAmount: number;
+    paymentHistory: PaymentHistory[] | null;
+  } | null = null;
+
+  async function loadRegistrations(page: number = 1) {
+    const token = getToken();
+    if (!token) return;
+
+    const loadingState = document.getElementById('loadingState')!;
+    const tableContent = document.getElementById('tableContent')!;
+    const emptyState = document.getElementById('emptyState')!;
+
+    loadingState.classList.remove('hidden');
+    tableContent.classList.add('hidden');
+    emptyState.classList.add('hidden');
+
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        per_page: '15',
+        status: 'pending_payment',
+        search: searchQuery
+      });
+
+      const response = await fetch(`${API_BASE_URL}/api/admin/registrations?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        // Filter for cash payments only (unpaid, pending, or partial)
+        let cashPayments = result.data.filter((reg: Registration) => 
+          reg.payment_method === 'cash' && 
+          (reg.payment_status === 'unpaid' || reg.payment_status === 'pending' || reg.payment_status === 'partial' || !reg.payment_status)
+        );
+
+        // Apply status filter
+        if (statusFilter !== 'all') {
+          cashPayments = cashPayments.filter((reg: Registration) => {
+            if (statusFilter === 'unpaid') {
+              return !reg.payment_status || reg.payment_status === 'unpaid' || reg.payment_status === 'pending';
+            }
+            return reg.payment_status === statusFilter;
+          });
+        }
+        
+        document.getElementById('stat-pending')!.textContent = cashPayments.length.toString();
+
+        if (cashPayments.length === 0) {
+          emptyState.classList.remove('hidden');
+        } else {
+          renderTable(cashPayments);
+          renderPagination(result.meta);
+          tableContent.classList.remove('hidden');
+        }
+      }
+    } catch (err: any) {
+      emptyState.classList.remove('hidden');
+    } finally {
+      loadingState.classList.add('hidden');
+    }
+  }
+
+  function formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('id-ID').format(amount);
+  }
+
+  function getPaymentStatusBadge(reg: Registration): string {
+    const paidAmount = reg.payment?.paid_amount || 0;
+    const requiredAmount = reg.payment?.amount || reg.payment_amount || 100000;
+    const progress = requiredAmount > 0 ? Math.round((paidAmount / requiredAmount) * 100) : 0;
+
+    if (reg.payment_status === 'partial') {
+      return `
+        <div>
+          <span class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
+            Cicilan (${progress}%)
+          </span>
+          <p class="text-xs text-gray-500 mt-1">
+            Rp ${formatCurrency(paidAmount)} / ${formatCurrency(requiredAmount)}
+          </p>
+        </div>
+      `;
+    }
+    
+    return `
+      <span class="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+        Belum Bayar
+      </span>
+    `;
+  }
+
+  function getProgressBar(reg: Registration): string {
+    const paidAmount = reg.payment?.paid_amount || 0;
+    const requiredAmount = reg.payment?.amount || reg.payment_amount || 100000;
+    const progress = requiredAmount > 0 ? Math.min(100, Math.round((paidAmount / requiredAmount) * 100)) : 0;
+    
+    const bgColor = progress === 0 ? 'bg-gray-200' : progress < 50 ? 'bg-red-500' : progress < 100 ? 'bg-yellow-500' : 'bg-green-500';
+    
+    return `
+      <div class="w-full">
+        <div class="flex justify-between text-xs text-gray-500 mb-1">
+          <span>Rp ${formatCurrency(paidAmount)}</span>
+          <span>Rp ${formatCurrency(requiredAmount)}</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2">
+          <div class="${bgColor} h-2 rounded-full transition-all" style="width: ${progress}%"></div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderTable(data: Registration[]) {
+    const tbody = document.getElementById('tableBody')!;
+    
+    // Store data in a global map for access by click handlers
+    (window as any).__registrationData = {};
+    
+    tbody.innerHTML = data.map(reg => {
+      const paidAmount = reg.payment?.paid_amount || 0;
+      const requiredAmount = reg.payment?.amount || reg.payment_amount || 100000;
+      const remainingAmount = Math.max(0, requiredAmount - paidAmount);
+      const paymentHistory = reg.payment?.payment_history || null;
+
+      // Store registration data in global map
+      (window as any).__registrationData[reg.id] = {
+        id: reg.id,
+        name: reg.name,
+        regNumber: reg.registration_number,
+        requiredAmount,
+        paidAmount,
+        remainingAmount,
+        paymentHistory
+      };
+
+      return `
+        <tr class="hover:bg-gray-50">
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+            ${reg.registration_number}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm font-medium text-gray-900">${escapeHtml(reg.name)}</div>
+            <div class="text-sm text-gray-500">${reg.email}</div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm font-medium text-gray-900">${reg.type.toUpperCase()}</div>
+            <div class="text-sm text-gray-500">${reg.major}</div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            ${getPaymentStatusBadge(reg)}
+          </td>
+          <td class="px-6 py-4" style="min-width: 180px;">
+            ${getProgressBar(reg)}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            ${formatDate(reg.registered_at)}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <button
+              data-reg-id="${reg.id}"
+              class="btn-confirm-payment px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-1"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+              </svg>
+              <span>${paidAmount > 0 ? 'Tambah' : 'Bayar'}</span>
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    // Add click listeners to all confirm buttons
+    document.querySelectorAll('.btn-confirm-payment').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const regId = (e.currentTarget as HTMLElement).dataset.regId;
+        if (regId && (window as any).__registrationData[regId]) {
+          const data = (window as any).__registrationData[regId];
+          openConfirmModal(
+            data.id,
+            data.name,
+            data.regNumber,
+            data.requiredAmount,
+            data.paidAmount,
+            data.remainingAmount,
+            data.paymentHistory
+          );
+        }
+      });
+    });
+  }
+
+  function escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML.replace(/'/g, "\\'");
+  }
+
+  function formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  }
+
+  function formatDateTime(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  function renderPagination(meta: PaginationMeta) {
+    document.getElementById('paginationFrom')!.textContent = meta.from?.toString() || '0';
+    document.getElementById('paginationTo')!.textContent = meta.to?.toString() || '0';
+    document.getElementById('paginationTotal')!.textContent = meta.total.toString();
+
+    const nav = document.getElementById('paginationNav')!;
+    let buttons = '';
+
+    buttons += `
+      <button
+        ${meta.current_page === 1 ? 'disabled' : ''}
+        onclick="window.changePage(${meta.current_page - 1})"
+        class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${meta.current_page === 1 ? 'text-gray-300' : 'text-gray-500 hover:bg-gray-50'}"
+      >
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+        </svg>
+      </button>
+    `;
+
+    for (let i = 1; i <= meta.last_page; i++) {
+      if (i === 1 || i === meta.last_page || (i >= meta.current_page - 1 && i <= meta.current_page + 1)) {
+        buttons += `
+          <button
+            onclick="window.changePage(${i})"
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${i === meta.current_page ? 'bg-purple-50 text-purple-600 border-purple-500' : 'bg-white text-gray-700 hover:bg-gray-50'}"
+          >
+            ${i}
+          </button>
+        `;
+      } else if (i === meta.current_page - 2 || i === meta.current_page + 2) {
+        buttons += `<span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>`;
+      }
+    }
+
+    buttons += `
+      <button
+        ${meta.current_page === meta.last_page ? 'disabled' : ''}
+        onclick="window.changePage(${meta.current_page + 1})"
+        class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${meta.current_page === meta.last_page ? 'text-gray-300' : 'text-gray-500 hover:bg-gray-50'}"
+      >
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+      </button>
+    `;
+
+    nav.innerHTML = buttons;
+  }
+
+  function openConfirmModal(
+    id: number, 
+    name: string, 
+    regNumber: string, 
+    requiredAmount: number,
+    paidAmount: number,
+    remainingAmount: number,
+    paymentHistory: PaymentHistory[] | null
+  ) {
+    currentModalData = {
+      id,
+      requiredAmount,
+      paidAmount,
+      remainingAmount,
+      paymentHistory
+    };
+
+    const modal = document.getElementById('confirmModal')!;
+    document.getElementById('registrationId')!.setAttribute('value', id.toString());
+    document.getElementById('remainingAmount')!.setAttribute('value', remainingAmount.toString());
+    document.getElementById('modalName')!.textContent = name;
+    document.getElementById('modalRegNumber')!.textContent = regNumber;
+    
+    // Update payment summary
+    document.getElementById('modalRequiredAmount')!.textContent = `Rp ${formatCurrency(requiredAmount)}`;
+    document.getElementById('modalPaidAmount')!.textContent = `Rp ${formatCurrency(paidAmount)}`;
+    document.getElementById('modalRemainingAmount')!.textContent = `Rp ${formatCurrency(remainingAmount)}`;
+    
+    // Progress bar
+    const progress = requiredAmount > 0 ? Math.round((paidAmount / requiredAmount) * 100) : 0;
+    document.getElementById('modalProgressPercent')!.textContent = `${progress}%`;
+    (document.getElementById('modalProgressBar') as HTMLElement).style.width = `${progress}%`;
+
+    // Payment history
+    const historySection = document.getElementById('paymentHistorySection')!;
+    const historyList = document.getElementById('paymentHistoryList')!;
+    
+    if (paymentHistory && paymentHistory.length > 0) {
+      historySection.classList.remove('hidden');
+      historyList.innerHTML = paymentHistory.map((h, idx) => `
+        <div class="p-2 bg-gray-50 rounded border">
+          <div class="flex justify-between">
+            <span class="font-medium text-green-600">+Rp ${formatCurrency(h.amount)}</span>
+            <span class="text-gray-500 text-xs">${formatDateTime(h.paid_at)}</span>
+          </div>
+          ${h.notes ? `<p class="text-xs text-gray-500 mt-1">${h.notes}</p>` : ''}
+        </div>
+      `).join('');
+    } else {
+      historySection.classList.add('hidden');
+    }
+
+    // Set default amount to remaining
+    const paymentInput = document.getElementById('paymentAmount') as HTMLInputElement;
+    paymentInput.value = remainingAmount.toString();
+    (document.getElementById('paymentNotes') as HTMLTextAreaElement).value = '';
+    
+    updatePaymentPreview();
+    modal.classList.remove('hidden');
+  }
+
+  function updatePaymentPreview() {
+    if (!currentModalData) return;
+    
+    const inputAmount = parseFloat((document.getElementById('paymentAmount') as HTMLInputElement).value) || 0;
+    const newTotal = currentModalData.paidAmount + inputAmount;
+    const newRemaining = Math.max(0, currentModalData.requiredAmount - newTotal);
+    const isFullyPaid = newTotal >= currentModalData.requiredAmount;
+
+    const preview = document.getElementById('previewStatus')!;
+    const previewDiv = document.getElementById('paymentPreview')!;
+
+    if (isFullyPaid) {
+      previewDiv.className = 'p-3 bg-green-50 rounded-lg border border-green-200 text-sm';
+      preview.innerHTML = `
+        <span class="text-green-700">✓ Pembayaran akan <strong>LUNAS</strong></span>
+        <br><span class="text-green-600">Total terbayar: Rp ${formatCurrency(newTotal)}</span>
+      `;
+    } else {
+      previewDiv.className = 'p-3 bg-yellow-50 rounded-lg border border-yellow-200 text-sm';
+      preview.innerHTML = `
+        <span class="text-yellow-700">⏳ Status akan menjadi <strong>CICILAN</strong></span>
+        <br><span class="text-yellow-600">Terbayar: Rp ${formatCurrency(newTotal)} | Sisa: Rp ${formatCurrency(newRemaining)}</span>
+      `;
+    }
+  }
+
+  async function confirmCashPayment(e: Event) {
+    e.preventDefault();
+    
+    const id = document.getElementById('registrationId')!.getAttribute('value');
+    const amount = parseFloat((document.getElementById('paymentAmount') as HTMLInputElement).value);
+    const notes = (document.getElementById('paymentNotes') as HTMLTextAreaElement).value;
+
+    if (!amount || amount <= 0) {
+      alert('Jumlah pembayaran tidak valid');
+      return;
+    }
+
+    const btnConfirm = document.getElementById('btnConfirm') as HTMLButtonElement;
+    btnConfirm.disabled = true;
+    btnConfirm.innerHTML = '<svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Memproses...</span>';
+
+    try {
+      const token = getToken();
+      const response = await fetch(`${API_BASE_URL}/api/admin/registrations/${id}/confirm-cash-payment`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ amount, notes })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        const paymentData = result.data?.payment;
+        if (paymentData?.is_fully_paid) {
+          alert('✓ Pembayaran LUNAS! Nomor formulir akan dikirim ke email pendaftar.');
+        } else {
+          alert(`✓ Pembayaran cicilan berhasil!\nTerbayar: Rp ${formatCurrency(paymentData?.paid_amount || 0)}\nSisa: Rp ${formatCurrency(paymentData?.remaining_amount || 0)}`);
+        }
+        document.getElementById('confirmModal')!.classList.add('hidden');
+        loadRegistrations(currentPage);
+      } else {
+        alert('Gagal mengkonfirmasi pembayaran: ' + (result.message || 'Unknown error'));
+      }
+    } catch (err: any) {
+      alert('Terjadi kesalahan saat mengkonfirmasi pembayaran');
+    } finally {
+      btnConfirm.disabled = false;
+      btnConfirm.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>Konfirmasi Pembayaran</span>';
+    }
+  }
+
+  function changePage(page: number) {
+    currentPage = page;
+    loadRegistrations(page);
+  }
+
+  // Global functions
+  (window as any).openConfirmModal = openConfirmModal;
+  (window as any).changePage = changePage;
+
+  // Event listeners
+  document.addEventListener('DOMContentLoaded', () => {
+    const state = authStore.get();
+    if (state.user) {
+      loadRegistrations();
+    } else {
+      const unsubscribe = authStore.subscribe((state) => {
+        if (state.user) {
+          loadRegistrations();
+          unsubscribe();
+        }
+      });
+    }
+
+    // Search
+    let searchTimeout: number;
+    document.getElementById('searchInput')!.addEventListener('input', (e) => {
+      clearTimeout(searchTimeout);
+      searchTimeout = window.setTimeout(() => {
+        searchQuery = (e.target as HTMLInputElement).value;
+        currentPage = 1;
+        loadRegistrations();
+      }, 500);
+    });
+
+    // Status filter
+    document.getElementById('statusFilter')!.addEventListener('change', (e) => {
+      statusFilter = (e.target as HTMLSelectElement).value;
+      currentPage = 1;
+      loadRegistrations();
+    });
+
+    // Refresh
+    document.getElementById('btnRefresh')!.addEventListener('click', () => {
+      loadRegistrations(currentPage);
+    });
+
+    // Close modal
+    document.getElementById('closeModal')!.addEventListener('click', () => {
+      document.getElementById('confirmModal')!.classList.add('hidden');
+    });
+
+    // Form submit
+    document.getElementById('cashPaymentForm')!.addEventListener('submit', confirmCashPayment);
+
+    // Payment amount change - update preview
+    document.getElementById('paymentAmount')!.addEventListener('input', updatePaymentPreview);
+
+    // Quick payment buttons
+    document.getElementById('btnPayFull')!.addEventListener('click', () => {
+      if (currentModalData) {
+        (document.getElementById('paymentAmount') as HTMLInputElement).value = currentModalData.remainingAmount.toString();
+        updatePaymentPreview();
+      }
+    });
+
+    document.getElementById('btnPayHalf')!.addEventListener('click', () => {
+      if (currentModalData) {
+        const halfRemaining = Math.ceil(currentModalData.remainingAmount / 2);
+        (document.getElementById('paymentAmount') as HTMLInputElement).value = halfRemaining.toString();
+        updatePaymentPreview();
+      }
+    });
+  });
+</script>

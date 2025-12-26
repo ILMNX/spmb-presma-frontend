@@ -1,0 +1,792 @@
+---
+import DashboardLayout from '../../../layouts/DashboardLayout.astro';
+
+export const prerender = false;
+---
+
+<DashboardLayout title="Laporan Ringkasan">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">Laporan Ringkasan</h1>
+        <p class="text-gray-600 mt-1">Ringkasan lengkap data pendaftaran, pembayaran, validasi, dan kesiapan tes</p>
+      </div>
+      <div class="flex gap-3">
+        <button id="btnExportExcel" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          Export Excel
+        </button>
+        <button id="btnRefresh" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- Date Filter -->
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="flex flex-wrap gap-4 items-end">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
+          <input type="date" id="dateFrom" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
+          <input type="date" id="dateTo" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <button id="btnApplyFilter" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          Terapkan Filter
+        </button>
+        <button id="btnClearFilter" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+          Reset
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="text-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+      <p class="mt-4 text-gray-600">Memuat data...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="error" class="hidden bg-red-50 border border-red-200 rounded-lg p-4">
+      <p class="text-red-800" id="errorText"></p>
+    </div>
+
+    <!-- Content -->
+    <div id="content" class="hidden space-y-6">
+      <!-- School Type Badge -->
+      <div id="schoolTypeBadge" class="hidden">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+          Data: <span id="schoolTypeLabel" class="ml-1 font-bold">Semua</span>
+        </span>
+      </div>
+
+      <!-- ==================== RECAPITULATION TABLE ==================== -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200">
+          <div class="text-center space-y-1">
+            <h2 class="text-xl font-bold text-purple-800">REKAPITULASI PENDAFTAR CALON PESERTA DIDIK BARU</h2>
+            <p class="text-lg font-semibold text-purple-700">SEKOLAH PRESTASI PRIMA</p>
+            <p class="text-base font-medium text-purple-600">TAHUN PELAJARAN <span id="academicYear">2025/2026</span></p>
+            <p id="updateTimestamp" class="text-sm text-gray-500 mt-2"></p>
+          </div>
+        </div>
+        <div class="p-4 overflow-x-auto">
+          <table class="w-full text-sm border-collapse" id="recapTable">
+            <thead>
+              <tr class="bg-gray-50">
+                <th rowspan="2" class="border border-gray-300 px-2 py-2 text-center text-purple-800 font-bold">NO</th>
+                <th rowspan="2" class="border border-gray-300 px-2 py-2 text-center text-purple-800 font-bold">INSTANSI</th>
+                <th rowspan="2" class="border border-gray-300 px-2 py-2 text-center text-purple-800 font-bold">JURUSAN</th>
+                <th rowspan="2" class="border border-gray-300 px-2 py-2 text-center text-purple-800 font-bold">JUMLAH<br>FORMULIR</th>
+                <th rowspan="2" class="border border-gray-300 px-2 py-2 text-center text-purple-800 font-bold">SUDAH<br>TEST</th>
+                <th rowspan="2" class="border border-gray-300 px-2 py-2 text-center text-purple-800 font-bold bg-yellow-50">LUNAS<br>SAPRAS</th>
+                <th rowspan="2" class="border border-gray-300 px-2 py-2 text-center text-purple-800 font-bold bg-yellow-50">CICIL<br>SAPRAS</th>
+                <th rowspan="2" class="border border-gray-300 px-2 py-2 text-center text-purple-800 font-bold">SPMB<br>BERSAMA</th>
+                <th rowspan="2" class="border border-gray-300 px-2 py-2 text-center text-purple-800 font-bold">LUNAS<br>SERAGAM</th>
+                <th rowspan="2" class="border border-gray-300 px-2 py-2 text-center text-purple-800 font-bold">MENGUNDURKAN<br>DIRI - DU</th>
+                <th colspan="2" class="border border-gray-300 px-2 py-2 text-center text-purple-800 font-bold bg-blue-50">DAYA TAMPUNG</th>
+                <th colspan="2" class="border border-gray-300 px-2 py-2 text-center text-purple-800 font-bold bg-green-50">KEADAAN SAAT INI</th>
+              </tr>
+              <tr class="bg-gray-50">
+                <th class="border border-gray-300 px-2 py-2 text-center text-purple-800 font-bold bg-blue-50">RB</th>
+                <th class="border border-gray-300 px-2 py-2 text-center text-purple-800 font-bold bg-blue-50">KAPASITAS</th>
+                <th class="border border-gray-300 px-2 py-2 text-center text-purple-800 font-bold bg-green-50">RB</th>
+                <th class="border border-gray-300 px-2 py-2 text-center text-purple-800 font-bold bg-green-50">+/- SISWA</th>
+              </tr>
+            </thead>
+            <tbody id="recapTableBody">
+              <!-- Dynamic content -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ==================== ORIGINAL SECTIONS ==================== -->
+
+      <!-- Registrations by Major Section -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200">
+          <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            </svg>
+            Pendaftar per Jurusan/Program
+          </h2>
+        </div>
+        <div class="p-6">
+          <div id="majorStats" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Dynamic content -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Summary Section -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200">
+          <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Ringkasan Pembayaran
+          </h2>
+        </div>
+        <div class="p-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- VA Card -->
+            <div class="bg-blue-50 rounded-lg p-4">
+              <h3 class="text-sm font-medium text-blue-800 mb-3">Virtual Account</h3>
+              <div class="space-y-2">
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-600">Total</span>
+                  <span id="vaTotal" class="font-semibold">0</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-600">Lunas</span>
+                  <span id="vaPaid" class="font-semibold text-green-600">0</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-600">Pending</span>
+                  <span id="vaPending" class="font-semibold text-yellow-600">0</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-600">Expired</span>
+                  <span id="vaExpired" class="font-semibold text-red-600">0</span>
+                </div>
+                <hr class="my-2">
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-600">Total Dibayar</span>
+                  <span id="vaAmount" class="font-bold text-blue-800">Rp 0</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cash Card -->
+            <div class="bg-green-50 rounded-lg p-4">
+              <h3 class="text-sm font-medium text-green-800 mb-3">Tunai (Cash)</h3>
+              <div class="space-y-2">
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-600">Total</span>
+                  <span id="cashTotal" class="font-semibold">0</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-600">Lunas</span>
+                  <span id="cashPaid" class="font-semibold text-green-600">0</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-600">Pending</span>
+                  <span id="cashPending" class="font-semibold text-yellow-600">0</span>
+                </div>
+                <hr class="my-2">
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-600">Total Dibayar</span>
+                  <span id="cashAmount" class="font-bold text-green-800">Rp 0</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Summary Card -->
+            <div class="bg-purple-50 rounded-lg p-4">
+              <h3 class="text-sm font-medium text-purple-800 mb-3">Total Keseluruhan</h3>
+              <div class="space-y-2">
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-600">Total Pembayaran</span>
+                  <span id="totalPayments" class="font-semibold">0</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-600">Sudah Bayar</span>
+                  <span id="totalPaid" class="font-semibold text-green-600">0</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-600">Belum Bayar</span>
+                  <span id="noPayment" class="font-semibold text-gray-600">0</span>
+                </div>
+                <hr class="my-2">
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-600">Total Revenue</span>
+                  <span id="totalRevenue" class="font-bold text-purple-800">Rp 0</span>
+                </div>
+                <div class="mt-3 flex gap-2">
+                  <div class="flex-1 bg-blue-200 rounded-full h-2" title="VA">
+                    <div id="vaPercentBar" class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+                  </div>
+                  <span id="vaPercent" class="text-xs text-gray-600">0%</span>
+                </div>
+                <div class="flex gap-2">
+                  <div class="flex-1 bg-green-200 rounded-full h-2" title="Cash">
+                    <div id="cashPercentBar" class="bg-green-600 h-2 rounded-full" style="width: 0%"></div>
+                  </div>
+                  <span id="cashPercent" class="text-xs text-gray-600">0%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Validation & Test Readiness Section -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Validation Status -->
+        <div class="bg-white rounded-lg shadow">
+          <div class="p-6 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Status Validasi
+            </h2>
+          </div>
+          <div class="p-6">
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-600">Total (Sudah Bayar)</span>
+                <span id="validationTotal" class="font-bold text-lg">0</span>
+              </div>
+              
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-sm text-gray-600">Tervalidasi Lengkap</span>
+                  <span id="validated" class="text-sm font-medium text-green-600">0 (0%)</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div id="validatedBar" class="bg-green-500 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-sm text-gray-600">Sebagian Tervalidasi</span>
+                  <span id="partial" class="text-sm font-medium text-yellow-600">0 (0%)</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div id="partialBar" class="bg-yellow-500 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-sm text-gray-600">Belum Divalidasi</span>
+                  <span id="pending" class="text-sm font-medium text-gray-600">0 (0%)</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div id="pendingBar" class="bg-gray-400 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-sm text-gray-600">Perlu Revisi</span>
+                  <span id="revisionNeeded" class="text-sm font-medium text-red-600">0 (0%)</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div id="revisionBar" class="bg-red-500 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Test Readiness -->
+        <div class="bg-white rounded-lg shadow">
+          <div class="p-6 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+              </svg>
+              Kesiapan Tes
+            </h2>
+          </div>
+          <div class="p-6">
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-600">Total (Sudah Bayar)</span>
+                <span id="testTotal" class="font-bold text-lg">0</span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div class="bg-green-50 rounded-lg p-4 text-center">
+                  <div id="testReady" class="text-3xl font-bold text-green-600">0</div>
+                  <div class="text-sm text-gray-600 mt-1">Siap Tes</div>
+                  <div id="testReadyPercent" class="text-xs text-green-600 mt-1">0%</div>
+                </div>
+                <div class="bg-orange-50 rounded-lg p-4 text-center">
+                  <div id="testNotReady" class="text-3xl font-bold text-orange-600">0</div>
+                  <div class="text-sm text-gray-600 mt-1">Belum Siap</div>
+                  <div id="testNotReadyPercent" class="text-xs text-orange-600 mt-1">0%</div>
+                </div>
+              </div>
+
+              <div class="mt-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">Per Jurusan</h4>
+                <div id="testByMajor" class="space-y-2 max-h-48 overflow-y-auto">
+                  <!-- Dynamic content -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pending Cash Section -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+          <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Pending Cash Payment
+          </h2>
+          <a href="/admin/reports/pending-cash" class="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1">
+            Lihat Detail
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </a>
+        </div>
+        <div class="p-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="text-center">
+              <div id="pendingCashTotal" class="text-4xl font-bold text-orange-600">0</div>
+              <div class="text-sm text-gray-600 mt-1">Menunggu Konfirmasi</div>
+            </div>
+            <div class="text-center">
+              <div id="pendingCashAmount" class="text-2xl font-bold text-gray-800">Rp 0</div>
+              <div class="text-sm text-gray-600 mt-1">Total Nominal</div>
+            </div>
+            <div>
+              <div class="text-sm font-medium text-gray-700 mb-2">Per Jurusan</div>
+              <div id="pendingCashByMajor" class="space-y-1 text-sm">
+                <!-- Dynamic content -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Meta Info -->
+      <div class="text-center text-sm text-gray-500">
+        <span>Data diperbarui: </span>
+        <span id="generatedAt">-</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { api } from '../../../lib/api';
+    import { getToken } from '../../../stores/authStore';
+
+    let currentFilters = {
+      date_from: '',
+      date_to: ''
+    };
+
+    let recapData: any = null;
+
+    function formatCurrency(amount: number): string {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+      }).format(amount);
+    }
+
+    function formatDate(dateString: string): string {
+      return new Date(dateString).toLocaleString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    async function loadReport() {
+      const loading = document.getElementById('loading');
+      const content = document.getElementById('content');
+      const error = document.getElementById('error');
+
+      loading?.classList.remove('hidden');
+      content?.classList.add('hidden');
+      error?.classList.add('hidden');
+
+      try {
+        const params = new URLSearchParams();
+        if (currentFilters.date_from) params.append('date_from', currentFilters.date_from);
+        if (currentFilters.date_to) params.append('date_to', currentFilters.date_to);
+
+        // Load both summary and recapitulation data in parallel
+        const [summaryResponse, recapResponse] = await Promise.all([
+          api.get(`/api/admin/reports/summary?${params}`),
+          api.get(`/api/admin/reports/recapitulation?${params}`)
+        ]);
+        
+        if (summaryResponse.data.success && recapResponse.data.success) {
+          recapData = recapResponse.data.data;
+          renderReport(summaryResponse.data.data, summaryResponse.data.meta);
+          renderRecapitulation(recapResponse.data.data, recapResponse.data.meta);
+          loading?.classList.add('hidden');
+          content?.classList.remove('hidden');
+        } else {
+          throw new Error(summaryResponse.data.message || 'Gagal memuat data');
+        }
+      } catch (err) {
+        console.error('Error loading report:', err);
+        loading?.classList.add('hidden');
+        error?.classList.remove('hidden');
+        const errorText = document.getElementById('errorText');
+        if (errorText) {
+          errorText.textContent = err instanceof Error ? err.message : 'Gagal memuat data laporan';
+        }
+      }
+    }
+
+    function renderRecapitulation(data: any, meta: any) {
+      const tbody = document.getElementById('recapTableBody');
+      if (!tbody) return;
+
+      // Set academic year
+      const currentYear = new Date().getFullYear();
+      const academicYearEl = document.getElementById('academicYear');
+      if (academicYearEl) {
+        academicYearEl.textContent = `${currentYear}/${currentYear + 1}`;
+      }
+
+      // Set update timestamp
+      const timestampEl = document.getElementById('updateTimestamp');
+      if (timestampEl && meta.generated_at) {
+        timestampEl.textContent = `Update: ${formatDate(meta.generated_at)}`;
+      }
+
+      let html = '';
+      let no = 1;
+
+      // SMA Data
+      if (data.sma && data.sma.majors) {
+        data.sma.majors.forEach((major: any, index: number) => {
+          html += `
+            <tr class="hover:bg-gray-50">
+              <td class="border border-gray-300 px-2 py-2 text-center">${no}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center font-medium ${index === 0 ? '' : 'text-transparent'}">${index === 0 ? 'SMA' : 'SMA'}</td>
+              <td class="border border-gray-300 px-2 py-2">${major.display_name}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center font-semibold">${major.jumlah_formulir}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center">${major.sudah_test}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center bg-yellow-50">${major.lunas_sapras || '-'}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center bg-yellow-50">${major.cicil_sapras || '-'}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center">${major.spmb_bersama || '-'}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center">${major.lunas_seragam || '-'}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center">${major.mengundurkan_diri || '-'}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center bg-blue-50">${major.capacity.rb}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center bg-blue-50">${major.capacity.total}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center bg-green-50">${major.current.rb}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center bg-green-50 ${major.current.difference < 0 ? 'text-red-600 font-bold' : ''}">${major.current.difference}</td>
+            </tr>
+          `;
+          no++;
+        });
+
+        // SMA Total Row
+        const smaTotals = data.sma.totals;
+        html += `
+          <tr class="bg-yellow-100 font-bold">
+            <td class="border border-gray-300 px-2 py-2 text-center"></td>
+            <td colspan="2" class="border border-gray-300 px-2 py-2 text-center text-purple-800">TOTAL</td>
+            <td class="border border-gray-300 px-2 py-2 text-center text-purple-800">${smaTotals.jumlah_formulir}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center text-purple-800">${smaTotals.sudah_test}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center bg-yellow-200">${smaTotals.lunas_sapras || '-'}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center bg-yellow-200">${smaTotals.cicil_sapras || '-'}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center text-purple-800">${smaTotals.spmb_bersama || '-'}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center text-purple-800">${smaTotals.lunas_seragam || '-'}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center text-purple-800">${smaTotals.mengundurkan_diri || '-'}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center bg-blue-100">${smaTotals.capacity_rb}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center bg-blue-100">${smaTotals.capacity_total}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center bg-green-100">${smaTotals.current_rb}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center bg-green-100 ${smaTotals.difference < 0 ? 'text-red-600' : ''}">${smaTotals.difference}</td>
+          </tr>
+        `;
+      }
+
+      // SMK Data
+      if (data.smk && data.smk.majors) {
+        data.smk.majors.forEach((major: any, index: number) => {
+          html += `
+            <tr class="hover:bg-gray-50">
+              <td class="border border-gray-300 px-2 py-2 text-center">${no}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center font-medium ${index === 0 ? '' : 'text-transparent'}">${index === 0 ? 'SMK' : 'SMK'}</td>
+              <td class="border border-gray-300 px-2 py-2">${major.display_name}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center font-semibold">${major.jumlah_formulir}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center">${major.sudah_test}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center bg-yellow-50">${major.lunas_sapras || '-'}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center bg-yellow-50">${major.cicil_sapras || '-'}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center">${major.spmb_bersama || '-'}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center">${major.lunas_seragam || '-'}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center">${major.mengundurkan_diri || '-'}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center bg-blue-50">${major.capacity.rb}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center bg-blue-50">${major.capacity.total}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center bg-green-50">${major.current.rb}</td>
+              <td class="border border-gray-300 px-2 py-2 text-center bg-green-50 ${major.current.difference < 0 ? 'text-red-600 font-bold' : ''}">${major.current.difference}</td>
+            </tr>
+          `;
+          no++;
+        });
+
+        // SMK Total Row
+        const smkTotals = data.smk.totals;
+        html += `
+          <tr class="bg-yellow-100 font-bold">
+            <td class="border border-gray-300 px-2 py-2 text-center"></td>
+            <td colspan="2" class="border border-gray-300 px-2 py-2 text-center text-purple-800">TOTAL</td>
+            <td class="border border-gray-300 px-2 py-2 text-center text-purple-800">${smkTotals.jumlah_formulir}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center text-purple-800">${smkTotals.sudah_test}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center bg-yellow-200">${smkTotals.lunas_sapras || '-'}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center bg-yellow-200">${smkTotals.cicil_sapras || '-'}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center text-purple-800">${smkTotals.spmb_bersama || '-'}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center text-purple-800">${smkTotals.lunas_seragam || '-'}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center text-purple-800">${smkTotals.mengundurkan_diri || '-'}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center bg-blue-100">${smkTotals.capacity_rb}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center bg-blue-100">${smkTotals.capacity_total}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center bg-green-100">${smkTotals.current_rb}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center bg-green-100 ${smkTotals.difference < 0 ? 'text-red-600' : ''}">${smkTotals.difference}</td>
+          </tr>
+        `;
+      }
+
+      // Grand Total (if both schools)
+      if (data.grand_total) {
+        const gt = data.grand_total;
+        html += `
+          <tr class="bg-purple-200 font-bold">
+            <td class="border border-gray-300 px-2 py-2 text-center"></td>
+            <td colspan="2" class="border border-gray-300 px-2 py-2 text-center text-purple-900">TOTAL</td>
+            <td class="border border-gray-300 px-2 py-2 text-center text-purple-900">${gt.jumlah_formulir}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center text-purple-900">${gt.sudah_test}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center bg-purple-300">${gt.lunas_sapras || '-'}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center bg-purple-300">${gt.cicil_sapras || '-'}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center text-purple-900">${gt.spmb_bersama || '-'}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center text-purple-900">${gt.lunas_seragam || '-'}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center text-purple-900">${gt.mengundurkan_diri || '-'}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center bg-purple-300">${gt.capacity_rb}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center bg-purple-300">${gt.capacity_total}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center bg-purple-300">${gt.current_rb}</td>
+            <td class="border border-gray-300 px-2 py-2 text-center bg-purple-300 ${gt.difference < 0 ? 'text-red-600' : ''}">${gt.difference}</td>
+          </tr>
+        `;
+      }
+
+      tbody.innerHTML = html;
+    }
+
+    function renderReport(data: any, meta: any) {
+      // School type badge
+      const badge = document.getElementById('schoolTypeBadge');
+      const label = document.getElementById('schoolTypeLabel');
+      if (meta.school_type !== 'both') {
+        badge?.classList.remove('hidden');
+        if (label) label.textContent = meta.school_type.toUpperCase();
+      } else {
+        badge?.classList.add('hidden');
+      }
+
+      // Registrations by Major
+      renderMajorStats(data.registrations_by_major);
+
+      // Payment Summary
+      renderPaymentSummary(data.payment_summary);
+
+      // Validation Summary
+      renderValidationSummary(data.validation_summary);
+
+      // Test Readiness
+      renderTestReadiness(data.test_readiness);
+
+      // Pending Cash
+      renderPendingCash(data.pending_cash);
+
+      // Generated at
+      const generatedAt = document.getElementById('generatedAt');
+      if (generatedAt && meta.generated_at) {
+        generatedAt.textContent = formatDate(meta.generated_at);
+      }
+    }
+
+    function renderMajorStats(majors: any[]) {
+      const container = document.getElementById('majorStats');
+      if (!container) return;
+
+      if (!majors || majors.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 col-span-full text-center py-4">Tidak ada data</p>';
+        return;
+      }
+
+      container.innerHTML = majors.map((m: any) => `
+        <div class="bg-gray-50 rounded-lg p-4 border border-gray-100">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-medium text-gray-800">${m.display_name || m.major}</h3>
+            <span class="px-2 py-0.5 rounded text-xs font-medium ${m.type === 'SMA' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}">${m.type}</span>
+          </div>
+          <div class="text-3xl font-bold text-gray-900 mb-2">${m.total}</div>
+          <div class="flex gap-2 text-xs">
+            <span class="px-2 py-1 bg-green-100 text-green-700 rounded">✓ ${m.approved}</span>
+            <span class="px-2 py-1 bg-red-100 text-red-700 rounded">✗ ${m.rejected}</span>
+            <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded">⏳ ${m.pending}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderPaymentSummary(payment: any) {
+      // VA
+      document.getElementById('vaTotal')!.textContent = payment.virtual_account?.total || 0;
+      document.getElementById('vaPaid')!.textContent = payment.virtual_account?.paid || 0;
+      document.getElementById('vaPending')!.textContent = payment.virtual_account?.pending || 0;
+      document.getElementById('vaExpired')!.textContent = payment.virtual_account?.expired || 0;
+      document.getElementById('vaAmount')!.textContent = formatCurrency(payment.virtual_account?.total_amount || 0);
+
+      // Cash
+      document.getElementById('cashTotal')!.textContent = payment.cash?.total || 0;
+      document.getElementById('cashPaid')!.textContent = payment.cash?.paid || 0;
+      document.getElementById('cashPending')!.textContent = payment.cash?.pending || 0;
+      document.getElementById('cashAmount')!.textContent = formatCurrency(payment.cash?.total_amount || 0);
+
+      // Summary
+      document.getElementById('totalPayments')!.textContent = payment.summary?.total_payments || 0;
+      document.getElementById('totalPaid')!.textContent = payment.summary?.total_paid || 0;
+      document.getElementById('noPayment')!.textContent = payment.no_payment || 0;
+      document.getElementById('totalRevenue')!.textContent = formatCurrency(payment.summary?.total_amount || 0);
+
+      // Percentages
+      const vaPercent = payment.summary?.va_percentage || 0;
+      const cashPercent = payment.summary?.cash_percentage || 0;
+      document.getElementById('vaPercent')!.textContent = `${vaPercent}% VA`;
+      document.getElementById('cashPercent')!.textContent = `${cashPercent}% Cash`;
+      (document.getElementById('vaPercentBar') as HTMLElement).style.width = `${vaPercent}%`;
+      (document.getElementById('cashPercentBar') as HTMLElement).style.width = `${cashPercent}%`;
+    }
+
+    function renderValidationSummary(validation: any) {
+      document.getElementById('validationTotal')!.textContent = validation.total || 0;
+
+      // Validated
+      document.getElementById('validated')!.textContent = `${validation.validated?.count || 0} (${validation.validated?.percentage || 0}%)`;
+      (document.getElementById('validatedBar') as HTMLElement).style.width = `${validation.validated?.percentage || 0}%`;
+
+      // Partial
+      document.getElementById('partial')!.textContent = `${validation.partial?.count || 0} (${validation.partial?.percentage || 0}%)`;
+      (document.getElementById('partialBar') as HTMLElement).style.width = `${validation.partial?.percentage || 0}%`;
+
+      // Pending
+      document.getElementById('pending')!.textContent = `${validation.pending?.count || 0} (${validation.pending?.percentage || 0}%)`;
+      (document.getElementById('pendingBar') as HTMLElement).style.width = `${validation.pending?.percentage || 0}%`;
+
+      // Revision Needed
+      document.getElementById('revisionNeeded')!.textContent = `${validation.revision_needed?.count || 0} (${validation.revision_needed?.percentage || 0}%)`;
+      (document.getElementById('revisionBar') as HTMLElement).style.width = `${validation.revision_needed?.percentage || 0}%`;
+    }
+
+    function renderTestReadiness(test: any) {
+      document.getElementById('testTotal')!.textContent = test.total || 0;
+      document.getElementById('testReady')!.textContent = test.ready?.count || 0;
+      document.getElementById('testReadyPercent')!.textContent = `${test.ready?.percentage || 0}%`;
+      document.getElementById('testNotReady')!.textContent = test.not_ready?.count || 0;
+      document.getElementById('testNotReadyPercent')!.textContent = `${test.not_ready?.percentage || 0}%`;
+
+      const byMajor = document.getElementById('testByMajor');
+      if (byMajor && test.by_major) {
+        byMajor.innerHTML = test.by_major.map((m: any) => `
+          <div class="flex justify-between text-sm py-1 border-b border-gray-100">
+            <span class="text-gray-600">${m.display_name || m.major}</span>
+            <span>
+              <span class="text-green-600">${m.ready}</span> / 
+              <span class="text-orange-600">${m.not_ready}</span>
+            </span>
+          </div>
+        `).join('');
+      }
+    }
+
+    function renderPendingCash(pending: any) {
+      document.getElementById('pendingCashTotal')!.textContent = pending.total_pending || 0;
+      document.getElementById('pendingCashAmount')!.textContent = formatCurrency(pending.total_amount || 0);
+
+      const byMajor = document.getElementById('pendingCashByMajor');
+      if (byMajor && pending.by_major) {
+        byMajor.innerHTML = pending.by_major.map((m: any) => `
+          <div class="flex justify-between">
+            <span class="text-gray-600">${m.display_name || m.major}</span>
+            <span class="font-medium">${m.count}</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    async function exportExcel() {
+      try {
+        const params = new URLSearchParams();
+        if (currentFilters.date_from) params.append('date_from', currentFilters.date_from);
+        if (currentFilters.date_to) params.append('date_to', currentFilters.date_to);
+
+        // Get auth token from secure store
+        const token = getToken();
+        if (!token) {
+          throw new Error('Silakan login terlebih dahulu');
+        }
+
+        const response = await fetch(`/api/admin/reports/recapitulation/export-excel?${params}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Gagal mengexport data');
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `rekapitulasi_spmb_${new Date().toISOString().split('T')[0]}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } catch (err) {
+        console.error('Export error:', err);
+        alert(err instanceof Error ? err.message : 'Gagal mengexport data');
+      }
+    }
+
+    // Event listeners
+    document.getElementById('btnApplyFilter')?.addEventListener('click', () => {
+      currentFilters.date_from = (document.getElementById('dateFrom') as HTMLInputElement).value;
+      currentFilters.date_to = (document.getElementById('dateTo') as HTMLInputElement).value;
+      loadReport();
+    });
+
+    document.getElementById('btnClearFilter')?.addEventListener('click', () => {
+      currentFilters.date_from = '';
+      currentFilters.date_to = '';
+      (document.getElementById('dateFrom') as HTMLInputElement).value = '';
+      (document.getElementById('dateTo') as HTMLInputElement).value = '';
+      loadReport();
+    });
+
+    document.getElementById('btnRefresh')?.addEventListener('click', () => {
+      loadReport();
+    });
+
+    document.getElementById('btnExportExcel')?.addEventListener('click', () => {
+      exportExcel();
+    });
+
+    // Initial load
+    loadReport();
+  </script>
+</DashboardLayout>

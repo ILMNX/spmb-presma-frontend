@@ -1,0 +1,57 @@
+---
+const { testimonial } = Astro.props;
+---
+
+<div class="bg-white rounded-xl shadow-lg p-6 min-h-[300px] flex flex-col justify-between group hover:shadow-2xl transition-all duration-300">
+  <!-- Quote -->
+  <div class="flex-1">
+    <div class="mb-6">
+      <svg class="w-8 h-8 text-blue-500 mb-4" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h4v10h-10z"/>
+      </svg>
+      <p class="text-gray-700 leading-relaxed italic text-lg">
+        &ldquo;{testimonial.quote || testimonial.message}&rdquo;
+      </p>
+    </div>
+  </div>
+
+  <!-- Alumni Info -->
+  <div class="flex items-center space-x-4">
+    <div class="flex-shrink-0">
+      {testimonial.photo || testimonial.photo_url ? (
+        <img 
+          src={testimonial.photo || testimonial.photo_url} 
+          alt={testimonial.name}
+          class="w-16 h-16 rounded-full object-cover border-2 border-blue-200"
+        />
+      ) : (
+        <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-xl">
+          {testimonial.name.charAt(0)}
+        </div>
+      )}
+    </div>
+    <div class="flex-1">
+      <h4 class="font-bold text-gray-900 text-lg">{testimonial.name}</h4>
+      <p class="text-blue-600 font-medium">{testimonial.role || 'Alumni'}</p>
+      {testimonial.batch && (
+        <p class="text-gray-500 text-sm">Angkatan {testimonial.batch}</p>
+      )}
+    </div>
+  </div>
+
+  <!-- Video Link (if available) -->
+  {testimonial.video_url && (
+    <div class="mt-4 pt-4 border-t border-gray-100">
+      <a 
+        href={testimonial.video_url} 
+        target="_blank"
+        class="inline-flex items-center text-red-600 hover:text-red-700 font-medium transition-colors"
+      >
+        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+        </svg>
+        Tonton Video
+      </a>
+    </div>
+  )}
+</div>

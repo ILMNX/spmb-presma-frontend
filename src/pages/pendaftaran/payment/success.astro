@@ -1,0 +1,221 @@
+---
+/**
+ * Payment Success Page
+ * 
+ * Displayed after payment is confirmed.
+ * Shows confirmation message and next steps.
+ * 
+ * Route: /pendaftaran/payment/success
+ */
+import Layout from '../../../layouts/Layout.astro';
+---
+
+<Layout title="Pembayaran Berhasil - SPMB Prestasi Prima">
+  <main class="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 py-8 md:py-12 px-4 sm:px-6">
+    <div class="max-w-2xl mx-auto">
+      
+      <!-- Success Card -->
+      <div class="bg-white rounded-xl shadow-lg p-8 text-center">
+        
+        <!-- Success Icon -->
+        <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <svg class="w-14 h-14 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+        
+        <!-- Success Message -->
+        <h1 class="text-3xl font-bold text-gray-900 mb-3">Pembayaran Berhasil!</h1>
+        <p class="text-gray-600 text-lg mb-8">
+          Terima kasih, pembayaran Anda telah dikonfirmasi.
+        </p>
+
+        <!-- Order Details (populated by JS) -->
+        <div id="orderDetails" class="bg-gray-50 rounded-lg p-6 mb-8 text-left">
+          <h2 class="font-semibold text-gray-800 mb-4 text-center">Detail Pendaftaran</h2>
+          <div class="space-y-3 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-600">No. Pendaftaran</span>
+              <span class="font-semibold text-gray-900" id="registrationNumber">-</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Email</span>
+              <span class="font-semibold text-gray-900" id="email">-</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">No. Formulir</span>
+              <span class="font-semibold text-green-600" id="formNumber">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8 text-left">
+          <h3 class="font-semibold text-blue-800 mb-3 flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+            </svg>
+            Langkah Selanjutnya
+          </h3>
+          <ol class="text-blue-700 text-sm space-y-2 list-decimal list-inside">
+            <li>Cek email Anda untuk informasi login dan instruksi selanjutnya</li>
+            <li>Lengkapi data dan dokumen yang diperlukan di dashboard siswa</li>
+            <li>Tunggu proses validasi oleh tim kami</li>
+            <li>Pantau pengumuman untuk jadwal ujian</li>
+          </ol>
+        </div>
+
+        <!-- Email Notification -->
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8">
+          <div class="flex items-start">
+            <svg class="w-5 h-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+            </svg>
+            <p class="text-yellow-800 text-sm">
+              <strong>Penting:</strong> Email berisi nomor formulir dan instruksi selanjutnya telah dikirim ke alamat email Anda. Periksa folder spam jika tidak ada di inbox.
+            </p>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+          <a href="/" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-semibold flex items-center justify-center">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+            </svg>
+            Kembali ke Beranda
+          </a>
+          <a href="/cek-status" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center justify-center">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+              <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+            </svg>
+            Cek Status Pendaftaran
+          </a>
+        </div>
+      </div>
+
+      <!-- Confetti Animation (Optional) -->
+      <div id="confetti" class="fixed inset-0 pointer-events-none z-50"></div>
+
+    </div>
+  </main>
+
+  <script>
+    import { API_URL } from '../../../config/api';
+
+    /**
+     * Get order ID from URL params
+     */
+    function getOrderId() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('order');
+    }
+
+    /**
+     * Fetch order details
+     */
+    async function fetchOrderDetails(orderId: string) {
+      try {
+        const response = await fetch(`${API_URL}/api/orders/${orderId}/payment-status`);
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+          return result.data;
+        }
+        return null;
+      } catch (error) {
+        console.error('Error fetching order:', error);
+        return null;
+      }
+    }
+
+    /**
+     * Update UI with order data
+     */
+    function updateUI(data: { registration: { registration_number: string; form_number: string; }; email: string; }) {
+      if (!data) return;
+
+      const regNumber = document.getElementById('registrationNumber');
+      const email = document.getElementById('email');
+      const formNumber = document.getElementById('formNumber');
+
+      if (regNumber) regNumber.textContent = data.registration?.registration_number || '-';
+      if (email) email.textContent = data.email || '-';
+      if (formNumber) formNumber.textContent = data.registration?.form_number || 'Akan dikirim via email';
+    }
+
+    /**
+     * Simple confetti animation
+     */
+    function showConfetti() {
+      const container = document.getElementById('confetti');
+      if (!container) return;
+
+      const colors = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6'];
+      
+      for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.style.cssText = `
+          position: absolute;
+          width: 10px;
+          height: 10px;
+          background: ${colors[Math.floor(Math.random() * colors.length)]};
+          left: ${Math.random() * 100}%;
+          top: -10px;
+          border-radius: 50%;
+          animation: fall ${2 + Math.random() * 2}s ease-out forwards;
+        `;
+        container.appendChild(confetti);
+      }
+
+      // Add animation keyframes
+      if (!document.getElementById('confetti-styles')) {
+        const style = document.createElement('style');
+        style.id = 'confetti-styles';
+        style.textContent = `
+          @keyframes fall {
+            to {
+              transform: translateY(100vh) rotate(720deg);
+              opacity: 0;
+            }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      // Clean up after animation
+      setTimeout(() => {
+        container.innerHTML = '';
+      }, 4000);
+    }
+
+    /**
+     * Initialize
+     */
+    async function init() {
+      const orderId = getOrderId();
+      
+      if (orderId) {
+        const data = await fetchOrderDetails(orderId);
+        updateUI(data);
+      }
+
+      // Show confetti on load
+      showConfetti();
+
+      // Clear any stored session data
+      localStorage.removeItem('sma_registration_session');
+      localStorage.removeItem('smk_registration_session');
+      localStorage.removeItem('sma_registration_form_data');
+      localStorage.removeItem('smk_registration_form_data');
+    }
+
+    // Run on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</Layout>

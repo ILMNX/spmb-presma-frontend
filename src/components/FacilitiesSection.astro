@@ -1,0 +1,84 @@
+---
+import FacilityCard from './FacilityCard.astro';
+
+const API_URL = import.meta.env.PUBLIC_API_URL ;
+
+// Fetch facilities data
+let facilitiesData = { data: [] };
+try {
+  const facilitiesRes = await fetch(`${API_URL}/api/facilities`);
+  facilitiesData = facilitiesRes.ok ? await facilitiesRes.json() : { data: [] };
+} catch (error) {
+  console.error('Error fetching facilities:', error);
+}
+
+const facilities = facilitiesData.data || [];
+---
+
+<section class="mt-10 py-16 bg-gray-50">
+  <div class="max-w-7xl mx-auto px-6">
+    <!-- Section Header -->
+    <div class="text-center mb-12">
+      <h2 class="text-4xl font-bold text-gray-900 mb-4">
+        Fasilitas Sekolah
+      </h2>
+      <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+        Fasilitas lengkap dan modern untuk mendukung kegiatan belajar mengajar yang optimal
+      </p>
+    </div>
+
+    <!-- Facilities Grid/Carousel -->
+    {facilities.length > 0 ? (
+      <div class="facilities-carousel">
+        <!-- Desktop Grid -->
+        <div class="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {facilities.map((facility: any) => (
+            <FacilityCard facility={facility} />
+          ))}
+        </div>
+
+        <!-- Mobile Carousel -->
+        <div class="md:hidden">
+          <div class="carousel-container overflow-x-auto">
+            <div class="flex gap-6 pb-4" style="width: max-content;">
+              {facilities.map((facility: any) => (
+                <div class="w-80 flex-shrink-0">
+                  <FacilityCard facility={facility} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    ) : (
+      <div class="text-center py-12">
+        <p class="text-gray-500 text-lg">Belum ada fasilitas yang tersedia.</p>
+      </div>
+    )}
+  </div>
+</section>
+
+<style>
+  .carousel-container {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e0 #f7fafc;
+  }
+  
+  .carousel-container::-webkit-scrollbar {
+    height: 6px;
+  }
+  
+  .carousel-container::-webkit-scrollbar-track {
+    background: #f7fafc;
+    border-radius: 3px;
+  }
+  
+  .carousel-container::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 3px;
+  }
+  
+  .carousel-container::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
+  }
+</style>

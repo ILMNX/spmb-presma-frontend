@@ -1,0 +1,220 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Footer from "../components/Footer.astro";
+import NavbarPublic from '../components/NavbarPublic.astro';
+---
+
+<Layout title="Cek Status Pendaftaran - SPMB Prestasi Prima">
+  <NavbarPublic/>
+  <main class="flex-1 flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 pt-24 pb-12 px-4 sm:px-6">
+    <div class="max-w-2xl w-full mx-auto">
+      <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2 text-center">
+          Cek Status Pendaftaran
+        </h1>
+        <p class="text-gray-600 text-sm md:text-base text-center mb-8">
+          Masukkan nomor pendaftaran dan email untuk melihat status terbaru.
+        </p>
+
+        <div id="statusError" class="hidden mb-6 bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700"></div>
+
+        <form id="statusCheckForm" class="space-y-5">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Nomor Pendaftaran *</label>
+            <input type="text" name="registration_number" required
+                   placeholder="SMA-202501-0001"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm md:text-base">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+            <input type="email" name="email" required
+                   placeholder="email@domain.com"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm md:text-base">
+          </div>
+
+          <div class="flex justify-center">
+            <div id="status-recaptcha"></div>
+          </div>
+
+          <button type="submit"
+                  class="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-purple-800 transition disabled:opacity-50 disabled:cursor-not-allowed">
+            Cek Status
+          </button>
+        </form>
+
+        <div id="statusResult" class="hidden mt-8 border border-gray-200 rounded-xl p-5 bg-slate-50">
+          <h2 class="font-semibold text-lg text-gray-900 mb-4">Hasil Pencarian</h2>
+          <dl class="space-y-3 text-sm md:text-base text-gray-700">
+            <div class="flex justify-between">
+              <dt>Nama</dt>
+              <dd class="font-semibold" id="resultName">-</dd>
+            </div>
+            <div class="flex justify-between">
+              <dt>Nomor Pendaftaran</dt>
+              <dd class="font-semibold" id="resultNumber">-</dd>
+            </div>
+            <div class="flex justify-between">
+              <dt>Status Pendaftaran</dt>
+              <dd class="font-semibold text-purple-700" id="resultStatus">-</dd>
+            </div>
+            <div class="flex justify-between">
+              <dt>Status Pembayaran</dt>
+              <dd class="font-semibold text-blue-700" id="resultPaymentStatus">-</dd>
+            </div>
+            <div class="flex justify-between">
+              <dt>Metode Pembayaran</dt>
+              <dd class="font-semibold" id="resultPaymentMethod">-</dd>
+            </div>
+            <div class="flex justify-between">
+              <dt>Jumlah</dt>
+              <dd class="font-semibold" id="resultPaymentAmount">-</dd>
+            </div>
+            <div class="flex justify-between">
+              <dt>Validasi Terakhir</dt>
+              <dd class="font-semibold" id="resultConfirmedAt">-</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </main>
+<Footer/>
+
+  <script>
+    import { API_URL, RECAPTCHA_SITE_KEY } from '../config/api';
+
+    declare global {
+      interface Window {
+        onStatusRecaptchaLoad: () => void;
+        grecaptcha: any;
+      }
+    }
+
+    const form = document.getElementById('statusCheckForm');
+    const statusError = document.getElementById('statusError');
+    const statusResult = document.getElementById('statusResult');
+    const resultRefs = {
+      name: document.getElementById('resultName'),
+      number: document.getElementById('resultNumber'),
+      status: document.getElementById('resultStatus'),
+      paymentStatus: document.getElementById('resultPaymentStatus'),
+      paymentMethod: document.getElementById('resultPaymentMethod'),
+      paymentAmount: document.getElementById('resultPaymentAmount'),
+      confirmedAt: document.getElementById('resultConfirmedAt')
+    };
+
+    let recaptchaWidgetId: number | null = null;
+    let recaptchaToken: string | null = null;
+
+    window.onStatusRecaptchaLoad = function() {
+      renderRecaptcha();
+    };
+
+    function renderRecaptcha() {
+      const container = document.getElementById('status-recaptcha');
+      if (!container) return;
+
+      if (typeof window.grecaptcha === 'undefined') {
+        console.error('grecaptcha not ready yet');
+        return;
+      }
+
+      if (recaptchaWidgetId !== null) {
+        return;
+      }
+
+      recaptchaWidgetId = window.grecaptcha.render('status-recaptcha', {
+        sitekey: RECAPTCHA_SITE_KEY,
+        size: 'normal',
+        callback: (token: string) => {
+          recaptchaToken = token;
+        }
+      });
+    }
+
+    function resetRecaptcha() {
+      if (recaptchaWidgetId !== null && typeof window.grecaptcha !== 'undefined') {
+        window.grecaptcha.reset(recaptchaWidgetId);
+      }
+      recaptchaToken = null;
+    }
+
+    function showError(message: string) {
+      if (!statusError) return;
+      statusError.textContent = message;
+      statusError.classList.remove('hidden');
+      statusResult?.classList.add('hidden');
+    }
+
+    function showResult(data: any) {
+      statusError?.classList.add('hidden');
+      statusResult?.classList.remove('hidden');
+
+      resultRefs.name!.textContent = data.name ?? '-';
+      resultRefs.number!.textContent = data.registration_number ?? '-';
+      resultRefs.status!.textContent = data.status_label ?? data.status ?? '-';
+      resultRefs.paymentStatus!.textContent = data.payment_status_label ?? data.payment_status ?? '-';
+      resultRefs.paymentMethod!.textContent = data.payment_method ?? '-';
+      resultRefs.paymentAmount!.textContent = data.payment_amount !== null && data.payment_amount !== undefined
+        ? `Rp ${Number(data.payment_amount).toLocaleString('id-ID')}`
+        : '-';
+      resultRefs.confirmedAt!.textContent = data.payment_confirmed_at ?? '-';
+    }
+
+    form?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      if (!recaptchaToken) {
+        showError('Mohon selesaikan reCAPTCHA terlebih dahulu.');
+        return;
+      }
+
+      const formData = new FormData(event.target as HTMLFormElement);
+      const payload = Object.fromEntries(formData);
+      payload['recaptcha_token'] = recaptchaToken;
+
+      (event.submitter as HTMLButtonElement | null)?.setAttribute('disabled', 'true');
+
+      try {
+        const response = await fetch(`${API_URL}/api/registrations/status/check`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          showResult(result.data);
+        } else if (response.status === 404) {
+          showError('Data pendaftaran tidak ditemukan.');
+        } else if (response.status === 429) {
+          showError('Terlalu banyak percobaan. Silakan coba lagi nanti.');
+        } else {
+          showError(result.message || 'Terjadi kesalahan saat memeriksa status.');
+        }
+      } catch (error) {
+        console.error('Status check error:', error);
+        showError('Gagal terhubung ke server. Coba lagi nanti.');
+      } finally {
+        (event.submitter as HTMLButtonElement | null)?.removeAttribute('disabled');
+        resetRecaptcha();
+      }
+    });
+
+    if (!document.querySelector('script[data-status-recaptcha]')) {
+      const script = document.createElement('script');
+      script.src = 'https://www.google.com/recaptcha/api.js?onload=onStatusRecaptchaLoad&render=explicit';
+      script.async = true;
+      script.defer = true;
+      script.setAttribute('data-status-recaptcha', 'true');
+      document.head.appendChild(script);
+    } else if (typeof window.grecaptcha !== 'undefined') {
+      renderRecaptcha();
+    }
+  </script>
+</Layout>

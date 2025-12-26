@@ -1,0 +1,86 @@
+---
+import HighlightCard from './HighlightCard.astro';
+import UniversityCarousel from './UniversityCarousel.astro';
+
+const API = import.meta.env.PUBLIC_API_URL ;
+
+type Highlight = {
+  icon: string;
+  title: string;
+  description: string;
+};
+
+let highlights: Highlight[] = [];
+let error = '';
+
+try {
+  const response = await fetch(API + '/api/highlights');
+  
+  if (response.ok) {
+    const text = await response.text();
+    const data = JSON.parse(text);
+    
+    if (data.data && Array.isArray(data.data)) {
+      highlights = data.data.map((item: any) => {
+        const icon = String(item.icon || 'X').replace(/[^\x20-\x7E]/g, '');
+        const title = String(item.title || 'No Title').replace(/[^\x20-\x7E]/g, '');
+        const desc = String(item.description || '').replace(/[^\x20-\x7E]/g, '');
+        
+        return {
+          icon: icon,
+          title: title,
+          description: desc
+        };
+      });
+    }
+  } else {
+    error = 'API returned error';
+  }
+} catch (err) {
+  error = 'Failed to fetch';
+  console.error(err);
+}
+
+const hasData = highlights.length > 0;
+---
+
+<section id="highlights" class="py-20 bg-gradient-to-b from-white to-gray-50">
+  <div class="container mx-auto px-4 max-w-7xl">
+    <header class="text-center mb-16">
+      <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
+        Prestasi dan Keunggulan
+      </h2>
+      <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+        Mengapa memilih SMA/SMK Prestasi Prima sebagai pilihan terbaik untuk masa depan cemerlang
+      </p>
+    </header>
+
+    {error && (
+      <div class="text-center py-8">
+        <div class="inline-block bg-red-50 text-red-600 px-6 py-3 rounded-lg">
+          {error}
+        </div>
+      </div>
+    )}
+
+    {!error && !hasData && (
+      <div class="text-center py-12">
+        <p class="text-gray-500 text-lg">Tidak ada data tersedia</p>
+      </div>
+    )}
+
+    {!error && hasData && (
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        {highlights.map((item) => (
+          <HighlightCard 
+            icon={item.icon} 
+            title={item.title} 
+            description={item.description} 
+          />
+        ))}
+      </div>
+    )}
+  </div>
+</section>
+
+<!-- University Carousel -->

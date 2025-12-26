@@ -1,0 +1,2071 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Pendaftaran SMA - SPMB Prestasi Prima">
+  <main class="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 py-8 md:py-12 px-4 sm:px-6">
+    <div class="max-w-4xl mx-auto">
+      
+      <a href="/" aria-label="Kembali ke Beranda"
+        class="inline-flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg shadow hover:bg-purple-700 transition
+          fixed left-4 top-4 z-20 md:absolute md:left-6 md:top-6 md:mb-6"
+        style="backdrop-filter: blur(2px);">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+        </svg>
+        <span class="hidden sm:inline">Beranda</span>
+      </a>
+      
+      <!-- Header -->
+      <div class="text-center mb-6 mt-10 md:mb-8">
+        <div class="flex items-center justify-center mb-4">
+            
+            <div class="hidden md:block w-10 h-10 md:w-14 md:h-14 mr-2 md:mr-3 items-center justify-center">
+              <img src="../logo/sma.png" alt="Logo Yayasan" class="w-full h-full object-contain">
+            </div>
+
+          <h1 class="text-2xl md:text-4xl font-bold text-gray-800">
+            Pendaftaran SMA Prestasi Prima
+          </h1>
+        </div>
+        <p class="text-sm md:text-base text-gray-600">Formulir Pendaftaran Siswa Baru</p>
+      </div>
+
+      <!-- Progress Steps -->
+      <div class="mb-6 md:mb-8">
+        <div class="flex items-center justify-center space-x-2 md:space-x-4">
+          <div class="flex items-center">
+            <div class="w-7 h-7 md:w-8 md:h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-semibold text-sm step-indicator" data-step="1">1</div>
+            <span class="ml-1 md:ml-2 text-xs md:text-sm font-medium text-purple-600 hidden sm:inline">Data Pribadi</span>
+          </div>
+          <div class="w-8 md:w-16 h-1 bg-gray-300 step-line" data-line="1"></div>
+          <div class="flex items-center">
+            <div class="w-7 h-7 md:w-8 md:h-8 bg-gray-300 text-gray-500 rounded-full flex items-center justify-center font-semibold text-sm step-indicator" data-step="2">2</div>
+            <span class="ml-1 md:ml-2 text-xs md:text-sm font-medium text-gray-500 hidden sm:inline">Konfirmasi</span>
+          </div>
+          <div class="w-8 md:w-16 h-1 bg-gray-300 step-line" data-line="2"></div>
+          <div class="flex items-center">
+            <div class="w-7 h-7 md:w-8 md:h-8 bg-gray-300 text-gray-500 rounded-full flex items-center justify-center font-semibold text-sm step-indicator" data-step="3">3</div>
+            <span class="ml-1 md:ml-2 text-xs md:text-sm font-medium text-gray-500 hidden sm:inline">Pembayaran</span>
+          </div>
+          <div class="w-8 md:w-16 h-1 bg-gray-300 step-line" data-line="3"></div>
+          <div class="flex items-center">
+            <div class="w-7 h-7 md:w-8 md:h-8 bg-gray-300 text-gray-500 rounded-full flex items-center justify-center font-semibold text-sm step-indicator" data-step="4">4</div>
+            <span class="ml-1 md:ml-2 text-xs md:text-sm font-medium text-gray-500 hidden sm:inline">Selesai</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Container -->
+      <div class="bg-white rounded-xl shadow-lg p-4 md:p-8" id="formContainer">
+        <!-- Error Alert -->
+        <div id="errorAlert" class="hidden mb-4 bg-red-50 border border-red-200 rounded-lg p-4">
+          <div class="flex items-start">
+            <svg class="w-5 h-5 text-red-600 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293z" clip-rule="evenodd"/>
+            </svg>
+            <p class="text-red-700 text-sm" id="errorMessage"></p>
+          </div>
+        </div>
+
+        <form id="smaRegistrationForm">
+          
+          <!-- Step 1: Data Pribadi -->
+          <div class="step-content" data-step="1">
+            <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-4 md:mb-6 flex items-center">
+              <svg class="w-5 h-5 md:w-6 md:h-6 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 4C13.1 4 14 4.9 14 6C14 7.1 13.1 8 12 8C10.9 8 10 7.1 10 6C10 4.9 10.9 4 12 4M21 16V18C21 19.1 20.1 20 19 20H5C3.9 20 3 19.1 3 18V16C3 14.9 3.9 14 5 14H7L8.29 12.71C8.68 12.32 9.32 12.32 9.71 12.71L12 15L14.29 12.71C14.68 12.32 15.32 12.32 15.71 12.71L17 14H19C20.1 14 21 14.9 21 16Z"/>
+              </svg>
+              Data Pribadi
+            </h2>
+            
+            <div class="space-y-4 md:space-y-6">
+              <!-- Nama -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Nama Lengkap *</label>
+                <input type="text" name="name" required 
+                       placeholder="Masukkan nama lengkap sesuai KTP"
+                       class="w-full px-3 md:px-4 py-2 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              </div>
+
+              <!-- Email -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Email Siswa *</label>
+                <input type="email" name="email" required 
+                       placeholder="contoh@email.com"
+                       class="w-full px-3 md:px-4 py-2 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              </div>
+
+              <!-- No WA Siswa dan Ortu -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">No WhatsApp Siswa *</label>
+                  <div class="flex">
+                    <span class="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg">
+                      +62
+                    </span>
+                    <input type="tel" name="phone_student" id="phone_student" required 
+                           placeholder="8123456789"
+                           maxlength="12"
+                           pattern="[0-9]{9,12}"
+                           class="w-full px-3 md:px-4 py-2 md:py-3 text-sm md:text-base border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">Masukkan 9-12 digit setelah +62 (contoh: 8123456789)</p>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">No WhatsApp Orang Tua *</label>
+                  <div class="flex">
+                    <span class="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg">
+                      +62
+                    </span>
+                    <input type="tel" name="phone_parent" id="phone_parent" required 
+                           placeholder="8123456789"
+                           maxlength="12"
+                           pattern="[0-9]{9,12}"
+                           class="w-full px-3 md:px-4 py-2 md:py-3 text-sm md:text-base border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">Masukkan 9-12 digit setelah +62 (contoh: 8123456789)</p>
+                </div>
+              </div>
+
+              <!-- Alamat -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Alamat Lengkap *</label>
+                <textarea name="address" rows="3" required
+                          placeholder="Jalan, RT/RW, Kelurahan, Kecamatan, Kota, Provinsi"
+                          class="w-full px-3 md:px-4 py-2 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+              </div>
+
+              <!-- Asal Sekolah dan Agama -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Asal Sekolah *</label>
+                  <input type="text" name="previous_school" required 
+                         placeholder="Nama sekolah asal"
+                         class="w-full px-3 md:px-4 py-2 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Agama *</label>
+                  <select name="religion" required
+                          class="w-full px-3 md:px-4 py-2 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Pilih Agama</option>
+                    <option value="Islam">Islam</option>
+                    <option value="Kristen">Kristen</option>
+                    <option value="Katolik">Katolik</option>
+                    <option value="Hindu">Hindu</option>
+                    <option value="Buddha">Buddha</option>
+                    <option value="Konghucu">Konghucu</option>
+                    <option value="Kepercayaan">Kepercayaan</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Pilihan Program -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-4">Pilihan Program *</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                  <label class="flex items-start p-3 md:p-4 border-2 border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 cursor-pointer transition-all">
+                    <input type="radio" name="major" value="IPA" required class="mt-1 text-blue-600 focus:ring-blue-500">
+                    <div class="ml-3">
+                      <div class="font-medium text-sm md:text-base text-gray-900">IPA</div>
+                      <div class="text-xs md:text-sm text-gray-500">Ilmu Pengetahuan Alam</div>
+                    </div>
+                  </label>
+
+                  <label class="flex items-start p-3 md:p-4 border-2 border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 cursor-pointer transition-all">
+                    <input type="radio" name="major" value="IPS" required class="mt-1 text-blue-600 focus:ring-blue-500">
+                    <div class="ml-3">
+                      <div class="font-medium text-sm md:text-base text-gray-900">IPS</div>
+                      <div class="text-xs md:text-sm text-gray-500">Ilmu Pengetahuan Sosial</div>
+                    </div>
+                  </label>
+
+                  <label class="flex items-start p-3 md:p-4 border-2 border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 cursor-pointer transition-all">
+                    <input type="radio" name="major" value="IPA Bilingual" required class="mt-1 text-blue-600 focus:ring-blue-500">
+                    <div class="ml-3">
+                      <div class="font-medium text-sm md:text-base text-gray-900">IPA Bilingual</div>
+                      <div class="text-xs md:text-sm text-gray-500">Bilingual Science</div>
+                    </div>
+                  </label>
+
+                  <label class="flex items-start p-3 md:p-4 border-2 border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 cursor-pointer transition-all">
+                    <input type="radio" name="major" value="IPS Bilingual" required class="mt-1 text-blue-600 focus:ring-blue-500">
+                    <div class="ml-3">
+                      <div class="font-medium text-sm md:text-base text-gray-900">IPS Bilingual</div>
+                      <div class="text-xs md:text-sm text-gray-500">Bilingual Social</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Sumber Informasi -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Mendapatkan informasi SPMB dari *</label>
+                <select name="information_source" required
+                        class="w-full px-3 md:px-4 py-2 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <option value="">Pilih Sumber Informasi</option>
+                  <option value="Presentasi Sekolah">Presentasi Sekolah</option>
+                  <option value="TikTok">TikTok</option>
+                  <option value="Instagram">Instagram</option>
+                  <option value="YouTube">YouTube</option>
+                  <option value="Website">Website</option>
+                  <option value="Teman">Teman</option>
+                  <option value="Saudara">Saudara</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Konfirmasi -->
+          <div class="step-content hidden" data-step="2">
+            <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-4 md:mb-6 flex items-center">
+              <svg class="w-5 h-5 md:w-6 md:h-6 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z"/>
+              </svg>
+              Konfirmasi Data
+            </h2>
+
+            <div class="bg-purple-50 rounded-lg p-4 md:p-6 mb-4 md:mb-6">
+              <h3 class="font-semibold text-purple-800 mb-3 md:mb-4 text-sm md:text-base">Ringkasan Pendaftaran</h3>
+              <div id="confirmation-summary" class="space-y-2 text-xs md:text-sm"></div>
+            </div>
+            
+            <div class="flex items-start mb-4 md:mb-6">
+              <input type="checkbox" id="agreement" required class="mt-1 text-purple-600 focus:ring-purple-500">
+              <label for="agreement" class="ml-2 text-xs md:text-sm text-gray-600">
+                Saya menyatakan bahwa data yang saya berikan adalah benar dan dapat dipertanggungjawabkan.
+              </label>
+            </div>
+            <!-- Invisible reCAPTCHA button -->
+           
+            <div id="recaptcha-container"></div>
+          </div>
+
+          <!-- Step 3: Pembayaran -->
+          <div class="step-content hidden" data-step="3">
+            <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-4 md:mb-6 flex items-center">
+              <svg class="w-5 h-5 md:w-6 md:h-6 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M20,8H4V6H20M20,18H4V12H20M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z"/>
+              </svg>
+              Pembayaran Formulir
+            </h2>
+
+            <!-- Payment Method Selection -->
+            <div id="paymentMethodSection">
+              <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                <div class="flex items-start">
+                  <svg class="w-5 h-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                  </svg>
+                  <div>
+                    <h4 class="font-semibold text-yellow-800 text-sm mb-1">Biaya Formulir Pendaftaran</h4>
+                    <p class="text-yellow-700 text-sm">Rp 100.000,-</p>
+                  </div>
+                </div>
+              </div>
+
+              <label class="block text-sm font-medium text-gray-700 mb-4">Pilih Metode Pembayaran *</label>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label id="vaMethodLabel" class="flex items-start p-4 border-2 border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 cursor-pointer transition-all payment-method-option">
+                  <input type="radio" name="payment_method" value="virtual_account" required class="mt-1 text-blue-600 focus:ring-blue-500">
+                    <div class="ml-3 flex items-center">
+                    <img src="../logo/BRI.webp" alt="Logo BRI" class="w-10 h-8 object-contain mr-3" />
+                    <div>
+                      <div class="font-medium text-base text-gray-900">Virtual Account</div>
+                      <div class="text-sm text-gray-500">Transfer via Bank BRI (BRIVA)</div>
+                    </div>
+                    </div>
+                </label>
+
+                <label id="cashMethodLabel" class="flex items-start p-4 border-2 border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 cursor-pointer transition-all payment-method-option">
+                  <input type="radio" name="payment_method" value="cash" required class="mt-1 text-blue-600 focus:ring-blue-500">
+                  <div class="ml-3">
+                    <div class="font-medium text-base text-gray-900">Tunai</div>
+                    <div class="text-sm text-gray-500">Bayar langsung ke sekolah</div>
+                  </div>
+                </label>
+              </div>
+
+              <!-- Payment Method Summary (shown after selection) -->
+              <div id="paymentMethodSummary" class="hidden mt-6">
+                <div id="vaSummary" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div class="flex items-start">
+                    <svg class="w-6 h-6 text-blue-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+                      <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/>
+                    </svg>
+                    <div>
+                      <h4 class="font-semibold text-blue-800 mb-1">Pembayaran Virtual Account (BRIVA)</h4>
+                      <p class="text-blue-600 text-sm">Anda akan diarahkan ke halaman pembayaran untuk melihat nomor Virtual Account dan instruksi pembayaran.</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div id="cashSummary" class="hidden bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div class="flex items-start">
+                    <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                    </svg>
+                    <div>
+                      <h4 class="font-semibold text-green-800 mb-1">Pembayaran Tunai</h4>
+                      <p class="text-green-600 text-sm">Anda akan diarahkan ke halaman pembayaran untuk melihat instruksi pembayaran tunai di sekolah.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Proceed to Payment Button -->
+              <div id="proceedToPaymentSection" class="hidden mt-6">
+                <button type="button" id="proceedToPaymentBtn"
+                        class="w-full px-6 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all font-bold text-lg shadow-lg hover:shadow-xl flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+                  <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                  </svg>
+                  <span id="proceedToPaymentBtnText">Lanjut ke Pembayaran</span>
+                </button>
+                
+                <p class="text-xs text-gray-500 text-center mt-3">
+                  Anda akan diarahkan ke halaman pembayaran terpisah
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4: Success & Credentials -->
+          <div class="step-content hidden" data-step="4">
+            <div id="pendingState" class="hidden">
+              <div class="text-center mb-6">
+                <div class="w-20 h-20 md:w-24 md:h-24 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg class="w-10 h-10 md:w-12 md:h-12 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-.75-11.5a.75.75 0 011.5 0v4.25a.75.75 0 01-1.5 0V6.5zm.75 8a.875.875 0 110-1.75.875.875 0 010 1.75z" clip-rule="evenodd"/>
+                  </svg>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-3">Menunggu Pembayaran Tunai</h2>
+                <p class="text-gray-600 text-base md:text-lg mb-6">
+                  Silakan datang ke sekolah dan lakukan pembayaran tunai. Detail tiket sudah kami kirimkan ke email Anda.
+                </p>
+              </div>
+
+              <div class="bg-white border border-yellow-200 rounded-lg p-5 md:p-6 mb-6">
+                <h3 class="font-semibold text-yellow-800 mb-4 text-base md:text-lg">Ringkasan Tiket</h3>
+                <div class="space-y-3 text-sm md:text-base text-gray-700">
+                  <div class="flex justify-between">
+                    <span>Nomor Pendaftaran</span>
+                    <span class="font-semibold text-gray-900" id="pendingRegNumber">-</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Email</span>
+                    <span class="font-semibold text-gray-900" id="pendingEmail">-</span>
+                  </div>
+                  <p class="text-xs text-gray-500">
+                    Tunjukkan nomor ini kepada petugas administrasi untuk validasi pembayaran tunai.
+                  </p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                <button type="button" id="checkStatusBtn"
+                        class="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all font-bold text-base md:text-lg shadow-lg hover:shadow-xl">
+                  Cek Status Pendaftaran
+                </button>
+
+                <button type="button" id="finishPendingBtn"
+                        class="w-full px-6 py-4 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-all font-bold text-base md:text-lg">
+                  Kembali ke Beranda
+                </button>
+              </div>
+            </div>
+
+            <div id="successState" class="hidden">
+              <div class="text-center mb-6">
+                <div class="w-20 h-20 md:w-24 md:h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg class="w-10 h-10 md:w-12 md:h-12 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-3">Pembayaran Berhasil!</h2>
+                <p class="text-gray-600 text-base md:text-lg mb-8">Pendaftaran Anda telah dikonfirmasi</p>
+              </div>
+
+              <div id="credentialsInfo" class="bg-blue-50 border-2 border-blue-200 rounded-lg p-5 md:p-6 mb-6">
+                <h3 class="font-semibold text-blue-800 mb-4 text-base md:text-lg flex items-center">
+                  <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z"/>
+                  </svg>
+                  Informasi Login Anda
+                </h3>
+                <div class="space-y-4">
+                  <div>
+                    <p class="text-blue-600 font-medium text-sm mb-1">Nomor Pendaftaran</p>
+                    <p class="font-mono font-bold text-gray-900 text-lg" id="modalRegNumber">-</p>
+                  </div>
+                  <div>
+                    <p class="text-blue-600 font-medium text-sm mb-2">Email</p>
+                    <div class="flex items-center justify-between bg-white rounded-lg px-4 py-3 border border-blue-200">
+                      <p class="font-mono font-semibold text-gray-900 break-all flex-1 mr-2" id="modalEmail">-</p>
+                      <button type="button" id="copyEmail" class="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 rounded transition-colors whitespace-nowrap flex-shrink-0">
+                        Copy
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <p class="text-blue-600 font-medium text-sm mb-2">Password</p>
+                    <div class="flex items-center justify-between bg-white rounded-lg px-4 py-3 border border-blue-200">
+                      <p class="font-mono font-semibold text-gray-900 flex-1 mr-2" id="modalPassword">-</p>
+                      <button type="button" id="copyPassword" class="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 rounded transition-colors whitespace-nowrap flex-shrink-0">
+                        Copy
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-5 md:p-6 mb-6">
+                <div class="flex items-start">
+                  <svg class="w-6 h-6 text-yellow-600 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+                  <div class="text-sm md:text-base text-yellow-800">
+                    <p class="font-bold mb-2">Penting!</p>
+                    <p class="leading-relaxed">Simpan informasi login Anda dengan aman. Email dan password juga telah dikirim ke alamat email yang Anda daftarkan.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                <button type="button" id="loginBtn" class="w-full px-6 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all font-bold text-base md:text-lg shadow-lg hover:shadow-xl flex items-center justify-center">
+                  <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l3-3a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+                  Login Dashboard
+                </button>
+
+                <button type="button" id="finishBtn" class="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all font-bold text-base md:text-lg shadow-lg hover:shadow-xl flex items-center justify-center">
+                  <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                  </svg>
+                  Kembali ke Beranda
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigation Buttons - HARUS DI LUAR SEMUA step-content -->
+          <div class="flex justify-between mt-6 md:mt-8 gap-2 md:gap-0">
+            <button type="button" id="prevBtn" 
+                    class="hidden px-4 md:px-6 py-2 md:py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors font-semibold text-sm md:text-base">
+              <svg class="w-4 h-4 md:w-5 md:h-5 inline mr-1 md:mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+              </svg>
+              Kembali
+            </button>
+
+            <button type="button" id="nextBtn" 
+                    class="ml-auto px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all font-semibold text-sm md:text-base shadow-lg hover:shadow-xl">
+              Selanjutnya
+              <svg class="w-4 h-4 md:w-5 md:h-5 inline ml-1 md:ml-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+
+            <button type="button" id="confirmBtn" 
+                    class="hidden ml-auto px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all font-semibold text-sm md:text-base shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed">
+              <span id="confirmBtnText">Lanjut ke Pembayaran</span>
+              <svg class="w-4 h-4 md:w-5 md:h-5 inline ml-1 md:ml-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+          </div>
+
+        </form>
+        
+        <!-- Edit Data Modal -->
+        <div id="editDataModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-800 flex items-center">
+                  <svg class="w-5 h-5 mr-2 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                  </svg>
+                  Edit Data Pendaftaran
+                </h3>
+                <button type="button" id="closeEditModal" class="text-gray-400 hover:text-gray-600">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+              
+              <!-- Error Info -->
+              <div id="editErrorInfo" class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                <p class="text-red-700 text-sm font-semibold mb-1">⚠️ Error dari Finance:</p>
+                <p class="text-red-600 text-xs" id="editErrorMessage">-</p>
+              </div>
+              
+              <!-- Edit Form -->
+              <form id="editDataForm" class="space-y-4">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-1">Nama Lengkap</label>
+                  <input type="text" name="edit_name" id="edit_name"
+                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                         placeholder="Nama lengkap">
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-1">No. WhatsApp Siswa</label>
+                  <div class="flex">
+                    <span class="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg">
+                      +62
+                    </span>
+                    <input type="text" name="edit_phone_student" id="edit_phone_student"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                           placeholder="8123456789"
+                           maxlength="12"
+                           pattern="[0-9]{9,12}">
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">Masukkan 9-12 digit setelah +62</p>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-1">No. WhatsApp Orang Tua</label>
+                  <div class="flex">
+                    <span class="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg">
+                      +62
+                    </span>
+                    <input type="text" name="edit_phone_parent" id="edit_phone_parent"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                           placeholder="8123456789"
+                           maxlength="12"
+                           pattern="[0-9]{9,12}">
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">Masukkan 9-12 digit setelah +62</p>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-1">Alamat</label>
+                  <textarea name="edit_address" id="edit_address" rows="2"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                            placeholder="Alamat lengkap"></textarea>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-1">Asal Sekolah</label>
+                  <input type="text" name="edit_previous_school" id="edit_previous_school"
+                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                         placeholder="Nama sekolah asal">
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-1">Agama</label>
+                  <select name="edit_religion" id="edit_religion"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm">
+                    <option value="Islam">Islam</option>
+                    <option value="Kristen">Kristen</option>
+                    <option value="Katolik">Katolik</option>
+                    <option value="Hindu">Hindu</option>
+                    <option value="Buddha">Buddha</option>
+                    <option value="Konghucu">Konghucu</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-1">Program/Jurusan</label>
+                  <select name="edit_major" id="edit_major"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm">
+                    <option value="IPA">IPA (Ilmu Pengetahuan Alam)</option>
+                    <option value="IPS">IPS (Ilmu Pengetahuan Sosial)</option>
+                    <option value="IPA Bilingual">IPA Bilingual</option>
+                    <option value="IPS Bilingual">IPS Bilingual</option>
+                  </select>
+                </div>
+                
+                <!-- Edit Form Error -->
+                <div id="editFormError" class="hidden bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p class="text-red-700 text-sm" id="editFormErrorMessage">-</p>
+                </div>
+                
+                <!-- Submit Button -->
+                <div class="flex gap-3 pt-2">
+                  <button type="button" id="cancelEditBtn"
+                          class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-semibold text-sm">
+                    Batal
+                  </button>
+                  <button type="submit" id="saveEditBtn"
+                          class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold text-sm flex items-center justify-center gap-2">
+                    <svg id="saveEditSpinner" class="hidden animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span id="saveEditBtnText">Simpan & Kirim Ulang</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    import { API_URL, RECAPTCHA_SITE_KEY } from '../../config/api';
+    
+    // Extend Window interface for reCAPTCHA
+    declare global {
+      interface Window {
+        onRecaptchaLoadCallback: () => void;
+        grecaptcha: any;
+      }
+    }
+    
+    // Storage keys
+    const STORAGE_KEY = 'sma_registration_session';
+    const FORM_DATA_KEY = 'sma_registration_form_data';
+    
+    interface RegistrationSession {
+      registrationId: string;
+      registrationNumber: string;
+      email: string;
+      step: number;
+      createdAt: number;
+      paymentStatus?: string;
+      vaExpired?: boolean;
+      orderId?: string | null;
+      paymentMethod?: string;
+    }
+    
+    interface FormDataCache {
+      data: Record<string, string>;
+      savedAt: number;
+    }
+    
+    // State management
+    let currentStep = 1;
+    const totalSteps = 4;
+    let registrationId: string | null = null;
+    let orderId: string | null = null;
+    let paymentData: any = null;
+    let recaptchaWidgetId: number | null = null;
+    let recaptchaToken: string | null = null;
+    let selectedPaymentMethod: string | null = null;
+
+    // XSS Prevention Helper
+    function escapeHtml(str: string | null | undefined): string {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // DOM elements
+    const elements = {
+      steps: document.querySelectorAll('.step-content'),
+      stepIndicators: document.querySelectorAll('.step-indicator'),
+      stepLines: document.querySelectorAll('.step-line'),
+      prevBtn: document.getElementById('prevBtn'),
+      nextBtn: document.getElementById('nextBtn'),
+      confirmBtn: document.getElementById('confirmBtn'),
+      confirmBtnText: document.getElementById('confirmBtnText'),
+      finishBtn: document.getElementById('finishBtn'),
+      form: document.getElementById('smaRegistrationForm'),
+      errorAlert: document.getElementById('errorAlert'),
+      errorMessage: document.getElementById('errorMessage'),
+      confirmationSummary: document.getElementById('confirmation-summary'),
+      agreement: document.getElementById('agreement'),
+      // Step 3 - Payment Method Selection
+      paymentMethodSummary: document.getElementById('paymentMethodSummary'),
+      vaSummary: document.getElementById('vaSummary'),
+      cashSummary: document.getElementById('cashSummary'),
+      proceedToPaymentSection: document.getElementById('proceedToPaymentSection'),
+      proceedToPaymentBtn: document.getElementById('proceedToPaymentBtn'),
+      proceedToPaymentBtnText: document.getElementById('proceedToPaymentBtnText'),
+      // Step 4 - Success
+      pendingState: document.getElementById('pendingState'),
+      successState: document.getElementById('successState'),
+      pendingRegNumber: document.getElementById('pendingRegNumber'),
+      pendingEmail: document.getElementById('pendingEmail'),
+      checkStatusBtn: document.getElementById('checkStatusBtn'),
+      finishPendingBtn: document.getElementById('finishPendingBtn')
+    };
+
+    // Validation helpers
+    const validators = {
+      email: (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
+      phone: (phone: string) => /^\d{9,12}$/.test(phone) // Just digits without +62 prefix (9-12 digits = total 11-14 with 62)
+    };
+
+    // Phone number formatting utility
+    function formatPhoneInput(input: HTMLInputElement) {
+      // Remove all non-numeric characters
+      let value = input.value.replace(/\D/g, '');
+      
+      // Remove leading +62, 62, or 0
+      if (value.startsWith('62')) {
+        value = value.substring(2);
+      } else if (value.startsWith('0')) {
+        value = value.substring(1);
+      }
+      
+      // Limit to 12 digits max (for total 14 with 62 prefix)
+      if (value.length > 12) {
+        value = value.substring(0, 12);
+      }
+      
+      input.value = value;
+    }
+
+    // Setup phone input handlers
+    function setupPhoneInputs() {
+      const phoneInputs = document.querySelectorAll('#phone_student, #phone_parent, #edit_phone_student, #edit_phone_parent');
+      
+      phoneInputs.forEach(input => {
+        if (input instanceof HTMLInputElement) {
+          // Format on input
+          input.addEventListener('input', () => formatPhoneInput(input));
+          
+          // Format on paste
+          input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const pastedText = (e.clipboardData || (window as any).clipboardData)?.getData('text') || '';
+            input.value = pastedText;
+            formatPhoneInput(input);
+          });
+          
+          // Only allow numeric input
+          input.addEventListener('keypress', (e) => {
+            if (!/[0-9]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab') {
+              e.preventDefault();
+            }
+          });
+        }
+      });
+    }
+
+    // Major labels mapping
+    const majorLabels = {
+      'IPA': 'IPA (Ilmu Pengetahuan Alam)',
+      'IPS': 'IPS (Ilmu Pengetahuan Sosial)',
+      'IPA Bilingual': 'IPA Bilingual (Bilingual Science)',
+      'IPS Bilingual': 'IPS Bilingual (Bilingual Social)'
+    };
+
+    // Callback for reCAPTCHA loaded - MUST BE DEFINED BEFORE SCRIPT LOADS
+    window.onRecaptchaLoadCallback = function() {
+      renderRecaptcha();
+    };
+
+    // Function to render reCAPTCHA
+    function renderRecaptcha() {
+      const container = document.getElementById('recaptcha-container');
+      
+      if (!container) {
+        console.error('reCAPTCHA container not found');
+        return;
+      }
+      
+      if (typeof window.grecaptcha === 'undefined') {
+        console.error('grecaptcha not loaded yet');
+        return;
+      }
+      
+      if (recaptchaWidgetId !== null) {
+        return;
+      }
+      
+      try {
+        recaptchaWidgetId = window.grecaptcha.render('recaptcha-container', {
+          'sitekey': RECAPTCHA_SITE_KEY,
+          'size': 'normal',
+          'callback': onRecaptchaSuccess
+        });
+      } catch (error) {
+        console.error('Error rendering reCAPTCHA:', error);
+      }
+    }
+
+    // Called when reCAPTCHA is solved
+    function onRecaptchaSuccess(token: string) {
+      recaptchaToken = token;
+      // Enable the confirm button when reCAPTCHA is solved
+      if (elements.confirmBtn) {
+        (elements.confirmBtn as HTMLButtonElement).disabled = false;
+        elements.confirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        elements.confirmBtn.classList.add('cursor-pointer');
+      }
+    }
+
+    /**
+     * Update step visibility and styling
+     */
+    function showStep(step: number) {
+      elements.steps = document.querySelectorAll('.step-content');
+
+      elements.steps.forEach((el) => {
+        const elStep = Number((el as HTMLElement).dataset.step || 0);
+        el.classList.toggle('hidden', elStep !== step);
+      });
+
+      elements.stepIndicators.forEach((el, index) => {
+        const stepNumber = index + 1;
+        const label = el.nextElementSibling;
+
+        el.classList.remove('bg-gray-300', 'text-gray-500', 'bg-green-600', 'bg-blue-600', 'bg-purple-600', 'text-white');
+        
+        if (stepNumber < step) {
+          el.classList.add('bg-green-600', 'text-white');
+          if (label) {
+            label.classList.remove('text-gray-500', 'text-blue-600', 'text-purple-600', 'font-semibold');
+            label.classList.add('text-green-600');
+          }
+        } else if (stepNumber === step) {
+          if (step === 1) {
+            el.classList.add('bg-purple-600', 'text-white');
+          } else {
+            el.classList.add('bg-blue-600', 'text-white');
+          }
+          if (label) {
+            label.classList.remove('text-gray-500', 'text-green-600');
+            label.classList.add(step === 1 ? 'text-purple-600' : 'text-blue-600', 'font-semibold');
+          }
+        } else {
+          el.classList.add('bg-gray-300', 'text-gray-500');
+          if (label) {
+            label.classList.remove('text-blue-600', 'text-purple-600', 'text-green-600', 'font-semibold');
+            label.classList.add('text-gray-500');
+          }
+        }
+      });
+
+      elements.stepLines.forEach((el, index) => {
+        if (index + 1 < step) {
+          el.classList.remove('bg-gray-300');
+          el.classList.add('bg-green-600');
+        } else {
+          el.classList.remove('bg-green-600');
+          el.classList.add('bg-gray-300');
+        }
+      });
+
+      // Button visibility logic
+      elements.prevBtn?.classList.toggle('hidden', step === 1);
+      
+      if (step === 2) {
+        elements.nextBtn?.classList.add('hidden');
+        elements.confirmBtn?.classList.remove('hidden');
+        // Disable confirm button initially until reCAPTCHA is solved
+        if (elements.confirmBtn) {
+          (elements.confirmBtn as HTMLButtonElement).disabled = true;
+          elements.confirmBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+        showConfirmation();
+      } else if (step === 3) {
+        elements.prevBtn?.classList.add('hidden');
+        elements.nextBtn?.classList.add('hidden');
+        elements.confirmBtn?.classList.add('hidden');
+      } else if (step === 4) {
+        elements.prevBtn?.classList.add('hidden');
+        elements.nextBtn?.classList.add('hidden');
+        elements.confirmBtn?.classList.add('hidden');
+      } else {
+        elements.nextBtn?.classList.remove('hidden');
+        elements.confirmBtn?.classList.add('hidden');
+      }
+
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /**
+     * Validate current step inputs
+     */
+    function validateStep(step: number) {
+      const currentStepEl = document.querySelector(`.step-content[data-step="${step}"]`);
+      if (!currentStepEl) return false;
+
+      const inputs = currentStepEl.querySelectorAll('input[required], select[required], textarea[required]');
+      
+      for (const input of inputs) {
+        const inputElement = input as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+        const value = inputElement.value.trim();
+
+        if (!value) {
+          inputElement.focus();
+          showError('Mohon lengkapi semua field yang wajib diisi (*)');
+          return false;
+        }
+
+        if ('type' in inputElement && inputElement.type === 'email' && !validators.email(value)) {
+          inputElement.focus();
+          showError('Format email tidak valid');
+          return false;
+        }
+
+        if ('name' in inputElement && inputElement.name.includes('phone') && !validators.phone(value)) {
+          inputElement.focus();
+          showError('Format nomor WhatsApp tidak valid. Masukkan 9-12 digit setelah +62');
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    /**
+     * Display confirmation summary
+     */
+    function showConfirmation() {
+      if (!elements.form || !elements.confirmationSummary) return;
+
+      const formData = new FormData(elements.form as HTMLFormElement);
+      
+      const escape = (value: FormDataEntryValue | null) => {
+        const str = typeof value === 'string' ? value : value?.toString() || '';
+        return escapeHtml(str);
+      };
+
+      // Format phone with +62 prefix for display
+      const formatPhoneDisplay = (phone: FormDataEntryValue | null) => {
+        const phoneStr = typeof phone === 'string' ? phone : phone?.toString() || '';
+        return phoneStr ? '+62' + phoneStr : '';
+      };
+
+      const majorValue = formData.get('major') as string | null;
+      const fields = [
+        { label: 'Nama', value: escape(formData.get('name')) },
+        { label: 'Email', value: escape(formData.get('email')) },
+        { label: 'WA Siswa', value: escape(formatPhoneDisplay(formData.get('phone_student'))) },
+        { label: 'WA Orang Tua', value: escape(formatPhoneDisplay(formData.get('phone_parent'))) },
+        { label: 'Alamat', value: escape(formData.get('address')), alignRight: true },
+        { label: 'Asal Sekolah', value: escape(formData.get('previous_school')) },
+        { label: 'Agama', value: escape(formData.get('religion')) },
+        { label: 'Program', value: escape(majorValue && majorLabels[majorValue as keyof typeof majorLabels] || majorValue) },
+        { label: 'Sumber Info', value: escape(formData.get('information_source')) }
+      ];
+
+      const itemsHTML = fields.map((field, index) => `
+        <div class="flex justify-between ${index < fields.length - 1 ? 'border-b' : ''} pb-2">
+          <span class="text-gray-600">${field.label}:</span>
+          <span class="font-semibold text-gray-900 ${field.alignRight ? 'text-right' : ''}">${field.value}</span>
+        </div>
+      `).join('');
+
+      elements.confirmationSummary.innerHTML = `
+        <div class="grid grid-cols-1 gap-3">
+          ${itemsHTML}
+        </div>
+      `;
+    }
+
+    /**
+     * Display error message
+     */
+    function showError(message: string | null) {
+      if (!elements.errorAlert || !elements.errorMessage) return;
+
+      elements.errorMessage.textContent = message;
+      elements.errorAlert.classList.remove('hidden');
+      
+      setTimeout(() => {
+        if (elements.errorAlert) {
+          elements.errorAlert.classList.add('hidden');
+        }
+      }, 5000);
+    }
+
+    /**
+     * Handle form submission (create draft)
+     */
+    async function handleConfirmation() {
+      if (!(elements.agreement as HTMLInputElement)?.checked) {
+        showError('Anda harus menyetujui pernyataan terlebih dahulu');
+        return;
+      }
+
+      const originalText = elements.confirmBtnText?.textContent || 'Lanjut ke Pembayaran';
+      
+      if (elements.confirmBtn) (elements.confirmBtn as HTMLButtonElement).disabled = true;
+      if (elements.confirmBtnText) elements.confirmBtnText.textContent = 'Memproses...';
+
+      try {
+        const formData = new FormData(elements.form as HTMLFormElement);
+        const data = Object.fromEntries(formData) as Record<string, any>;
+        
+        // Prepend +62 to phone numbers
+        if (data.phone_student) {
+          data.phone_student = '+62' + data.phone_student;
+        }
+        if (data.phone_parent) {
+          data.phone_parent = '+62' + data.phone_parent;
+        }
+
+        const response = await fetch(`${API_URL}/api/registrations/sma`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          registrationId = result.data.id;
+          currentStep = 3;
+          showStep(currentStep);
+          setupPaymentListeners();
+        } else {
+          if (response.status === 429) {
+            showError('Terlalu banyak percobaan. Silakan tunggu sebentar sebelum mencoba lagi.');
+            return;
+          }
+          const errorMsg = result.errors 
+            ? Object.values(result.errors).flat().join(', ')
+            : result.message || 'Terjadi kesalahan saat mengirim data';
+          showError(errorMsg);
+          
+          if (elements.confirmBtn) (elements.confirmBtn as HTMLButtonElement).disabled = false;
+          if (elements.confirmBtnText) elements.confirmBtnText.textContent = originalText;
+        }
+      } catch (error) {
+        console.error('Submission error:', error);
+        showError('Terjadi kesalahan koneksi. Pastikan internet Anda stabil dan coba lagi.');
+        
+        if (elements.confirmBtn) (elements.confirmBtn as HTMLButtonElement).disabled = false;
+        if (elements.confirmBtnText) elements.confirmBtnText.textContent = originalText;
+      }
+    }
+
+    /**
+     * Handle confirmation with reCAPTCHA verification
+     */
+    async function handleConfirmationWithRecaptcha() {
+      // Check agreement
+      if (!(elements.agreement as HTMLInputElement)?.checked) {
+        showError('Anda harus menyetujui pernyataan terlebih dahulu');
+        return;
+      }
+
+      // Check if reCAPTCHA is solved
+      if (!recaptchaToken) {
+        showError('Mohon selesaikan verifikasi reCAPTCHA terlebih dahulu');
+        return;
+      }
+
+      const originalText = elements.confirmBtnText?.textContent || 'Lanjut ke Pembayaran';
+      
+      if (elements.confirmBtn) {
+        (elements.confirmBtn as HTMLButtonElement).disabled = true;
+        elements.confirmBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+      if (elements.confirmBtnText) elements.confirmBtnText.textContent = 'Memproses...';
+
+      try {
+        const formData = new FormData(elements.form as HTMLFormElement);
+        const data = Object.fromEntries(formData) as Record<string, any>;
+        
+        // Prepend +62 to phone numbers
+        if (data.phone_student) {
+          data.phone_student = '+62' + data.phone_student;
+        }
+        if (data.phone_parent) {
+          data.phone_parent = '+62' + data.phone_parent;
+        }
+        
+        // Check for existing registration before submitting
+        const existingCheck = await checkExistingByEmail(data.email as string);
+        if (existingCheck.exists && existingCheck.can_resume) {
+          // Show resume modal
+          const shouldResume = await showExistingRegistrationModal(existingCheck.data, data.email as string);
+          if (shouldResume) {
+            // User chose to resume existing registration
+            registrationId = existingCheck.data.id;
+            orderId = existingCheck.data.order_uid || null;
+            
+            saveSession({
+              registrationId: existingCheck.data.id,
+              registrationNumber: existingCheck.data.registration_number,
+              email: data.email as string,
+              step: 3,
+              paymentStatus: existingCheck.data.payment_status,
+              orderId: orderId
+            });
+            
+            // If has order_uid, redirect to payment page
+            if (existingCheck.data.order_uid) {
+              window.location.href = `/pendaftaran/payment/${existingCheck.data.order_uid}`;
+              return;
+            }
+            
+            // Otherwise go to step 3
+            currentStep = 3;
+            showStep(currentStep);
+            setupPaymentListeners();
+            return;
+          } else {
+            // User chose to wait (admin needs to delete first)
+            if (elements.confirmBtn) {
+              (elements.confirmBtn as HTMLButtonElement).disabled = false;
+              elements.confirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            if (elements.confirmBtnText) elements.confirmBtnText.textContent = originalText;
+            return;
+          }
+        } else if (existingCheck.exists && !existingCheck.can_resume) {
+          // Registration exists and cannot resume (already completed)
+          showError('Email sudah terdaftar dan pendaftaran sudah selesai. Silakan cek status pendaftaran Anda.');
+          if (elements.confirmBtn) {
+            (elements.confirmBtn as HTMLButtonElement).disabled = false;
+            elements.confirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+          }
+          if (elements.confirmBtnText) elements.confirmBtnText.textContent = originalText;
+          return;
+        }
+        
+        data['recaptcha_token'] = recaptchaToken;
+
+        const response = await fetch(`${API_URL}/api/registrations/sma`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          registrationId = result.data.id;
+          
+          // Create Order for payment
+          const orderResponse = await fetch(`${API_URL}/api/orders`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+              registration_id: result.data.id,
+              student_name: data.name,
+              email: data.email,
+              school_type: 'SMA'
+            })
+          });
+          
+          const orderResult = await orderResponse.json();
+          
+          if (orderResponse.ok && orderResult.success) {
+            orderId = orderResult.data.order_uid;
+          } else {
+            console.error('Failed to create order:', orderResult.message);
+            // Continue anyway - order can be created later
+          }
+          
+          // Save session for recovery
+          saveSession({
+            registrationId: result.data.id,
+            registrationNumber: result.data.registration_number,
+            email: data.email as string,
+            step: 3,
+            paymentStatus: 'pending',
+            orderId: orderId
+          });
+          
+          // Clear form data after successful submission to prevent duplicate
+          clearFormData();
+          
+          currentStep = 3;
+          showStep(currentStep);
+          setupPaymentListeners();
+          
+          // Reset reCAPTCHA for next use
+          if (recaptchaWidgetId !== null) {
+            window.grecaptcha.reset(recaptchaWidgetId);
+          }
+        } else {
+          if (response.status === 429) {
+            showError('Terlalu banyak percobaan. Silakan tunggu sebentar sebelum mencoba lagi.');
+          } else {
+            const errorMsg = result.errors 
+              ? Object.values(result.errors).flat().join(', ')
+              : result.message || 'Terjadi kesalahan saat mengirim data';
+            showError(errorMsg);
+          }
+          
+          // Re-enable button
+          if (elements.confirmBtn) {
+            (elements.confirmBtn as HTMLButtonElement).disabled = false;
+            elements.confirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+          }
+          if (elements.confirmBtnText) elements.confirmBtnText.textContent = originalText;
+          
+          // Reset reCAPTCHA on error
+          if (recaptchaWidgetId !== null) {
+            window.grecaptcha.reset(recaptchaWidgetId);
+            recaptchaToken = null;
+          }
+        }
+      } catch (error) {
+        console.error('Submission error:', error);
+        showError('Terjadi kesalahan koneksi. Pastikan internet Anda stabil dan coba lagi.');
+        
+        // Re-enable button
+        if (elements.confirmBtn) {
+          (elements.confirmBtn as HTMLButtonElement).disabled = false;
+          elements.confirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+        if (elements.confirmBtnText) elements.confirmBtnText.textContent = originalText;
+        
+        // Reset reCAPTCHA on error
+        if (recaptchaWidgetId !== null) {
+          window.grecaptcha.reset(recaptchaWidgetId);
+          recaptchaToken = null;
+        }
+      }
+    }
+
+    /**
+     * Setup payment method listeners
+     * Simplified: Only show summary and enable proceed button
+     */
+    function setupPaymentListeners() {
+      const paymentRadios = document.querySelectorAll('input[name="payment_method"]');
+      const paymentMethodOptions = document.querySelectorAll('.payment-method-option');
+      
+      paymentRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+          const target = e.target as HTMLInputElement;
+          if (!target) return;
+          selectedPaymentMethod = target.value;
+          
+          // Update visual selection state
+          paymentMethodOptions.forEach(option => {
+            option.classList.remove('border-blue-500', 'bg-blue-50');
+            option.classList.add('border-gray-300');
+          });
+          target.closest('.payment-method-option')?.classList.remove('border-gray-300');
+          target.closest('.payment-method-option')?.classList.add('border-blue-500', 'bg-blue-50');
+          
+          // Show payment method summary
+          elements.paymentMethodSummary?.classList.remove('hidden');
+          
+          if (selectedPaymentMethod === 'virtual_account') {
+            elements.vaSummary?.classList.remove('hidden');
+            elements.cashSummary?.classList.add('hidden');
+          } else if (selectedPaymentMethod === 'cash') {
+            elements.vaSummary?.classList.add('hidden');
+            elements.cashSummary?.classList.remove('hidden');
+          }
+          
+          // Show proceed button
+          elements.proceedToPaymentSection?.classList.remove('hidden');
+        });
+      });
+      
+      // Setup proceed to payment button
+      const proceedBtn = elements.proceedToPaymentBtn;
+      if (proceedBtn) {
+        proceedBtn.addEventListener('click', handleProceedToPayment);
+      }
+    }
+
+    /**
+     * Handle proceed to payment - update Order and redirect to payment page
+     */
+    async function handleProceedToPayment() {
+      if (!selectedPaymentMethod) {
+        showError('Silakan pilih metode pembayaran');
+        return;
+      }
+      
+      // If orderId is missing, try to create order first
+      if (!orderId && registrationId) {
+        console.log('Order ID missing, attempting to create order...');
+        try {
+          const orderResponse = await fetch(`${API_URL}/api/orders`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+              registration_id: registrationId
+            })
+          });
+          
+          const orderResult = await orderResponse.json();
+          
+          if (orderResponse.ok && orderResult.success) {
+            orderId = orderResult.data.order_uid;
+            console.log('Order created successfully:', orderId);
+            
+            // Update session with orderId
+            const session = getSession();
+            if (session) {
+              saveSession({
+                ...session,
+                orderId: orderId
+              });
+            }
+          } else {
+            console.error('Failed to create order:', orderResult);
+            showError('Gagal membuat order: ' + (orderResult.message || 'Unknown error'));
+            return;
+          }
+        } catch (error) {
+          console.error('Error creating order:', error);
+          showError('Gagal membuat order. Silakan coba lagi.');
+          return;
+        }
+      }
+      
+      if (!orderId) {
+        showError('Order tidak ditemukan dan tidak ada ID pendaftaran. Silakan refresh halaman dan mulai ulang.');
+        return;
+      }
+      
+      const proceedBtn = elements.proceedToPaymentBtn as HTMLButtonElement;
+      const proceedBtnText = elements.proceedToPaymentBtnText;
+      
+      if (proceedBtn) {
+        proceedBtn.disabled = true;
+        proceedBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+      if (proceedBtnText) proceedBtnText.textContent = 'Memproses...';
+      
+      try {
+        // Update Order payment method
+        const response = await fetch(`${API_URL}/api/orders/${orderId}/payment-method`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({ payment_method: selectedPaymentMethod })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+          // Update session with payment method
+          const session = getSession();
+          if (session) {
+            saveSession({
+              ...session,
+              paymentMethod: selectedPaymentMethod
+            });
+          }
+          
+          // Redirect to standalone payment page
+          window.location.href = `/pendaftaran/payment/${orderId}`;
+        } else {
+          showError(result.message || 'Gagal memperbarui metode pembayaran');
+          
+          if (proceedBtn) {
+            proceedBtn.disabled = false;
+            proceedBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+          }
+          if (proceedBtnText) proceedBtnText.textContent = 'Lanjut ke Pembayaran';
+        }
+      } catch (error) {
+        console.error('Proceed to payment error:', error);
+        showError('Terjadi kesalahan. Silakan coba lagi.');
+        
+        if (proceedBtn) {
+          proceedBtn.disabled = false;
+          proceedBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+        if (proceedBtnText) proceedBtnText.textContent = 'Lanjut ke Pembayaran';
+      }
+    }
+
+    /**
+     * Update payment method on registration (legacy - kept for compatibility)
+     */
+    async function updatePaymentMethod(method: string) {
+      if (!registrationId) {
+        console.error('updatePaymentMethod: missing registrationId');
+        showError('ID pendaftaran tidak ditemukan');
+        return null;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/api/registrations/${registrationId}/payment-method`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({ payment_method: method })
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          return result.data;
+        }
+
+        showError(result.message || 'Gagal memperbarui metode pembayaran');
+        return null;
+      } catch (error) {
+        console.error('Update payment method error:', error);
+        showError('Terjadi kesalahan saat memperbarui metode pembayaran');
+        return null;
+      }
+    }
+
+    /**
+     * Show success step with credentials
+     */
+    function showSuccessStep(
+      data: { registration_number: string | null; email: string | null; password: string | null; },
+      state: 'paid' | 'pending' = 'paid'
+    ) {
+      // Clear session on success
+      clearSession();
+      
+      const modalRegNumber = document.getElementById('modalRegNumber');
+      const modalEmail = document.getElementById('modalEmail');
+      const modalPassword = document.getElementById('modalPassword');
+
+      if (state === 'paid') {
+        elements.pendingState?.classList.add('hidden');
+        elements.successState?.classList.remove('hidden');
+
+        if (modalRegNumber) modalRegNumber.textContent = data.registration_number ?? '-';
+        if (modalEmail) modalEmail.textContent = data.email ?? '-';
+        if (modalPassword) modalPassword.textContent = data.password ?? '-';
+      } else {
+        elements.successState?.classList.add('hidden');
+        elements.pendingState?.classList.remove('hidden');
+
+        if (elements.pendingRegNumber) elements.pendingRegNumber.textContent = data.registration_number ?? '-';
+        if (elements.pendingEmail) elements.pendingEmail.textContent = data.email ?? '-';
+
+        const checkStatusBtn = elements.checkStatusBtn as HTMLButtonElement | null;
+        if (checkStatusBtn) {
+          checkStatusBtn.dataset.ticket = data.registration_number ?? '';
+        }
+      }
+
+      currentStep = 4;
+      requestAnimationFrame(() => showStep(currentStep));
+    }
+
+    /**
+     * Copy email to clipboard
+     */
+    function copyEmail() {
+      const emailElement = document.getElementById('modalEmail');
+      if (!emailElement?.textContent) return;
+      
+      const email = emailElement.textContent;
+      const copyBtn = document.getElementById('copyEmail');
+      copyToClipboard(email, copyBtn);
+    }
+
+    /**
+     * Copy password to clipboard
+     */
+    function copyPassword() {
+      const passwordElement = document.getElementById('modalPassword');
+      if (!passwordElement?.textContent) return;
+      
+      const password = passwordElement.textContent;
+      const copyBtn = document.getElementById('copyPassword');
+      copyToClipboard(password, copyBtn);
+    }
+
+    /**
+     * Generic copy to clipboard function
+     */
+    function copyToClipboard(text: string, button: HTMLElement | null) {
+      navigator.clipboard.writeText(text).then(() => {
+        if (!button) return;
+        
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+        button.classList.add('bg-green-100', 'text-green-700');
+        button.classList.remove('bg-blue-100', 'text-blue-700', 'bg-white/20');
+        
+        setTimeout(() => {
+          if (button) {
+            button.textContent = originalText;
+            button.classList.remove('bg-green-100', 'text-green-700');
+            button.classList.add('bg-blue-100', 'text-blue-700');
+          }
+        }, 2000);
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+      });
+    }
+
+    /**
+     * Save form data to localStorage (persists across refresh)
+     */
+    function saveFormData() {
+      if (!elements.form) return;
+      const formData = new FormData(elements.form as HTMLFormElement);
+      const data: Record<string, string> = {};
+      formData.forEach((value, key) => {
+        if (typeof value === 'string') {
+          data[key] = value;
+        }
+      });
+      const cache: FormDataCache = {
+        data,
+        savedAt: Date.now()
+      };
+      localStorage.setItem(FORM_DATA_KEY, JSON.stringify(cache));
+    }
+    
+    /**
+     * Restore form data from localStorage
+     */
+    function restoreFormData() {
+      const cached = localStorage.getItem(FORM_DATA_KEY);
+      if (!cached) return;
+      
+      try {
+        const { data, savedAt } = JSON.parse(cached) as FormDataCache;
+        // Expire after 24 hours
+        if (Date.now() - savedAt > 24 * 60 * 60 * 1000) {
+          clearFormData();
+          return;
+        }
+        
+        // Restore values to form
+        Object.entries(data).forEach(([key, value]) => {
+          const input = elements.form?.querySelector(`[name="${key}"]`) as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+          if (input && value) {
+            input.value = value;
+            // Trigger change event for select elements
+            if (input.tagName === 'SELECT') {
+              input.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+          }
+        });
+      } catch {
+        clearFormData();
+      }
+    }
+    
+    /**
+     * Clear saved form data
+     */
+    function clearFormData() {
+      localStorage.removeItem(FORM_DATA_KEY);
+    }
+    
+    /**
+     * Check existing registration by email
+     */
+    async function checkExistingByEmail(email: string): Promise<{exists: boolean, can_resume: boolean, data?: any}> {
+      try {
+        const response = await fetch(`${API_URL}/api/registrations/check-existing`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({ email, type: 'sma' })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          return {
+            exists: result.exists,
+            can_resume: result.can_resume,
+            data: result.data
+          };
+        }
+        
+        return { exists: false, can_resume: false };
+      } catch (error) {
+        console.error('Error checking existing registration:', error);
+        return { exists: false, can_resume: false };
+      }
+    }
+    
+    /**
+     * Show modal for existing registration
+     */
+    async function showExistingRegistrationModal(existingData: any, email: string): Promise<boolean> {
+      return new Promise((resolve) => {
+        const isVaExpired = existingData.va_expired_at && new Date(existingData.va_expired_at) < new Date();
+        const paymentStatus = existingData.payment_status || 'unpaid';
+        
+        let statusText = existingData.status_label || 'Menunggu Pembayaran';
+        let statusColor = 'text-yellow-600';
+        let warningHtml = '';
+        
+        if (isVaExpired) {
+          statusText = 'VA Kedaluwarsa';
+          statusColor = 'text-red-600';
+          warningHtml = `
+            <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+              <div class="flex items-start">
+                <svg class="w-5 h-5 text-red-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+                <div>
+                  <p class="text-red-800 font-semibold text-sm">Virtual Account Kedaluwarsa</p>
+                  <p class="text-red-600 text-xs mt-1">VA pembayaran Anda sudah kedaluwarsa. Silakan lanjutkan untuk mendapatkan VA baru.</p>
+                </div>
+              </div>
+            </div>
+          `;
+        } else if (paymentStatus === 'unpaid' || paymentStatus === 'pending') {
+          warningHtml = `
+            <div class="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+              <div class="flex items-start">
+                <svg class="w-5 h-5 text-orange-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                <div>
+                  <p class="text-orange-800 font-semibold text-sm">Pendaftaran Belum Selesai</p>
+                  <p class="text-orange-600 text-xs mt-1">Anda memiliki pendaftaran dengan pembayaran yang belum selesai.</p>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+        
+        const modal = document.createElement('div');
+        modal.id = 'existingRegistrationModal';
+        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+        modal.innerHTML = `
+          <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div class="text-center mb-4">
+              <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <h3 class="text-xl font-bold text-gray-900 mb-2">Pendaftaran Sudah Ada</h3>
+              <p class="text-gray-600 text-sm mb-4">
+                Kami menemukan pendaftaran dengan email <strong>${escapeHtml(email)}</strong>
+              </p>
+            </div>
+            
+            ${warningHtml}
+            
+            <div class="bg-gray-50 rounded-lg p-4 mb-4 text-sm">
+              <div class="flex justify-between mb-2">
+                <span class="text-gray-600">No. Pendaftaran:</span>
+                <span class="font-semibold">${escapeHtml(existingData.registration_number)}</span>
+              </div>
+              <div class="flex justify-between mb-2">
+                <span class="text-gray-600">Nama:</span>
+                <span class="font-semibold">${escapeHtml(existingData.name)}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Status:</span>
+                <span class="font-semibold ${statusColor}">${escapeHtml(statusText)}</span>
+              </div>
+            </div>
+            
+            <div class="space-y-3">
+              <button id="resumeExistingBtn" class="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 font-semibold">
+                Lanjutkan Pendaftaran Ini
+              </button>
+              <button id="cancelExistingBtn" class="w-full px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold">
+                Batal
+              </button>
+              <p class="text-xs text-gray-500 text-center mt-2">
+                Jika ingin mendaftar ulang dengan data baru, hubungi admin untuk menghapus pendaftaran sebelumnya.
+              </p>
+            </div>
+          </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        document.getElementById('resumeExistingBtn')?.addEventListener('click', () => {
+          modal.remove();
+          resolve(true);
+        });
+        
+        document.getElementById('cancelExistingBtn')?.addEventListener('click', () => {
+          modal.remove();
+          resolve(false);
+        });
+        
+        // Close on backdrop click
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) {
+            modal.remove();
+            resolve(false);
+          }
+        });
+      });
+    }
+    
+    /**
+     * Setup auto-save for form inputs
+     */
+    function setupFormAutoSave() {
+      if (!elements.form) return;
+      
+      // Save on input change
+      elements.form.addEventListener('input', debounce(saveFormData, 500));
+      elements.form.addEventListener('change', saveFormData);
+    }
+    
+    /**
+     * Debounce helper function
+     */
+    function debounce<T extends (...args: any[]) => void>(func: T, wait: number): T {
+      let timeout: ReturnType<typeof setTimeout>;
+      return ((...args: Parameters<T>) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), wait);
+      }) as T;
+    }
+
+    /**
+     * Save registration session to storage
+     */
+    function saveSession(data: Partial<RegistrationSession>) {
+      const existing = getSession();
+      const session: RegistrationSession = {
+        registrationId: data.registrationId || existing?.registrationId || '',
+        registrationNumber: data.registrationNumber || existing?.registrationNumber || '',
+        email: data.email || existing?.email || '',
+        step: data.step || existing?.step || 1,
+        createdAt: existing?.createdAt || Date.now(),
+        paymentStatus: data.paymentStatus || existing?.paymentStatus,
+        vaExpired: data.vaExpired ?? existing?.vaExpired,
+        orderId: data.orderId ?? existing?.orderId,
+        paymentMethod: data.paymentMethod || existing?.paymentMethod
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    }
+
+    /**
+     * Get registration session from storage
+     */
+    function getSession(): RegistrationSession | null {
+      const data = localStorage.getItem(STORAGE_KEY);
+      if (!data) return null;
+      
+      try {
+        const session = JSON.parse(data) as RegistrationSession;
+        // Session expires after 24 hours
+        if (Date.now() - session.createdAt > 24 * 60 * 60 * 1000) {
+          clearSession();
+          return null;
+        }
+        return session;
+      } catch {
+        return null;
+      }
+    }
+
+    /**
+     * Clear registration session and form data
+     */
+    function clearSession() {
+      localStorage.removeItem(STORAGE_KEY);
+      clearFormData();
+    }
+
+    /**
+     * Check and recover existing registration
+     */
+    async function checkExistingRegistration(): Promise<boolean> {
+      const session = getSession();
+      if (!session?.registrationId) return false;
+
+      try {
+        // Verify registration still exists and get current status
+        const response = await fetch(`${API_URL}/api/registrations/${session.registrationId}/status`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          }
+        });
+
+        if (!response.ok) {
+          clearSession();
+          return false;
+        }
+
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          const { status, payment_status, va_expired_at } = result.data;
+          
+          // Check if VA is expired
+          const isVaExpired = va_expired_at && new Date(va_expired_at) < new Date();
+          
+          // If already completed, redirect to success or status page
+          if (status === 'payment_confirmed' || status === 'approved') {
+            clearSession();
+            window.location.href = `/cek-status?nomor=${encodeURIComponent(session.registrationNumber)}`;
+            return true;
+          }
+          
+          // If draft, pending_payment, or waiting_va, allow to continue
+          if (status === 'draft' || status === 'pending_payment' || status === 'waiting_va') {
+            registrationId = session.registrationId;
+            
+            // Recover orderId from session
+            if (session.orderId) {
+              orderId = session.orderId;
+            }
+            
+            // Update session with current status
+            saveSession({
+              ...session,
+              paymentStatus: payment_status,
+              vaExpired: isVaExpired
+            });
+            
+            // If session already at step 3 (payment) and has orderId, redirect to payment page
+            if (session.step && session.step >= 3 && session.orderId) {
+              window.location.href = `/pendaftaran/payment/${session.orderId}`;
+              return true;
+            }
+            
+            // If session at step 3 but no orderId, show step 3 to select payment method
+            if (session.step && session.step >= 3) {
+              currentStep = 3;
+              setTimeout(() => {
+                setupPaymentListeners();
+              }, 100);
+              return true;
+            }
+            
+            // Show recovery modal with expired VA handling
+            return await showRecoveryModal(session, { ...result.data, isVaExpired });
+          }
+        }
+        
+        clearSession();
+        return false;
+      } catch (error) {
+        console.error('Error checking existing registration:', error);
+        clearSession();
+        return false;
+      }
+    }
+
+    /**
+     * Show recovery modal to user
+     */
+    async function showRecoveryModal(session: RegistrationSession, data: any): Promise<boolean> {
+      return new Promise((resolve) => {
+        const isVaExpired = data.isVaExpired;
+        const paymentStatus = data.payment_status || 'unpaid';
+        
+        // Determine status display
+        let statusText = data.status_label || 'Menunggu Pembayaran';
+        let statusColor = 'text-yellow-600';
+        let warningMessage = '';
+        
+        if (isVaExpired) {
+          statusText = 'VA Kedaluwarsa';
+          statusColor = 'text-red-600';
+          warningMessage = `
+            <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+              <div class="flex items-start">
+                <svg class="w-5 h-5 text-red-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+                <div>
+                  <p class="text-red-800 font-semibold text-sm">Virtual Account Kedaluwarsa</p>
+                  <p class="text-red-600 text-xs mt-1">VA pembayaran Anda sudah kedaluwarsa. Silakan lanjutkan untuk mendapatkan VA baru atau pilih metode pembayaran tunai.</p>
+                </div>
+              </div>
+            </div>
+          `;
+        } else if (paymentStatus === 'unpaid' || paymentStatus === 'pending') {
+          statusText = 'Belum Bayar';
+          statusColor = 'text-orange-600';
+          warningMessage = `
+            <div class="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+              <div class="flex items-start">
+                <svg class="w-5 h-5 text-orange-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                <div>
+                  <p class="text-orange-800 font-semibold text-sm">Pembayaran Belum Diterima</p>
+                  <p class="text-orange-600 text-xs mt-1">Anda memiliki pendaftaran dengan pembayaran yang belum selesai. Silakan lanjutkan untuk menyelesaikan pembayaran.</p>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+        
+        const modal = document.createElement('div');
+        modal.id = 'recoveryModal';
+        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+        modal.innerHTML = `
+          <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div class="text-center mb-4">
+              <div class="w-16 h-16 ${isVaExpired ? 'bg-red-100' : 'bg-blue-100'} rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 ${isVaExpired ? 'text-red-600' : 'text-blue-600'}" fill="currentColor" viewBox="0 0 20 20">
+                  ${isVaExpired 
+                    ? '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>'
+                    : '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>'
+                  }
+                </svg>
+              </div>
+              <h3 class="text-xl font-bold text-gray-900 mb-2">Pendaftaran Ditemukan</h3>
+              <p class="text-gray-600 text-sm mb-4">
+                Kami menemukan pendaftaran yang belum selesai dengan email <strong>${escapeHtml(session.email)}</strong>
+              </p>
+            </div>
+            
+            ${warningMessage}
+            
+            <div class="bg-gray-50 rounded-lg p-4 mb-4 text-sm">
+              <div class="flex justify-between mb-2">
+                <span class="text-gray-600">No. Pendaftaran:</span>
+                <span class="font-semibold">${escapeHtml(session.registrationNumber)}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Status:</span>
+                <span class="font-semibold ${statusColor}">${escapeHtml(statusText)}</span>
+              </div>
+            </div>
+            
+            <div class="space-y-3">
+              <button id="continueRegistration" class="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 font-semibold">
+                ${isVaExpired ? 'Lanjutkan & Perbarui Pembayaran' : 'Lanjutkan Pendaftaran'}
+              </button>
+              <button id="startNewRegistration" class="w-full px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold">
+                Mulai Pendaftaran Baru
+              </button>
+            </div>
+          </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        document.getElementById('continueRegistration')?.addEventListener('click', () => {
+          modal.remove();
+          // Set registrationId from session
+          registrationId = session.registrationId;
+          
+          // Recover orderId from session if available
+          if (session.orderId) {
+            orderId = session.orderId;
+            // If we have an orderId, redirect to payment page
+            window.location.href = `/pendaftaran/payment/${session.orderId}`;
+            resolve(true);
+            return;
+          }
+          
+          // Jump to payment step
+          currentStep = 3;
+          showStep(currentStep);
+          setupPaymentListeners();
+          
+          // If VA expired, show notification to choose payment method again
+          if (isVaExpired) {
+            setTimeout(() => {
+              showError('VA sebelumnya sudah kedaluwarsa. Silakan pilih metode pembayaran untuk mendapatkan VA baru atau bayar tunai.');
+            }, 500);
+          }
+          
+          resolve(true);
+        });
+        
+        document.getElementById('startNewRegistration')?.addEventListener('click', () => {
+          modal.remove();
+          clearSession();
+          registrationId = null;
+          resolve(false);
+        });
+      });
+    }
+
+    async function init() {
+      // Check for existing registration first (before restoring form data)
+      const hasExisting = await checkExistingRegistration();
+      
+      // Only restore form data if no existing registration (to prevent re-submission)
+      if (!hasExisting) {
+        restoreFormData();
+      }
+      
+      // Setup phone number inputs with auto-formatting
+      setupPhoneInputs();
+      
+      // Setup auto-save for form inputs
+      setupFormAutoSave();
+      
+      // Always setup event listeners (needed for both new and recovered registrations)
+      elements.nextBtn?.addEventListener('click', () => {
+        if (validateStep(currentStep)) {
+          currentStep++;
+          showStep(currentStep);
+        }
+      });
+
+      elements.prevBtn?.addEventListener('click', () => {
+        if (currentStep > 1) {
+          currentStep--;
+          showStep(currentStep);
+        }
+      });
+
+      // Add confirmBtn listener to call handleConfirmationWithRecaptcha
+      elements.confirmBtn?.addEventListener('click', handleConfirmationWithRecaptcha);
+      
+      // Copy buttons for credentials
+      const copyEmailBtn = document.getElementById('copyEmail');
+      const copyPasswordBtn = document.getElementById('copyPassword');
+      
+      copyEmailBtn?.addEventListener('click', copyEmail);
+      copyPasswordBtn?.addEventListener('click', copyPassword);
+      
+      // Login button to go to dashboard
+      const loginBtn = document.getElementById('loginBtn');
+      loginBtn?.addEventListener('click', () => {
+        window.location.href = '/login';
+      });
+      
+      // Finish button to go back to homepage
+      elements.finishBtn?.addEventListener('click', () => {
+        window.location.href = '/';
+      });
+
+      elements.finishPendingBtn?.addEventListener('click', () => (window.location.href = '/'));
+      elements.checkStatusBtn?.addEventListener('click', () => {
+        const btn = elements.checkStatusBtn as HTMLButtonElement | null;
+        const ticket = btn?.dataset.ticket || '';
+        window.location.href = ticket ? `/cek-status?nomor=${encodeURIComponent(ticket)}` : '/cek-status';
+      });
+      
+      showStep(currentStep);
+      
+      // Load reCAPTCHA script dynamically
+      if (!document.querySelector('script[src*="recaptcha"]')) {
+        const script = document.createElement('script');
+        script.src = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoadCallback&render=explicit';
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+      } else {
+        // Script already exists, try to render
+        if (typeof window.grecaptcha !== 'undefined' && window.grecaptcha.render) {
+          renderRecaptcha();
+        }
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</Layout>

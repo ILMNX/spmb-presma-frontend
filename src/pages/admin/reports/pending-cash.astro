@@ -1,0 +1,272 @@
+---
+import DashboardLayout from '../../../layouts/DashboardLayout.astro';
+
+export const prerender = false;
+---
+
+<DashboardLayout title="Pending Cash Payment">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">Pending Cash Payment</h1>
+        <p class="text-gray-600 mt-1">Daftar pendaftar yang memilih pembayaran tunai dan belum dikonfirmasi</p>
+      </div>
+      <div class="flex gap-3">
+        <a href="/admin/registrations/confirm-cash" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Konfirmasi Pembayaran
+        </a>
+        <button id="btnRefresh" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg shadow-lg p-6">
+      <div class="flex items-center justify-between">
+        <div>
+        <p class="text-sm text-orange-100">Total Pending</p>
+        <p id="totalPending" class="text-3xl font-bold text-white">0</p>
+        </div>
+        <div class="w-12 h-12 bg-white/20 backdrop-blur rounded-lg flex items-center justify-center">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        </div>
+      </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg shadow-lg p-6">
+      <div class="flex items-center justify-between">
+        <div>
+        <p class="text-sm text-emerald-100">Total Nominal</p>
+        <p id="totalAmount" class="text-2xl font-bold text-white">Rp 0</p>
+        </div>
+        <div class="w-12 h-12 bg-white/20 backdrop-blur rounded-lg flex items-center justify-center">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        </div>
+      </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-rose-500 to-pink-600 rounded-lg shadow-lg p-6">
+      <div class="flex items-center justify-between">
+        <div>
+        <p class="text-sm text-rose-100">Tertua</p>
+        <p id="oldestDate" class="text-lg font-medium text-white">-</p>
+        </div>
+        <div class="w-12 h-12 bg-white/20 backdrop-blur rounded-lg flex items-center justify-center">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        </div>
+      </div>
+      </div>
+    </div>
+
+    <!-- By Major -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-lg font-semibold mb-4">Per Jurusan</h3>
+      <div id="byMajorGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <!-- Dynamic content -->
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="hidden text-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+      <p class="mt-4 text-gray-600">Memuat data...</p>
+    </div>
+
+    <!-- Table -->
+    <div id="tableContainer" class="bg-white rounded-lg shadow">
+      <div class="p-6 border-b border-gray-200">
+        <h3 class="text-lg font-semibold">Daftar Pending Cash</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">No. Registrasi</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">No. HP</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jurusan</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jenis</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nominal</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal Daftar</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody" class="divide-y divide-gray-200">
+            <tr>
+              <td colspan="9" class="px-6 py-4 text-center text-gray-500">Memuat data...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div id="pagination" class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+        <div class="text-sm text-gray-600">
+          Menampilkan <span id="showingFrom">0</span> - <span id="showingTo">0</span> dari <span id="totalItems">0</span>
+        </div>
+        <div class="flex gap-2">
+          <button id="btnPrev" class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50" disabled>
+            Previous
+          </button>
+          <button id="btnNext" class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50" disabled>
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { api } from '../../../lib/api';
+
+    let currentPage = 1;
+    let totalPages = 1;
+
+    function formatCurrency(amount: number): string {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+      }).format(amount);
+    }
+
+    function formatDate(dateString: string): string {
+      return new Date(dateString).toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
+
+    async function loadData() {
+      const loading = document.getElementById('loading');
+      loading?.classList.remove('hidden');
+
+      try {
+        const response = await api.get(`/api/admin/reports/pending-cash?page=${currentPage}&per_page=15`);
+        
+        if (response.data.success) {
+          renderSummary(response.data.summary);
+          renderTable(response.data.data);
+          renderPagination(response.data.meta);
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        loading?.classList.add('hidden');
+      }
+    }
+
+    function renderSummary(summary: any) {
+      document.getElementById('totalPending')!.textContent = summary.total_pending || 0;
+      document.getElementById('totalAmount')!.textContent = formatCurrency(summary.total_amount || 0);
+      
+      if (summary.oldest_registration) {
+        document.getElementById('oldestDate')!.textContent = formatDate(summary.oldest_registration);
+      }
+
+      const byMajorGrid = document.getElementById('byMajorGrid');
+      if (byMajorGrid && summary.by_major) {
+        byMajorGrid.innerHTML = summary.by_major.map((m: any) => `
+          <div class="bg-gray-50 rounded-lg p-3 text-center">
+            <div class="text-2xl font-bold text-gray-800">${m.count}</div>
+            <div class="text-sm text-gray-600">${m.display_name || m.major}</div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function renderTable(data: any[]) {
+      const tbody = document.getElementById('tableBody');
+      if (!tbody) return;
+
+      if (data.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="px-6 py-8 text-center text-gray-500">
+              <svg class="w-12 h-12 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Tidak ada pembayaran cash yang pending
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = data.map((item: any) => `
+        <tr class="hover:bg-gray-50">
+          <td class="px-6 py-4 text-sm font-medium text-gray-900">${item.registration_number}</td>
+          <td class="px-6 py-4 text-sm text-gray-700">${item.name}</td>
+          <td class="px-6 py-4 text-sm text-gray-700">${item.email}</td>
+          <td class="px-6 py-4 text-sm text-gray-700">${item.phone_student}</td>
+          <td class="px-6 py-4 text-sm text-gray-700">${item.display_name || item.major}</td>
+          <td class="px-6 py-4">
+            <span class="px-2 py-1 text-xs rounded ${item.type === 'SMA' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}">
+              ${item.type}
+            </span>
+          </td>
+          <td class="px-6 py-4 text-sm font-semibold text-gray-900">${formatCurrency(item.amount)}</td>
+          <td class="px-6 py-4 text-sm text-gray-700">${formatDate(item.created_at)}</td>
+          <td class="px-6 py-4">
+            <a href="/admin/registrations/${item.id}" class="text-blue-600 hover:text-blue-800 text-sm">
+              Detail
+            </a>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderPagination(meta: any) {
+      currentPage = meta.current_page;
+      totalPages = meta.last_page;
+
+      document.getElementById('showingFrom')!.textContent = ((currentPage - 1) * meta.per_page + 1).toString();
+      document.getElementById('showingTo')!.textContent = Math.min(currentPage * meta.per_page, meta.total).toString();
+      document.getElementById('totalItems')!.textContent = meta.total.toString();
+
+      const btnPrev = document.getElementById('btnPrev') as HTMLButtonElement;
+      const btnNext = document.getElementById('btnNext') as HTMLButtonElement;
+      
+      btnPrev.disabled = currentPage <= 1;
+      btnNext.disabled = currentPage >= totalPages;
+    }
+
+    document.getElementById('btnPrev')?.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        loadData();
+      }
+    });
+
+    document.getElementById('btnNext')?.addEventListener('click', () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        loadData();
+      }
+    });
+
+    document.getElementById('btnRefresh')?.addEventListener('click', () => {
+      loadData();
+    });
+
+    // Initial load
+    loadData();
+  </script>
+</DashboardLayout>

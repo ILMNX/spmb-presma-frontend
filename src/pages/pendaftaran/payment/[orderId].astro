@@ -1,0 +1,523 @@
+---
+/**
+ * Standalone Payment Page
+ * 
+ * This page is accessed after completing Step 3 (payment method selection) in the wizard.
+ * It displays:
+ * - Payment method chosen (VA or Cash)
+ * - VA details (if VA selected)
+ * - Cash instructions (if Cash selected)
+ * - Payment status with auto-polling
+ * - Redirect to success page when paid
+ * 
+ * Route: /pendaftaran/payment/[orderId]
+ */
+import Layout from '../../../layouts/Layout.astro';
+
+const { orderId } = Astro.params;
+const API_URL = import.meta.env.PUBLIC_API_URL || '';
+---
+
+<Layout title="Pembayaran - SPMB Prestasi Prima">
+  <main class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 md:py-12 px-4 sm:px-6">
+    <div class="max-w-2xl mx-auto">
+      
+      <!-- Header -->
+      <div class="text-center mb-6 md:mb-8">
+        <div class="w-16 h-16 md:w-20 md:h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 md:w-10 md:h-10 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M20,8H4V6H20M20,18H4V12H20M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z"/>
+          </svg>
+        </div>
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Pembayaran Formulir</h1>
+        <p class="text-gray-600">Selesaikan pembayaran untuk melanjutkan pendaftaran</p>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loadingState" class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+        <div class="flex flex-col items-center justify-center py-8">
+          <div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mb-4"></div>
+          <p class="text-gray-600">Memuat data pembayaran...</p>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div id="errorState" class="hidden bg-white rounded-xl shadow-lg p-6 md:p-8">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <h2 class="text-xl font-bold text-gray-800 mb-2">Terjadi Kesalahan</h2>
+          <p class="text-gray-600 mb-4" id="errorMessage">Order tidak ditemukan</p>
+          <a href="/" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+            </svg>
+            Kembali ke Beranda
+          </a>
+        </div>
+      </div>
+
+      <!-- Payment Content -->
+      <div id="paymentContent" class="hidden space-y-6">
+        
+        <!-- Order Info Card -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold text-gray-800">Detail Pembayaran</h2>
+            <span id="statusBadge" class="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-semibold rounded-full">
+              Menunggu
+            </span>
+          </div>
+          
+          <div class="space-y-3 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-600">No. Order</span>
+              <span class="font-semibold text-gray-900" id="orderNumber">-</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Nama Siswa</span>
+              <span class="font-semibold text-gray-900" id="studentName">-</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Email</span>
+              <span class="font-semibold text-gray-900" id="studentEmail">-</span>
+            </div>
+            <div class="flex justify-between border-t pt-3">
+              <span class="text-gray-600 font-semibold">Jumlah Pembayaran</span>
+              <span class="font-bold text-xl text-blue-600" id="paymentAmount">Rp 100.000</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- VA Payment Section -->
+        <div id="vaPaymentSection" class="hidden">
+          <!-- VA Waiting State -->
+          <div id="vaWaitingState" class="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-xl shadow-lg p-6 text-white">
+            <div class="flex flex-col items-center justify-center py-6">
+              <svg class="w-16 h-16 mb-4 text-yellow-100" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+              </svg>
+              <h3 class="font-semibold text-lg mb-2">Menunggu Virtual Account</h3>
+              <p class="text-yellow-100 text-sm text-center mb-4">Virtual Account Anda sedang diproses oleh bagian keuangan.</p>
+              <p class="text-yellow-100 text-xs text-center mb-4">Silakan hubungi admin untuk mendapatkan nomor VA atau tunggu beberapa saat.</p>
+              <button type="button" id="refreshVABtn" class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white text-sm rounded-lg transition-colors flex items-center">
+                <svg class="w-4 h-4 mr-2 animate-spin hidden" id="refreshSpinner" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                <span id="refreshBtnText">Cek Ulang Status</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- VA Info Card -->
+          <div id="vaInfoCard" class="hidden bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+            <div class="flex items-center mb-4">
+              <img src="/logo/BRI.webp" alt="Logo BRI" class="w-12 h-10 object-contain bg-white rounded px-2 py-1 mr-3" />
+              <div>
+                <h3 class="font-semibold text-lg">Virtual Account BRIVA</h3>
+                <p class="text-blue-100 text-sm">Bank BRI</p>
+              </div>
+            </div>
+            
+            <div class="space-y-4">
+              <div>
+                <p class="text-blue-100 text-sm mb-1">Nomor Virtual Account</p>
+                <div class="flex items-center justify-between bg-white/10 rounded-lg px-4 py-3">
+                  <p class="font-mono text-2xl font-bold tracking-wider" id="vaNumber">-</p>
+                  <button type="button" id="copyVABtn" class="text-sm bg-white/20 hover:bg-white/30 px-4 py-2 rounded transition-colors">
+                    Copy
+                  </button>
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <p class="text-blue-100 text-sm">Jumlah</p>
+                  <p class="font-bold text-xl" id="vaAmount">Rp 100.000</p>
+                </div>
+                <div>
+                  <p class="text-blue-100 text-sm">Berlaku Hingga</p>
+                  <p class="font-semibold" id="vaExpiry">-</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- VA Instructions -->
+          <div class="bg-white rounded-xl shadow-lg p-6 mt-4">
+            <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
+              <svg class="w-5 h-5 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+              </svg>
+              Cara Pembayaran BRIVA
+            </h4>
+            <ol class="text-sm text-gray-700 space-y-2 list-decimal list-inside">
+              <li>Buka aplikasi <strong>BRImo</strong> atau kunjungi ATM BRI</li>
+              <li>Pilih menu <strong>Transfer</strong> ke Virtual Account / BRIVA</li>
+              <li>Masukkan <strong>Nomor Virtual Account</strong> di atas</li>
+              <li>Pastikan nama dan jumlah sudah benar</li>
+              <li>Konfirmasi dan selesaikan pembayaran</li>
+              <li><strong>Simpan bukti pembayaran</strong></li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Cash Payment Section -->
+        <div id="cashPaymentSection" class="hidden">
+          <div class="bg-green-50 border-2 border-green-200 rounded-xl shadow-lg p-6">
+            <div class="flex items-center mb-4">
+              <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2M12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20M14.59 8L12 10.59L9.41 8L8 9.41L10.59 12L8 14.59L9.41 16L12 13.41L14.59 16L16 14.59L13.41 12L16 9.41L14.59 8Z"/>
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-bold text-green-800 text-lg">Pembayaran Tunai</h3>
+                <p class="text-green-600 text-sm">Bayar langsung ke sekolah</p>
+              </div>
+            </div>
+            
+            <div class="space-y-4 text-sm text-green-700">
+              <p>Silakan datang langsung ke sekolah untuk melakukan pembayaran formulir pendaftaran.</p>
+              
+              <div class="bg-white rounded-lg p-4">
+                <p class="font-semibold text-green-800 mb-2">📍 Alamat Sekolah:</p>
+                <p>SMA/SMK Prestasi Prima</p>
+                <p>Jl. Pendidikan No. 123, Jakarta</p>
+                <p class="mt-2"><strong>Jam Operasional:</strong> Senin - Jumat, 08:00 - 16:00</p>
+              </div>
+              
+              <div class="bg-white rounded-lg p-4">
+                <p class="font-semibold text-green-800 mb-2">📋 Yang Perlu Dibawa:</p>
+                <ul class="list-disc list-inside ml-2 space-y-1">
+                  <li>KTP Orang Tua/Wali</li>
+                  <li>Nomor Pendaftaran (lihat di atas)</li>
+                  <li>Uang tunai sesuai jumlah pembayaran</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4">
+            <p class="text-yellow-800 text-sm">
+              <strong>⏳ Menunggu Pembayaran:</strong> Status akan otomatis berubah setelah admin memvalidasi pembayaran Anda di sekolah.
+            </p>
+          </div>
+        </div>
+
+        <!-- Status Polling Indicator -->
+        <div id="pollingIndicator" class="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
+          <div class="flex items-center">
+            <div class="animate-pulse w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+            <p class="text-blue-700 text-sm">Memantau status pembayaran secara otomatis...</p>
+          </div>
+          <button type="button" id="manualCheckBtn" class="text-blue-600 hover:text-blue-800 text-sm font-semibold">
+            Cek Sekarang
+          </button>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-3">
+          <a href="/" class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-semibold text-center">
+            Kembali ke Beranda
+          </a>
+          <button type="button" id="checkStatusBtn" class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center justify-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Cek Status Pembayaran
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script define:vars={{ orderId, API_URL }}>
+    // API_URL and orderId are injected via define:vars from Astro frontmatter
+
+    // State
+    let orderData = null;
+    let pollingInterval = null;
+    let pollCount = 0;
+    const INITIAL_POLLING_INTERVAL = 3000; // 3 seconds initially for faster detection
+    const NORMAL_POLLING_INTERVAL = 5000; // 5 seconds after initial checks
+    const POLLING_THRESHOLD = 3; // Switch to normal after 3 checks
+
+    // DOM Elements
+    const loadingState = document.getElementById('loadingState');
+    const errorState = document.getElementById('errorState');
+    const errorMessage = document.getElementById('errorMessage');
+    const paymentContent = document.getElementById('paymentContent');
+    const vaPaymentSection = document.getElementById('vaPaymentSection');
+    const cashPaymentSection = document.getElementById('cashPaymentSection');
+    const vaWaitingState = document.getElementById('vaWaitingState');
+    const vaInfoCard = document.getElementById('vaInfoCard');
+    const statusBadge = document.getElementById('statusBadge');
+
+    /**
+     * Fetch order data from API with rate limit handling
+     */
+    async function fetchOrderData() {
+      const response = await fetch(`${API_URL}/api/orders/${orderId}/payment-status`);
+      
+      // Handle rate limiting (429)
+      if (response.status === 429) {
+        const error = new Error('Rate limited');
+        error.status = 429;
+        throw error;
+      }
+      
+      // Handle non-JSON responses (like HTML error pages)
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const error = new Error('Server error');
+        error.status = response.status;
+        throw error;
+      }
+      
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Order tidak ditemukan');
+      }
+
+      return result.data;
+    }
+
+    /**
+     * Update UI with order data
+     */
+    function updateUI(data) {
+      orderData = data;
+
+      // Update order info
+      document.getElementById('orderNumber').textContent = data.order_number || '-';
+      document.getElementById('studentName').textContent = data.student_name || '-';
+      document.getElementById('studentEmail').textContent = data.email || '-';
+      document.getElementById('paymentAmount').textContent = data.formatted_amount || 'Rp 100.000';
+
+      // Update status badge
+      updateStatusBadge(data.status);
+
+      // Show appropriate payment section
+      if (data.payment_method === 'virtual_account') {
+        vaPaymentSection?.classList.remove('hidden');
+        cashPaymentSection?.classList.add('hidden');
+
+        if (data.va_number && !data.is_va_expired) {
+          // VA assigned - show VA info
+          vaWaitingState?.classList.add('hidden');
+          vaInfoCard?.classList.remove('hidden');
+          
+          document.getElementById('vaNumber').textContent = data.va_number;
+          document.getElementById('vaAmount').textContent = data.formatted_amount || 'Rp 100.000';
+          document.getElementById('vaExpiry').textContent = data.va_expired_at 
+            ? new Date(data.va_expired_at).toLocaleString('id-ID')
+            : '-';
+        } else {
+          // Waiting for VA assignment
+          vaWaitingState?.classList.remove('hidden');
+          vaInfoCard?.classList.add('hidden');
+        }
+      } else if (data.payment_method === 'cash') {
+        vaPaymentSection?.classList.add('hidden');
+        cashPaymentSection?.classList.remove('hidden');
+      }
+
+      // Check if paid - redirect to success
+      if (data.is_paid || data.status === 'PAID') {
+        stopPolling();
+        window.location.href = '/pendaftaran/payment/success?order=' + orderId;
+      }
+    }
+
+    /**
+     * Update status badge appearance
+     */
+    function updateStatusBadge(status) {
+      const badge = document.getElementById('statusBadge');
+      if (!badge) return;
+
+      badge.className = 'px-3 py-1 text-sm font-semibold rounded-full';
+      
+      switch (status) {
+        case 'PAID':
+          badge.classList.add('bg-green-100', 'text-green-800');
+          badge.textContent = 'Lunas';
+          break;
+        case 'PENDING':
+          badge.classList.add('bg-yellow-100', 'text-yellow-800');
+          badge.textContent = 'Menunggu Pembayaran';
+          break;
+        case 'EXPIRED':
+          badge.classList.add('bg-red-100', 'text-red-800');
+          badge.textContent = 'Kadaluarsa';
+          break;
+        default:
+          badge.classList.add('bg-gray-100', 'text-gray-800');
+          badge.textContent = 'Belum Bayar';
+      }
+    }
+
+    /**
+     * Show error state
+     */
+    function showError(message) {
+      loadingState?.classList.add('hidden');
+      paymentContent?.classList.add('hidden');
+      errorState?.classList.remove('hidden');
+      if (errorMessage) errorMessage.textContent = message;
+    }
+
+    /**
+     * Show payment content
+     */
+    function showPaymentContent() {
+      loadingState?.classList.add('hidden');
+      errorState?.classList.add('hidden');
+      paymentContent?.classList.remove('hidden');
+    }
+
+    /**
+     * Start polling for payment status with adaptive intervals
+     * Uses faster polling initially (3s) then slows down (5s) after threshold
+     * Implements exponential backoff on rate limiting
+     */
+    function startPolling() {
+      if (pollingInterval) return;
+      
+      pollCount = 0;
+      let backoffMultiplier = 1;
+      const MAX_BACKOFF = 4; // Max 4x normal interval
+      
+      console.log('Starting payment status polling (adaptive)');
+      
+      const poll = async () => {
+        try {
+          const data = await fetchOrderData();
+          updateUI(data);
+          pollCount++;
+          backoffMultiplier = 1; // Reset backoff on success
+          
+          // If not paid, schedule next poll with adaptive interval
+          if (!data.is_paid && data.status !== 'PAID') {
+            const interval = pollCount < POLLING_THRESHOLD 
+              ? INITIAL_POLLING_INTERVAL 
+              : NORMAL_POLLING_INTERVAL;
+            pollingInterval = setTimeout(poll, interval);
+          }
+        } catch (error) {
+          console.error('Polling error:', error);
+          
+          // Handle rate limiting with exponential backoff
+          if (error.status === 429) {
+            backoffMultiplier = Math.min(backoffMultiplier * 2, MAX_BACKOFF);
+            const backoffInterval = NORMAL_POLLING_INTERVAL * backoffMultiplier;
+            console.log(`Rate limited, backing off to ${backoffInterval}ms`);
+            pollingInterval = setTimeout(poll, backoffInterval);
+          } else {
+            // Continue polling on other errors with normal interval
+            pollingInterval = setTimeout(poll, NORMAL_POLLING_INTERVAL);
+          }
+        }
+      };
+      
+      // Start first poll after initial interval
+      pollingInterval = setTimeout(poll, INITIAL_POLLING_INTERVAL);
+    }
+
+    /**
+     * Stop polling
+     */
+    function stopPolling() {
+      if (pollingInterval) {
+        console.log('Stopping payment status polling');
+        clearTimeout(pollingInterval);
+        pollingInterval = null;
+      }
+    }
+
+    /**
+     * Copy VA number to clipboard
+     */
+    function copyVANumber() {
+      const vaNumber = document.getElementById('vaNumber')?.textContent;
+      if (!vaNumber || vaNumber === '-') return;
+
+      navigator.clipboard.writeText(vaNumber).then(() => {
+        const btn = document.getElementById('copyVABtn');
+        if (btn) {
+          const originalText = btn.textContent;
+          btn.textContent = 'Copied!';
+          setTimeout(() => { btn.textContent = originalText; }, 2000);
+        }
+      });
+    }
+
+    /**
+     * Manual status check
+     */
+    async function manualCheck() {
+      const btn = document.getElementById('checkStatusBtn');
+      const refreshBtn = document.getElementById('refreshVABtn');
+      
+      try {
+        if (btn) btn.disabled = true;
+        if (refreshBtn) {
+          document.getElementById('refreshSpinner')?.classList.remove('hidden');
+          document.getElementById('refreshBtnText').textContent = 'Memeriksa...';
+        }
+        
+        const data = await fetchOrderData();
+        updateUI(data);
+      } catch (error) {
+        console.error('Manual check error:', error);
+      } finally {
+        if (btn) btn.disabled = false;
+        if (refreshBtn) {
+          document.getElementById('refreshSpinner')?.classList.add('hidden');
+          document.getElementById('refreshBtnText').textContent = 'Cek Ulang Status';
+        }
+      }
+    }
+
+    /**
+     * Initialize page
+     */
+    async function init() {
+      if (!orderId) {
+        showError('Order ID tidak ditemukan');
+        return;
+      }
+
+      try {
+        const data = await fetchOrderData();
+        showPaymentContent();
+        updateUI(data);
+        startPolling();
+      } catch (error) {
+        showError(error.message || 'Gagal memuat data pembayaran');
+      }
+    }
+
+    // Event listeners
+    document.getElementById('copyVABtn')?.addEventListener('click', copyVANumber);
+    document.getElementById('checkStatusBtn')?.addEventListener('click', manualCheck);
+    document.getElementById('manualCheckBtn')?.addEventListener('click', manualCheck);
+    document.getElementById('refreshVABtn')?.addEventListener('click', manualCheck);
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', stopPolling);
+
+    // Initialize
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</Layout>

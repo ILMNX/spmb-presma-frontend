@@ -1,0 +1,15 @@
+---
+const { testimonial } = Astro.props;
+---
+<div class="bg-white p-6 rounded-2xl shadow">
+  <p class="italic text-gray-700">{testimonial.message}</p>
+  <div class="flex items-center mt-4">
+    {testimonial.photo_url && (
+      <img src={testimonial.photo_url} alt={testimonial.name} class="w-12 h-12 rounded-full mr-3" />
+    )}
+    <div>
+      <p class="font-semibold">{testimonial.name}</p>
+      <p class="text-sm text-gray-500">{testimonial.role}</p>
+    </div>
+  </div>
+</div>

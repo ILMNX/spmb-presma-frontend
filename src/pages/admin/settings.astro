@@ -1,0 +1,773 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+
+export const prerender = false;
+---
+
+<DashboardLayout title="Settings">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="sm:flex sm:items-center sm:justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Pengaturan</h1>
+        <p class="mt-1 text-sm text-gray-500">Kelola pengaturan pendaftaran berdasarkan jenis sekolah</p>
+      </div>
+      <div id="schoolTypeInfo" class="mt-4 sm:mt-0">
+        <!-- Will be filled by JS -->
+      </div>
+    </div>
+
+    <!-- School Type Tabs (for superadmin only) -->
+    <div id="schoolTypeTabs" class="hidden border-b border-gray-200">
+      <nav class="-mb-px flex space-x-8">
+        <button
+          data-school-type="sma"
+          class="school-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-blue-500 text-blue-600"
+        >
+          SMA
+        </button>
+        <button
+          data-school-type="smk"
+          class="school-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+        >
+          SMK
+        </button>
+      </nav>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+
+    <!-- Settings Content -->
+    <div id="settingsContent" class="hidden space-y-6">
+      <!-- Settings Tabs -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="border-b border-gray-200">
+          <nav class="flex overflow-x-auto">
+            <button data-tab="registration" class="settings-tab flex-shrink-0 px-6 py-4 text-sm font-medium text-blue-600 border-b-2 border-blue-500">
+              <span class="flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                Pendaftaran
+              </span>
+            </button>
+            <button data-tab="payment" class="settings-tab flex-shrink-0 px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent">
+              <span class="flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                Pembayaran
+              </span>
+            </button>
+            <button data-tab="documents" class="settings-tab flex-shrink-0 px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent">
+              <span class="flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Dokumen
+              </span>
+            </button>
+            <button data-tab="exam" class="settings-tab flex-shrink-0 px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent">
+              <span class="flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                Ujian
+              </span>
+            </button>
+            <button data-tab="notifications" class="settings-tab flex-shrink-0 px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent">
+              <span class="flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                Notifikasi
+              </span>
+            </button>
+            <button data-tab="display" class="settings-tab flex-shrink-0 px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent">
+              <span class="flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
+                </svg>
+                Tampilan
+              </span>
+            </button>
+          </nav>
+        </div>
+
+        <form id="settingsForm" class="p-6">
+          <!-- Registration Tab -->
+          <div id="tab-registration" class="tab-content space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="md:col-span-2">
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <h3 class="text-sm font-medium text-gray-900">Status Pendaftaran</h3>
+                    <p class="text-sm text-gray-500">Aktifkan atau nonaktifkan pendaftaran</p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="registration_open" name="registration_open" class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    <span class="ms-3 text-sm font-medium text-gray-900">Aktif</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label for="registration_start_date" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai Pendaftaran</label>
+                <input
+                  type="date"
+                  id="registration_start_date"
+                  name="registration_start_date"
+                  class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900"
+                >
+              </div>
+
+              <div>
+                <label for="registration_end_date" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Akhir Pendaftaran</label>
+                <input
+                  type="date"
+                  id="registration_end_date"
+                  name="registration_end_date"
+                  class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900"
+                >
+              </div>
+
+              <div>
+                <label for="max_registrations" class="block text-sm font-medium text-gray-700 mb-1">Maksimal Pendaftar</label>
+                <input
+                  type="number"
+                  id="max_registrations"
+                  name="max_registrations"
+                  min="0"
+                  placeholder="Kosongkan untuk tidak ada batas"
+                  class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 placeholder-gray-400"
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Tab -->
+          <div id="tab-payment" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label for="registration_fee" class="block text-sm font-medium text-gray-700 mb-1">Biaya Pendaftaran (Rp)</label>
+                <input
+                  type="number"
+                  id="registration_fee"
+                  name="registration_fee"
+                  min="0"
+                  step="1000"
+                  class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900"
+                >
+              </div>
+
+              <div>
+                <label for="payment_deadline_days" class="block text-sm font-medium text-gray-700 mb-1">Batas Waktu Pembayaran (hari)</label>
+                <input
+                  type="number"
+                  id="payment_deadline_days"
+                  name="payment_deadline_days"
+                  min="1"
+                  max="30"
+                  class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900"
+                >
+                <p class="mt-1 text-xs text-gray-500">Jumlah hari setelah pendaftaran untuk menyelesaikan pembayaran</p>
+              </div>
+
+              <div class="md:col-span-2">
+                <h4 class="text-sm font-medium text-gray-900 mb-3">Metode Pembayaran</h4>
+                <div class="space-y-3">
+                  <div class="flex items-center p-4 bg-gray-50 rounded-lg">
+                    <input
+                      type="checkbox"
+                      id="allow_cash_payment"
+                      name="allow_cash_payment"
+                      class="h-4 w-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                    >
+                    <label for="allow_cash_payment" class="ml-3 block text-sm text-gray-900">
+                      <span class="font-medium">Pembayaran Tunai</span>
+                      <p class="text-gray-500">Izinkan pembayaran langsung di sekolah</p>
+                    </label>
+                  </div>
+                  <div class="flex items-center p-4 bg-gray-50 rounded-lg">
+                    <input
+                      type="checkbox"
+                      id="allow_va_payment"
+                      name="allow_va_payment"
+                      class="h-4 w-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                    >
+                    <label for="allow_va_payment" class="ml-3 block text-sm text-gray-900">
+                      <span class="font-medium">Virtual Account</span>
+                      <p class="text-gray-500">Izinkan pembayaran melalui Virtual Account</p>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Documents Tab -->
+          <div id="tab-documents" class="tab-content hidden space-y-6">
+            <div>
+              <h4 class="text-sm font-medium text-gray-900 mb-3">Dokumen yang Diperlukan</h4>
+              <p class="text-sm text-gray-500 mb-4">Pilih dokumen yang wajib diunggah oleh pendaftar</p>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex items-center p-4 bg-gray-50 rounded-lg">
+                  <input type="checkbox" id="require_photo" name="require_photo" class="h-4 w-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                  <label for="require_photo" class="ml-3 block text-sm text-gray-900">Pas Foto</label>
+                </div>
+                <div class="flex items-center p-4 bg-gray-50 rounded-lg">
+                  <input type="checkbox" id="require_kk" name="require_kk" class="h-4 w-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                  <label for="require_kk" class="ml-3 block text-sm text-gray-900">Kartu Keluarga (KK)</label>
+                </div>
+                <div class="flex items-center p-4 bg-gray-50 rounded-lg">
+                  <input type="checkbox" id="require_akta" name="require_akta" class="h-4 w-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                  <label for="require_akta" class="ml-3 block text-sm text-gray-900">Akta Kelahiran</label>
+                </div>
+                <div class="flex items-center p-4 bg-gray-50 rounded-lg">
+                  <input type="checkbox" id="require_ijazah" name="require_ijazah" class="h-4 w-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                  <label for="require_ijazah" class="ml-3 block text-sm text-gray-900">Ijazah / SKL</label>
+                </div>
+                <div class="flex items-center p-4 bg-gray-50 rounded-lg">
+                  <input type="checkbox" id="require_rapor" name="require_rapor" class="h-4 w-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                  <label for="require_rapor" class="ml-3 block text-sm text-gray-900">Rapor</label>
+                </div>
+                <div class="flex items-center p-4 bg-gray-50 rounded-lg">
+                  <input type="checkbox" id="require_skhu" name="require_skhu" class="h-4 w-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                  <label for="require_skhu" class="ml-3 block text-sm text-gray-900">SKHU</label>
+                </div>
+                <div class="flex items-center p-4 bg-gray-50 rounded-lg">
+                  <input type="checkbox" id="require_sktm" name="require_sktm" class="h-4 w-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                  <label for="require_sktm" class="ml-3 block text-sm text-gray-900">SKTM (Surat Keterangan Tidak Mampu)</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Exam Tab -->
+          <div id="tab-exam" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="md:col-span-2">
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <h3 class="text-sm font-medium text-gray-900">Ujian Masuk</h3>
+                    <p class="text-sm text-gray-500">Aktifkan ujian masuk untuk pendaftar</p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="exam_enabled" name="exam_enabled" class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    <span class="ms-3 text-sm font-medium text-gray-900">Aktif</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label for="exam_date" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Ujian</label>
+                <input
+                  type="date"
+                  id="exam_date"
+                  name="exam_date"
+                  class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900"
+                >
+              </div>
+
+              <div>
+                <label for="exam_location" class="block text-sm font-medium text-gray-700 mb-1">Lokasi Ujian</label>
+                <input
+                  type="text"
+                  id="exam_location"
+                  name="exam_location"
+                  maxlength="255"
+                  placeholder="Contoh: Aula Sekolah"
+                  class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 placeholder-gray-400"
+                >
+              </div>
+
+              <div>
+                <label for="exam_start_time" class="block text-sm font-medium text-gray-700 mb-1">Waktu Mulai</label>
+                <input
+                  type="time"
+                  id="exam_start_time"
+                  name="exam_start_time"
+                  class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900"
+                >
+              </div>
+
+              <div>
+                <label for="exam_end_time" class="block text-sm font-medium text-gray-700 mb-1">Waktu Selesai</label>
+                <input
+                  type="time"
+                  id="exam_end_time"
+                  name="exam_end_time"
+                  class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900"
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Notifications Tab -->
+          <div id="tab-notifications" class="tab-content hidden space-y-6">
+            <div class="space-y-4">
+              <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <h3 class="text-sm font-medium text-gray-900">Notifikasi Email</h3>
+                  <p class="text-sm text-gray-500">Aktifkan pengiriman email notifikasi</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="email_notifications" name="email_notifications" class="sr-only peer">
+                  <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <span class="ms-3 text-sm font-medium text-gray-900">Aktif</span>
+                </label>
+              </div>
+
+              <div class="pl-4 border-l-2 border-gray-200 space-y-3">
+                <div class="flex items-center p-4 bg-gray-50 rounded-lg">
+                  <input type="checkbox" id="notify_on_registration" name="notify_on_registration" class="h-4 w-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                  <label for="notify_on_registration" class="ml-3 block text-sm text-gray-900">
+                    <span class="font-medium">Notifikasi Pendaftaran</span>
+                    <p class="text-gray-500">Kirim email saat ada pendaftaran baru</p>
+                  </label>
+                </div>
+                <div class="flex items-center p-4 bg-gray-50 rounded-lg">
+                  <input type="checkbox" id="notify_on_payment" name="notify_on_payment" class="h-4 w-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                  <label for="notify_on_payment" class="ml-3 block text-sm text-gray-900">
+                    <span class="font-medium">Notifikasi Pembayaran</span>
+                    <p class="text-gray-500">Kirim email saat pembayaran berhasil</p>
+                  </label>
+                </div>
+                <div class="flex items-center p-4 bg-gray-50 rounded-lg">
+                  <input type="checkbox" id="notify_on_validation" name="notify_on_validation" class="h-4 w-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                  <label for="notify_on_validation" class="ml-3 block text-sm text-gray-900">
+                    <span class="font-medium">Notifikasi Validasi</span>
+                    <p class="text-gray-500">Kirim email saat dokumen selesai divalidasi</p>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Display Tab -->
+          <div id="tab-display" class="tab-content hidden space-y-6">
+            <div class="space-y-6">
+              <div>
+                <label for="welcome_message" class="block text-sm font-medium text-gray-700 mb-1">Pesan Selamat Datang</label>
+                <textarea
+                  id="welcome_message"
+                  name="welcome_message"
+                  rows="3"
+                  maxlength="1000"
+                  placeholder="Pesan yang ditampilkan di halaman pendaftaran..."
+                  class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 placeholder-gray-400 resize-none"
+                ></textarea>
+              </div>
+
+              <div>
+                <label for="registration_info" class="block text-sm font-medium text-gray-700 mb-1">Informasi Pendaftaran</label>
+                <textarea
+                  id="registration_info"
+                  name="registration_info"
+                  rows="4"
+                  maxlength="2000"
+                  placeholder="Informasi tambahan tentang proses pendaftaran..."
+                  class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 placeholder-gray-400 resize-none"
+                ></textarea>
+              </div>
+
+              <div>
+                <label for="payment_instructions" class="block text-sm font-medium text-gray-700 mb-1">Instruksi Pembayaran</label>
+                <textarea
+                  id="payment_instructions"
+                  name="payment_instructions"
+                  rows="4"
+                  maxlength="2000"
+                  placeholder="Instruksi cara melakukan pembayaran..."
+                  class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 placeholder-gray-400 resize-none"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="mt-8 pt-6 border-t border-gray-200 flex justify-between">
+            <button
+              type="button"
+              id="resetBtn"
+              class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              Reset ke Default
+            </button>
+            <button
+              type="submit"
+              id="saveBtn"
+              class="inline-flex items-center px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              Simpan Pengaturan
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="hidden fixed bottom-4 right-4 z-50">
+      <div class="flex items-center p-4 rounded-lg shadow-lg">
+        <span id="toastMessage" class="text-sm font-medium"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset Confirmation Modal -->
+  <div id="resetModal" class="hidden fixed inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto z-50">
+    <div class="flex min-h-full items-center justify-center p-4">
+      <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+        <div class="sm:flex sm:items-start">
+          <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 sm:mx-0 sm:h-10 sm:w-10">
+            <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+          </div>
+          <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+            <h3 class="text-lg font-medium text-gray-900">Reset Pengaturan</h3>
+            <p class="mt-2 text-sm text-gray-500">Apakah Anda yakin ingin mereset semua pengaturan ke nilai default? Tindakan ini tidak dapat dibatalkan.</p>
+          </div>
+        </div>
+        <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+          <button
+            id="confirmReset"
+            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-yellow-600 text-base font-medium text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 sm:ml-3 sm:w-auto sm:text-sm"
+          >
+            Reset
+          </button>
+          <button
+            id="cancelReset"
+            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:w-auto sm:text-sm"
+          >
+            Batal
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</DashboardLayout>
+
+<script>
+  import { api } from '../../lib/api';
+
+  interface Settings {
+    id: number;
+    school_type: string;
+    registration_open: boolean;
+    registration_start_date: string | null;
+    registration_end_date: string | null;
+    max_registrations: number | null;
+    registration_fee: number | null;
+    payment_deadline_days: number | null;
+    allow_cash_payment: boolean;
+    allow_va_payment: boolean;
+    require_photo: boolean;
+    require_kk: boolean;
+    require_akta: boolean;
+    require_ijazah: boolean;
+    require_rapor: boolean;
+    require_skhu: boolean;
+    require_sktm: boolean;
+    exam_enabled: boolean;
+    exam_date: string | null;
+    exam_start_time: string | null;
+    exam_end_time: string | null;
+    exam_location: string | null;
+    email_notifications: boolean;
+    notify_on_registration: boolean;
+    notify_on_payment: boolean;
+    notify_on_validation: boolean;
+    welcome_message: string | null;
+    registration_info: string | null;
+    payment_instructions: string | null;
+  }
+
+  let currentSchoolType: string = '';
+  let userSchoolType: string = '';
+  let currentSettings: Settings | null = null;
+
+  // DOM Elements
+  const loadingState = document.getElementById('loadingState')!;
+  const settingsContent = document.getElementById('settingsContent')!;
+  const schoolTypeTabs = document.getElementById('schoolTypeTabs')!;
+  const schoolTypeInfo = document.getElementById('schoolTypeInfo')!;
+  const settingsForm = document.getElementById('settingsForm') as HTMLFormElement;
+  const resetModal = document.getElementById('resetModal')!;
+  const toast = document.getElementById('toast')!;
+
+  // Initialize
+  async function init() {
+    try {
+      // Get user info to determine school type
+      const userResponse = await api.get('/api/auth/me');
+      const userData = userResponse.data.user || userResponse.data.data || userResponse.data;
+      userSchoolType = userData.school_type || userData.admin_permission?.school_type || 'sma';
+      
+      if (userSchoolType === 'both') {
+        // Superadmin - show tabs
+        schoolTypeTabs.classList.remove('hidden');
+        currentSchoolType = 'sma'; // Default to SMA
+        schoolTypeInfo.innerHTML = `
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+            Superadmin
+          </span>
+        `;
+      } else {
+        // Regular admin - show their school type only
+        currentSchoolType = userSchoolType;
+        schoolTypeInfo.innerHTML = `
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${userSchoolType === 'sma' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}">
+            ${userSchoolType.toUpperCase()}
+          </span>
+        `;
+      }
+
+      await loadSettings();
+    } catch (error) {
+      console.error('Failed to initialize:', error);
+      showToast('Gagal memuat pengaturan', 'error');
+    }
+  }
+
+  // Load settings
+  async function loadSettings() {
+    loadingState.classList.remove('hidden');
+    settingsContent.classList.add('hidden');
+
+    try {
+      const response = await api.get(`/api/admin/settings/${currentSchoolType}`);
+      currentSettings = response.data.data;
+      if (currentSettings) {
+        populateForm(currentSettings);
+      }
+      
+      loadingState.classList.add('hidden');
+      settingsContent.classList.remove('hidden');
+    } catch (error) {
+      console.error('Failed to load settings:', error);
+      showToast('Gagal memuat pengaturan', 'error');
+    }
+  }
+
+  // Populate form with settings
+  function populateForm(settings: Settings) {
+    // Registration
+    (document.getElementById('registration_open') as HTMLInputElement).checked = settings.registration_open;
+    (document.getElementById('registration_start_date') as HTMLInputElement).value = settings.registration_start_date || '';
+    (document.getElementById('registration_end_date') as HTMLInputElement).value = settings.registration_end_date || '';
+    (document.getElementById('max_registrations') as HTMLInputElement).value = settings.max_registrations?.toString() || '';
+
+    // Payment
+    (document.getElementById('registration_fee') as HTMLInputElement).value = settings.registration_fee?.toString() || '';
+    (document.getElementById('payment_deadline_days') as HTMLInputElement).value = settings.payment_deadline_days?.toString() || '';
+    (document.getElementById('allow_cash_payment') as HTMLInputElement).checked = settings.allow_cash_payment;
+    (document.getElementById('allow_va_payment') as HTMLInputElement).checked = settings.allow_va_payment;
+
+    // Documents
+    (document.getElementById('require_photo') as HTMLInputElement).checked = settings.require_photo;
+    (document.getElementById('require_kk') as HTMLInputElement).checked = settings.require_kk;
+    (document.getElementById('require_akta') as HTMLInputElement).checked = settings.require_akta;
+    (document.getElementById('require_ijazah') as HTMLInputElement).checked = settings.require_ijazah;
+    (document.getElementById('require_rapor') as HTMLInputElement).checked = settings.require_rapor;
+    (document.getElementById('require_skhu') as HTMLInputElement).checked = settings.require_skhu;
+    (document.getElementById('require_sktm') as HTMLInputElement).checked = settings.require_sktm;
+
+    // Exam
+    (document.getElementById('exam_enabled') as HTMLInputElement).checked = settings.exam_enabled;
+    (document.getElementById('exam_date') as HTMLInputElement).value = settings.exam_date || '';
+    (document.getElementById('exam_start_time') as HTMLInputElement).value = settings.exam_start_time || '';
+    (document.getElementById('exam_end_time') as HTMLInputElement).value = settings.exam_end_time || '';
+    (document.getElementById('exam_location') as HTMLInputElement).value = settings.exam_location || '';
+
+    // Notifications
+    (document.getElementById('email_notifications') as HTMLInputElement).checked = settings.email_notifications;
+    (document.getElementById('notify_on_registration') as HTMLInputElement).checked = settings.notify_on_registration;
+    (document.getElementById('notify_on_payment') as HTMLInputElement).checked = settings.notify_on_payment;
+    (document.getElementById('notify_on_validation') as HTMLInputElement).checked = settings.notify_on_validation;
+
+    // Display
+    (document.getElementById('welcome_message') as HTMLTextAreaElement).value = settings.welcome_message || '';
+    (document.getElementById('registration_info') as HTMLTextAreaElement).value = settings.registration_info || '';
+    (document.getElementById('payment_instructions') as HTMLTextAreaElement).value = settings.payment_instructions || '';
+  }
+
+  // Get form data
+  function getFormData(): Partial<Settings> {
+    return {
+      // Registration
+      registration_open: (document.getElementById('registration_open') as HTMLInputElement).checked,
+      registration_start_date: (document.getElementById('registration_start_date') as HTMLInputElement).value || null,
+      registration_end_date: (document.getElementById('registration_end_date') as HTMLInputElement).value || null,
+      max_registrations: parseInt((document.getElementById('max_registrations') as HTMLInputElement).value) || null,
+
+      // Payment
+      registration_fee: parseFloat((document.getElementById('registration_fee') as HTMLInputElement).value) || null,
+      payment_deadline_days: parseInt((document.getElementById('payment_deadline_days') as HTMLInputElement).value) || null,
+      allow_cash_payment: (document.getElementById('allow_cash_payment') as HTMLInputElement).checked,
+      allow_va_payment: (document.getElementById('allow_va_payment') as HTMLInputElement).checked,
+
+      // Documents
+      require_photo: (document.getElementById('require_photo') as HTMLInputElement).checked,
+      require_kk: (document.getElementById('require_kk') as HTMLInputElement).checked,
+      require_akta: (document.getElementById('require_akta') as HTMLInputElement).checked,
+      require_ijazah: (document.getElementById('require_ijazah') as HTMLInputElement).checked,
+      require_rapor: (document.getElementById('require_rapor') as HTMLInputElement).checked,
+      require_skhu: (document.getElementById('require_skhu') as HTMLInputElement).checked,
+      require_sktm: (document.getElementById('require_sktm') as HTMLInputElement).checked,
+
+      // Exam
+      exam_enabled: (document.getElementById('exam_enabled') as HTMLInputElement).checked,
+      exam_date: (document.getElementById('exam_date') as HTMLInputElement).value || null,
+      exam_start_time: (document.getElementById('exam_start_time') as HTMLInputElement).value || null,
+      exam_end_time: (document.getElementById('exam_end_time') as HTMLInputElement).value || null,
+      exam_location: (document.getElementById('exam_location') as HTMLInputElement).value || null,
+
+      // Notifications
+      email_notifications: (document.getElementById('email_notifications') as HTMLInputElement).checked,
+      notify_on_registration: (document.getElementById('notify_on_registration') as HTMLInputElement).checked,
+      notify_on_payment: (document.getElementById('notify_on_payment') as HTMLInputElement).checked,
+      notify_on_validation: (document.getElementById('notify_on_validation') as HTMLInputElement).checked,
+
+      // Display
+      welcome_message: (document.getElementById('welcome_message') as HTMLTextAreaElement).value || null,
+      registration_info: (document.getElementById('registration_info') as HTMLTextAreaElement).value || null,
+      payment_instructions: (document.getElementById('payment_instructions') as HTMLTextAreaElement).value || null,
+    };
+  }
+
+  // Save settings
+  async function saveSettings() {
+    const saveBtn = document.getElementById('saveBtn') as HTMLButtonElement;
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = `
+      <svg class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      Menyimpan...
+    `;
+
+    try {
+      const data = getFormData();
+      await api.put(`/api/admin/settings/${currentSchoolType}`, data);
+      showToast('Pengaturan berhasil disimpan', 'success');
+    } catch (error: any) {
+      console.error('Failed to save settings:', error);
+      const message = error.response?.data?.message || 'Gagal menyimpan pengaturan';
+      showToast(message, 'error');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = `
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+        Simpan Pengaturan
+      `;
+    }
+  }
+
+  // Reset settings
+  async function resetSettings() {
+    try {
+      await api.post(`/api/admin/settings/${currentSchoolType}/reset`);
+      await loadSettings();
+      showToast('Pengaturan berhasil direset ke default', 'success');
+    } catch (error) {
+      console.error('Failed to reset settings:', error);
+      showToast('Gagal mereset pengaturan', 'error');
+    }
+  }
+
+  // Show toast notification
+  function showToast(message: string, type: 'success' | 'error') {
+    const toastEl = toast;
+    const messageEl = document.getElementById('toastMessage')!;
+    
+    toastEl.classList.remove('hidden');
+    messageEl.textContent = message;
+    
+    const bgClass = type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white';
+    toastEl.firstElementChild?.classList.remove('bg-green-500', 'bg-red-500');
+    toastEl.firstElementChild?.classList.add(...bgClass.split(' '));
+
+    setTimeout(() => {
+      toastEl.classList.add('hidden');
+    }, 3000);
+  }
+
+  // Tab switching (settings tabs)
+  document.querySelectorAll('.settings-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const tabName = tab.getAttribute('data-tab');
+      
+      // Update tab styles
+      document.querySelectorAll('.settings-tab').forEach(t => {
+        t.classList.remove('text-blue-600', 'border-blue-500');
+        t.classList.add('text-gray-500', 'border-transparent');
+      });
+      tab.classList.remove('text-gray-500', 'border-transparent');
+      tab.classList.add('text-blue-600', 'border-blue-500');
+      
+      // Show/hide tab content
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+      });
+      document.getElementById(`tab-${tabName}`)?.classList.remove('hidden');
+    });
+  });
+
+  // School type tab switching (for superadmin)
+  document.querySelectorAll('.school-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const schoolType = tab.getAttribute('data-school-type');
+      if (schoolType && schoolType !== currentSchoolType) {
+        currentSchoolType = schoolType;
+        
+        // Update tab styles
+        document.querySelectorAll('.school-tab').forEach(t => {
+          t.classList.remove('border-blue-500', 'text-blue-600');
+          t.classList.add('border-transparent', 'text-gray-500');
+        });
+        tab.classList.remove('border-transparent', 'text-gray-500');
+        tab.classList.add('border-blue-500', 'text-blue-600');
+        
+        loadSettings();
+      }
+    });
+  });
+
+  // Form submission
+  settingsForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    saveSettings();
+  });
+
+  // Reset button
+  document.getElementById('resetBtn')?.addEventListener('click', () => {
+    resetModal.classList.remove('hidden');
+  });
+
+  document.getElementById('confirmReset')?.addEventListener('click', () => {
+    resetModal.classList.add('hidden');
+    resetSettings();
+  });
+
+  document.getElementById('cancelReset')?.addEventListener('click', () => {
+    resetModal.classList.add('hidden');
+  });
+
+  // Initialize
+  init();
+</script>

@@ -1,0 +1,677 @@
+---
+import AdminLayout from '../../../layouts/DashboardLayout.astro';
+
+const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
+---
+
+<AdminLayout title="FAQ Management" >
+  <div class="p-6">
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">FAQ Management</h1>
+        <p class="text-gray-600 text-sm mt-1">Manage frequently asked questions</p>
+      </div>
+      <button 
+        id="addFaqBtn" 
+        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+      >
+        <i class="fas fa-plus"></i>
+        <span>Add FAQ</span>
+      </button>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+      <div class="flex flex-wrap gap-4">
+        <div class="flex-1 min-w-[200px]">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+          <select id="categoryFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="">All Categories</option>
+            <option value="registration">Registration</option>
+            <option value="payment">Payment</option>
+            <option value="exam">Exam</option>
+            <option value="results">Results</option>
+            <option value="general">General</option>
+          </select>
+        </div>
+
+        <div class="flex-1 min-w-[200px]">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+          <select id="statusFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+
+        <div class="flex-1 min-w-[200px]">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+          <input 
+            type="text" 
+            id="searchInput" 
+            placeholder="Search questions..."
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white rounded-lg shadow-sm p-4">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+            <i class="fas fa-question-circle text-blue-600 text-xl"></i>
+          </div>
+          <div>
+            <p class="text-gray-600 text-sm">Total FAQs</p>
+            <p id="totalFaqs" class="text-2xl font-bold text-gray-800">0</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm p-4">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+            <i class="fas fa-check-circle text-green-600 text-xl"></i>
+          </div>
+          <div>
+            <p class="text-gray-600 text-sm">Active</p>
+            <p id="activeFaqs" class="text-2xl font-bold text-gray-800">0</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm p-4">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+            <i class="fas fa-eye-slash text-gray-600 text-xl"></i>
+          </div>
+          <div>
+            <p class="text-gray-600 text-sm">Inactive</p>
+            <p id="inactiveFaqs" class="text-2xl font-bold text-gray-800">0</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm p-4">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+            <i class="fas fa-folder text-purple-600 text-xl"></i>
+          </div>
+          <div>
+            <p class="text-gray-600 text-sm">Categories</p>
+            <p id="categoryCount" class="text-2xl font-bold text-gray-800">5</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="bg-white rounded-lg shadow-sm p-8 text-center">
+      <i class="fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
+      <p class="text-gray-600">Loading FAQs...</p>
+    </div>
+
+    <!-- FAQs List -->
+    <div id="faqsContainer" class="bg-white rounded-lg shadow-sm overflow-hidden hidden">
+      <div id="faqsList" class="divide-y divide-gray-200"></div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="bg-white rounded-lg shadow-sm p-8 text-center hidden">
+      <i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
+      <h3 class="text-xl font-semibold text-gray-800 mb-2">No FAQs Found</h3>
+      <p class="text-gray-600 mb-4">Start by creating your first FAQ</p>
+      <button 
+        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+        onclick="document.getElementById('addFaqBtn').click()"
+      >
+        <i class="fas fa-plus mr-2"></i>Add FAQ
+      </button>
+    </div>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div id="faqModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+      <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4">
+        <div class="flex items-center justify-between">
+          <h2 id="modalTitle" class="text-xl font-bold text-gray-800">Add FAQ</h2>
+          <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600 transition">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+      </div>
+
+      <form id="faqForm" class="p-6">
+        <input type="hidden" id="faqId">
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Question <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="question" 
+              required 
+              maxlength="500"
+              placeholder="Enter the question"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <p class="text-xs text-gray-500 mt-1">
+              <span id="questionCounter">0</span>/500 characters
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Answer <span class="text-red-500">*</span>
+            </label>
+            <textarea 
+              id="answer" 
+              required 
+              rows="8"
+              placeholder="Enter the detailed answer"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            ></textarea>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Category <span class="text-red-500">*</span>
+              </label>
+              <select 
+                id="category" 
+                required 
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select category</option>
+                <option value="registration">Registration</option>
+                <option value="payment">Payment</option>
+                <option value="exam">Exam</option>
+                <option value="results">Results</option>
+                <option value="general">General</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Display Order
+              </label>
+              <input 
+                type="number" 
+                id="order" 
+                min="0" 
+                value="0"
+                placeholder="0"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <p class="text-xs text-gray-500 mt-1">Lower numbers appear first</p>
+            </div>
+          </div>
+
+          <div class="flex items-center">
+            <input 
+              type="checkbox" 
+              id="is_active" 
+              checked 
+              class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <label for="is_active" class="ml-2 text-sm font-medium text-gray-700">
+              Active (visible to users)
+            </label>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
+          <button 
+            type="button" 
+            id="cancelBtn" 
+            class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+          >
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            id="submitBtn"
+            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+          >
+            <i class="fas fa-save"></i>
+            <span>Save FAQ</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script define:vars={{ API_URL }}>
+    // Helper to get token from sessionStorage (aligned with authStore)
+    function getSecureToken() {
+      return sessionStorage.getItem('auth_token');
+    }
+    
+    function clearAuthAndRedirect() {
+      sessionStorage.removeItem('auth_token');
+      sessionStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+
+    // Type definitions
+    /**
+     * @typedef {Object} FAQ
+     * @property {number} id
+     * @property {string} question
+     * @property {string} answer
+     * @property {string} category
+     * @property {number} order
+     * @property {boolean} is_active
+     * @property {number} views_count
+     * @property {number} helpful_count
+     * @property {string} created_at
+     * @property {string} updated_at
+     */
+
+    // State
+    let allFaqs = [];
+    let filteredFaqs = [];
+
+    const categoryLabels = {
+      registration: { label: 'Registration', color: 'blue', icon: 'clipboard-list' },
+      payment: { label: 'Payment', color: 'green', icon: 'credit-card' },
+      exam: { label: 'Exam', color: 'purple', icon: 'book-open' },
+      results: { label: 'Results', color: 'orange', icon: 'award' },
+      general: { label: 'General', color: 'gray', icon: 'help-circle' }
+    };
+
+    // DOM Elements
+    const elements = {
+      loadingState: document.getElementById('loadingState'),
+      faqsContainer: document.getElementById('faqsContainer'),
+      faqsList: document.getElementById('faqsList'),
+      emptyState: document.getElementById('emptyState'),
+      categoryFilter: document.getElementById('categoryFilter'),
+      statusFilter: document.getElementById('statusFilter'),
+      searchInput: document.getElementById('searchInput'),
+      addFaqBtn: document.getElementById('addFaqBtn'),
+      faqModal: document.getElementById('faqModal'),
+      closeModalBtn: document.getElementById('closeModalBtn'),
+      faqForm: document.getElementById('faqForm'),
+      cancelBtn: document.getElementById('cancelBtn'),
+      modalTitle: document.getElementById('modalTitle'),
+      questionInput: document.getElementById('question'),
+      questionCounter: document.getElementById('questionCounter')
+    };
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      loadFaqs();
+      setupEventListeners();
+    });
+
+    // Setup Event Listeners
+    function setupEventListeners() {
+      elements.categoryFilter?.addEventListener('change', applyFilters);
+      elements.statusFilter?.addEventListener('change', applyFilters);
+      elements.searchInput?.addEventListener('input', debounce(applyFilters, 300));
+      elements.addFaqBtn?.addEventListener('click', openAddModal);
+      elements.closeModalBtn?.addEventListener('click', closeModal);
+      elements.cancelBtn?.addEventListener('click', closeModal);
+      elements.faqForm?.addEventListener('submit', handleSubmit);
+      elements.questionInput?.addEventListener('input', updateCharCounter);
+
+      // Close modal on outside click
+      elements.faqModal?.addEventListener('click', (e) => {
+        if (e.target === elements.faqModal) closeModal();
+      });
+    }
+
+    // Load FAQs
+    async function loadFaqs() {
+      const token = getSecureToken();
+      if (!token) {
+        clearAuthAndRedirect();
+        return;
+      }
+
+      try {
+        showLoading(true);
+        const response = await fetch(`${API_URL}/api/admin/faqs`, {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch FAQs');
+
+        const data = await response.json();
+        allFaqs = data.data || [];
+        filteredFaqs = [...allFaqs];
+        
+        updateStatistics();
+        renderFaqs();
+      } catch (error) {
+        console.error('Error loading FAQs:', error);
+        showError('Failed to load FAQs. Please try again.');
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    // Apply Filters
+    function applyFilters() {
+      const category = elements.categoryFilter?.value || '';
+      const status = elements.statusFilter?.value || '';
+      const search = elements.searchInput?.value.toLowerCase() || '';
+
+      filteredFaqs = allFaqs.filter(faq => {
+        const matchCategory = !category || faq.category === category;
+        const matchStatus = !status || (status === 'active' ? faq.is_active : !faq.is_active);
+        const matchSearch = !search || 
+          faq.question.toLowerCase().includes(search) || 
+          faq.answer.toLowerCase().includes(search);
+
+        return matchCategory && matchStatus && matchSearch;
+      });
+
+      renderFaqs();
+    }
+
+    // Render FAQs
+    function renderFaqs() {
+      if (filteredFaqs.length === 0) {
+        elements.faqsContainer?.classList.add('hidden');
+        elements.emptyState?.classList.remove('hidden');
+        return;
+      }
+
+      elements.faqsContainer?.classList.remove('hidden');
+      elements.emptyState?.classList.add('hidden');
+
+      const html = filteredFaqs.map(faq => {
+        const cat = categoryLabels[faq.category] || categoryLabels.general;
+        return `
+          <div class="p-4 hover:bg-gray-50 transition">
+            <div class="flex items-start gap-4">
+              <div class="flex-shrink-0 w-10 h-10 bg-${cat.color}-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-${cat.icon} text-${cat.color}-600"></i>
+              </div>
+              
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="px-2 py-1 text-xs rounded-full bg-${cat.color}-100 text-${cat.color}-800 font-medium">
+                    ${cat.label}
+                  </span>
+                  ${faq.is_active 
+                    ? '<span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 font-medium">Active</span>' 
+                    : '<span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800 font-medium">Inactive</span>'
+                  }
+                  <span class="text-xs text-gray-500">Order: ${faq.order}</span>
+                </div>
+                
+                <h3 class="font-semibold text-gray-800 mb-2">${escapeHtml(faq.question)}</h3>
+                <p class="text-gray-600 text-sm line-clamp-2">${escapeHtml(faq.answer)}</p>
+                
+                <div class="flex items-center gap-4 mt-3 text-xs text-gray-500">
+                  <span><i class="fas fa-eye mr-1"></i>${faq.views_count || 0} views</span>
+                  <span><i class="fas fa-thumbs-up mr-1"></i>${faq.helpful_count || 0} helpful</span>
+                  <span><i class="fas fa-clock mr-1"></i>${formatDate(faq.created_at)}</span>
+                </div>
+              </div>
+
+              <div class="flex-shrink-0 flex gap-2">
+                <button 
+                  onclick="editFaq(${faq.id})" 
+                  class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                  title="Edit"
+                >
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button 
+                  onclick="toggleStatus(${faq.id})" 
+                  class="p-2 text-${faq.is_active ? 'orange' : 'green'}-600 hover:bg-${faq.is_active ? 'orange' : 'green'}-50 rounded-lg transition"
+                  title="${faq.is_active ? 'Deactivate' : 'Activate'}"
+                >
+                  <i class="fas fa-${faq.is_active ? 'eye-slash' : 'eye'}"></i>
+                </button>
+                <button 
+                  onclick="deleteFaq(${faq.id})" 
+                  class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                  title="Delete"
+                >
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      if (elements.faqsList) {
+        elements.faqsList.innerHTML = html;
+      }
+    }
+
+    // Update Statistics
+    function updateStatistics() {
+      const total = allFaqs.length;
+      const active = allFaqs.filter(f => f.is_active).length;
+      const inactive = total - active;
+
+      const totalEl = document.getElementById('totalFaqs');
+      const activeEl = document.getElementById('activeFaqs');
+      const inactiveEl = document.getElementById('inactiveFaqs');
+
+      if (totalEl) totalEl.textContent = total;
+      if (activeEl) activeEl.textContent = active;
+      if (inactiveEl) inactiveEl.textContent = inactive;
+    }
+
+    // Modal Functions
+    function openAddModal() {
+      elements.modalTitle.textContent = 'Add FAQ';
+      elements.faqForm?.reset();
+      document.getElementById('faqId').value = '';
+      document.getElementById('is_active').checked = true;
+      elements.faqModal?.classList.remove('hidden');
+      elements.questionInput?.focus();
+    }
+
+    function closeModal() {
+      elements.faqModal?.classList.add('hidden');
+      elements.faqForm?.reset();
+    }
+
+    // Edit FAQ
+    window.editFaq = (id) => {
+      const faq = allFaqs.find(f => f.id === id);
+      if (!faq) return;
+
+      elements.modalTitle.textContent = 'Edit FAQ';
+      document.getElementById('faqId').value = faq.id;
+      document.getElementById('question').value = faq.question;
+      document.getElementById('answer').value = faq.answer;
+      document.getElementById('category').value = faq.category;
+      document.getElementById('order').value = faq.order;
+      document.getElementById('is_active').checked = faq.is_active;
+      
+      updateCharCounter();
+      elements.faqModal?.classList.remove('hidden');
+    };
+
+    // Toggle Status
+    window.toggleStatus = async (id) => {
+      const faq = allFaqs.find(f => f.id === id);
+      if (!faq) return;
+
+      const action = faq.is_active ? 'deactivate' : 'activate';
+      if (!confirm(`Are you sure you want to ${action} this FAQ?`)) return;
+
+      const token = getSecureToken();
+      try {
+        const response = await fetch(`${API_URL}/api/admin/faqs/${id}/toggle-status`, {
+          method: 'PATCH',
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        if (!response.ok) throw new Error('Failed to toggle status');
+
+        await loadFaqs();
+        showSuccess(`FAQ ${action}d successfully`);
+      } catch (error) {
+        console.error('Error toggling status:', error);
+        showError('Failed to toggle status. Please try again.');
+      }
+    };
+
+    // Delete FAQ
+    window.deleteFaq = async (id) => {
+      if (!confirm('Are you sure you want to delete this FAQ? This action cannot be undone.')) {
+        return;
+      }
+
+      const token = getSecureToken();
+      try {
+        const response = await fetch(`${API_URL}/api/admin/faqs/${id}`, {
+          method: 'DELETE',
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        if (!response.ok) throw new Error('Failed to delete FAQ');
+
+        await loadFaqs();
+        showSuccess('FAQ deleted successfully');
+      } catch (error) {
+        console.error('Error deleting FAQ:', error);
+        showError('Failed to delete FAQ. Please try again.');
+      }
+    };
+
+    // Handle Form Submit
+    async function handleSubmit(e) {
+      e.preventDefault();
+
+      const id = document.getElementById('faqId').value;
+      const data = {
+        question: document.getElementById('question').value.trim(),
+        answer: document.getElementById('answer').value.trim(),
+        category: document.getElementById('category').value,
+        order: parseInt(document.getElementById('order').value) || 0,
+        is_active: document.getElementById('is_active').checked
+      };
+
+      const token = getSecureToken();
+      const url = id ? `${API_URL}/api/admin/faqs/${id}` : `${API_URL}/api/admin/faqs`;
+      const method = id ? 'PUT' : 'POST';
+
+      try {
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+        }
+
+        const response = await fetch(url, {
+          method,
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || 'Failed to save FAQ');
+        }
+
+        closeModal();
+        await loadFaqs();
+        showSuccess(id ? 'FAQ updated successfully' : 'FAQ created successfully');
+      } catch (error) {
+        console.error('Error saving FAQ:', error);
+        showError(error.message || 'Failed to save FAQ. Please try again.');
+      } finally {
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Save FAQ';
+        }
+      }
+    }
+
+    // Utility Functions
+    function updateCharCounter() {
+      const input = elements.questionInput;
+      const counter = elements.questionCounter;
+      if (input && counter) {
+        counter.textContent = input.value.length;
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 0) return 'Today';
+      if (diffDays === 1) return 'Yesterday';
+      if (diffDays < 7) return `${diffDays} days ago`;
+      
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    }
+
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    function showLoading(show) {
+      if (show) {
+        elements.loadingState?.classList.remove('hidden');
+        elements.faqsContainer?.classList.add('hidden');
+        elements.emptyState?.classList.add('hidden');
+      } else {
+        elements.loadingState?.classList.add('hidden');
+      }
+    }
+
+    function showSuccess(message) {
+      // You can implement a toast notification here
+      alert(message);
+    }
+
+    function showError(message) {
+      // You can implement a toast notification here
+      alert(message);
+    }
+  </script>
+</AdminLayout>

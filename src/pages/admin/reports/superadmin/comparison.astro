@@ -1,0 +1,499 @@
+---
+import DashboardLayout from '../../../../layouts/DashboardLayout.astro';
+
+export const prerender = false;
+---
+
+<DashboardLayout title="Perbandingan Sekolah - Superadmin">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-gray-900">Perbandingan Sekolah</h2>
+          <p class="text-sm text-gray-500 mt-1">Perbandingan statistik antara SMA dan SMK</p>
+        </div>
+        <div class="flex gap-2">
+          <button id="btn-refresh" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Refresh
+          </button>
+          <button id="btn-export" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            Export PDF
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Mulai</label>
+          <input type="date" id="startDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Akhir</label>
+          <input type="date" id="endDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">&nbsp;</label>
+          <button id="applyFilterBtn" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            Terapkan Filter
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="hidden">
+      <div class="bg-white rounded-lg shadow p-12 text-center">
+        <div class="animate-spin inline-block w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+        <p class="mt-4 text-gray-600">Memuat data...</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div id="error" class="hidden">
+      <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+        <svg class="mx-auto h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <p id="error-text" class="mt-4 text-red-600">Terjadi kesalahan</p>
+        <button id="btn-retry" class="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Coba Lagi</button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div id="content" class="hidden space-y-6">
+      <!-- Comparison Cards -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- SMA Card -->
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold">SMA</h3>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-blue-100 text-sm">Total Pendaftar</p>
+              <p id="sma-total" class="text-3xl font-bold">0</p>
+            </div>
+            <div>
+              <p class="text-blue-100 text-sm">Approved</p>
+              <p id="sma-approved" class="text-3xl font-bold">0</p>
+            </div>
+            <div>
+              <p class="text-blue-100 text-sm">Lunas</p>
+              <p id="sma-paid" class="text-2xl font-bold">0</p>
+            </div>
+            <div>
+              <p class="text-blue-100 text-sm">Pending</p>
+              <p id="sma-pending" class="text-2xl font-bold">0</p>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-white/20">
+            <div class="flex justify-between items-center">
+              <span class="text-blue-100 text-sm">Approval Rate</span>
+              <span id="sma-rate" class="text-xl font-bold">0%</span>
+            </div>
+            <div class="mt-2 bg-white/20 rounded-full h-2">
+              <div id="sma-progress" class="bg-white h-2 rounded-full transition-all" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SMK Card -->
+        <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg p-6 text-white">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold">SMK</h3>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-purple-100 text-sm">Total Pendaftar</p>
+              <p id="smk-total" class="text-3xl font-bold">0</p>
+            </div>
+            <div>
+              <p class="text-purple-100 text-sm">Approved</p>
+              <p id="smk-approved" class="text-3xl font-bold">0</p>
+            </div>
+            <div>
+              <p class="text-purple-100 text-sm">Lunas</p>
+              <p id="smk-paid" class="text-2xl font-bold">0</p>
+            </div>
+            <div>
+              <p class="text-purple-100 text-sm">Pending</p>
+              <p id="smk-pending" class="text-2xl font-bold">0</p>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-white/20">
+            <div class="flex justify-between items-center">
+              <span class="text-purple-100 text-sm">Approval Rate</span>
+              <span id="smk-rate" class="text-xl font-bold">0%</span>
+            </div>
+            <div class="mt-2 bg-white/20 rounded-full h-2">
+              <div id="smk-progress" class="bg-white h-2 rounded-full transition-all" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comparison Chart -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="text-lg font-semibold mb-4">Perbandingan Pendaftar</h3>
+          <div class="h-64">
+            <canvas id="comparisonChart"></canvas>
+          </div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="text-lg font-semibold mb-4">Distribusi Status</h3>
+          <div class="h-64">
+            <canvas id="statusChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed Comparison Table -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200">
+          <h3 class="text-lg font-semibold">Detail Perbandingan</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Metrik</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-blue-600 uppercase">SMA</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-purple-600 uppercase">SMK</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Perbandingan</th>
+              </tr>
+            </thead>
+            <tbody id="table-body" class="divide-y divide-gray-200">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { api } from '../../../../lib/api';
+    import Chart from 'chart.js/auto';
+
+    interface SchoolStatus {
+      draft: number;
+      pending_payment: number;
+      payment_confirmed: number;
+      approved: number;
+      rejected: number;
+    }
+
+    interface SchoolData {
+      total: number;
+      status: SchoolStatus;
+      validated: number;
+      test_ready: number;
+      by_major: Array<{ major: string; count: number }>;
+    }
+
+    interface ComparisonData {
+      sma: SchoolData;
+      smk: SchoolData;
+      comparison_metrics: {
+        sma_percentage: number;
+        smk_percentage: number;
+        ratio: number | null;
+      };
+    }
+
+    let data: ComparisonData | null = null;
+    let comparisonChart: Chart | null = null;
+    let statusChart: Chart | null = null;
+
+    async function loadData(): Promise<void> {
+      show('loading');
+
+      try {
+        const params = new URLSearchParams();
+        
+        const startDate = document.getElementById('startDate') as HTMLInputElement | null;
+        const endDate = document.getElementById('endDate') as HTMLInputElement | null;
+
+        if (startDate?.value) {
+          params.append('date_from', startDate.value);
+        }
+        if (endDate?.value) {
+          params.append('date_to', endDate.value);
+        }
+
+        const response = await api.get(`/api/admin/reports/superadmin/comparison?${params}`);
+        
+        if (response.data.success) {
+          data = response.data.data;
+          updateUI();
+          renderCharts();
+          renderTable();
+          show('content');
+        } else {
+          throw new Error(response.data.message || 'Failed to load data');
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        showError(errorMessage);
+      }
+    }
+
+    function updateUI(): void {
+      if (!data) return;
+
+      // SMA Stats
+      const smaTotal = document.getElementById('sma-total');
+      const smaApproved = document.getElementById('sma-approved');
+      const smaPaid = document.getElementById('sma-paid');
+      const smaPending = document.getElementById('sma-pending');
+      const smaRate = document.getElementById('sma-rate');
+      const smaProgress = document.getElementById('sma-progress');
+
+      const smaApprovalRate = data.sma.total > 0 
+        ? Math.round((data.sma.status.approved / data.sma.total) * 100) 
+        : 0;
+
+      if (smaTotal) smaTotal.textContent = String(data.sma.total);
+      if (smaApproved) smaApproved.textContent = String(data.sma.status.approved);
+      if (smaPaid) smaPaid.textContent = String(data.sma.status.payment_confirmed);
+      if (smaPending) smaPending.textContent = String(data.sma.status.pending_payment);
+      if (smaRate) smaRate.textContent = `${smaApprovalRate}%`;
+      if (smaProgress) smaProgress.style.width = `${smaApprovalRate}%`;
+
+      // SMK Stats
+      const smkTotal = document.getElementById('smk-total');
+      const smkApproved = document.getElementById('smk-approved');
+      const smkPaid = document.getElementById('smk-paid');
+      const smkPending = document.getElementById('smk-pending');
+      const smkRate = document.getElementById('smk-rate');
+      const smkProgress = document.getElementById('smk-progress');
+
+      const smkApprovalRate = data.smk.total > 0 
+        ? Math.round((data.smk.status.approved / data.smk.total) * 100) 
+        : 0;
+
+      if (smkTotal) smkTotal.textContent = String(data.smk.total);
+      if (smkApproved) smkApproved.textContent = String(data.smk.status.approved);
+      if (smkPaid) smkPaid.textContent = String(data.smk.status.payment_confirmed);
+      if (smkPending) smkPending.textContent = String(data.smk.status.pending_payment);
+      if (smkRate) smkRate.textContent = `${smkApprovalRate}%`;
+      if (smkProgress) smkProgress.style.width = `${smkApprovalRate}%`;
+    }
+
+    function renderCharts(): void {
+      if (!data) return;
+
+      // Comparison Chart
+      const compCanvas = document.getElementById('comparisonChart') as HTMLCanvasElement;
+      if (compCanvas) {
+        if (comparisonChart) comparisonChart.destroy();
+
+        comparisonChart = new Chart(compCanvas, {
+          type: 'bar',
+          data: {
+            labels: ['Total', 'Approved', 'Payment Confirmed', 'Pending', 'Rejected', 'Draft'],
+            datasets: [
+              {
+                label: 'SMA',
+                data: [
+                  data.sma.total, 
+                  data.sma.status.approved, 
+                  data.sma.status.payment_confirmed, 
+                  data.sma.status.pending_payment, 
+                  data.sma.status.rejected,
+                  data.sma.status.draft
+                ],
+                backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                borderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 1
+              },
+              {
+                label: 'SMK',
+                data: [
+                  data.smk.total, 
+                  data.smk.status.approved, 
+                  data.smk.status.payment_confirmed, 
+                  data.smk.status.pending_payment, 
+                  data.smk.status.rejected,
+                  data.smk.status.draft
+                ],
+                backgroundColor: 'rgba(147, 51, 234, 0.8)',
+                borderColor: 'rgba(147, 51, 234, 1)',
+                borderWidth: 1
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'top' }
+            },
+            scales: {
+              y: { beginAtZero: true }
+            }
+          }
+        });
+      }
+
+      // Status Chart
+      const statusCanvas = document.getElementById('statusChart') as HTMLCanvasElement;
+      if (statusCanvas) {
+        if (statusChart) statusChart.destroy();
+
+        statusChart = new Chart(statusCanvas, {
+          type: 'doughnut',
+          data: {
+            labels: ['SMA', 'SMK'],
+            datasets: [{
+              data: [data.sma.total, data.smk.total],
+              backgroundColor: ['rgba(59, 130, 246, 0.8)', 'rgba(147, 51, 234, 0.8)'],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom' }
+            }
+          }
+        });
+      }
+    }
+
+    function renderTable(): void {
+      const tbody = document.getElementById('table-body');
+      if (!tbody || !data) return;
+
+      const metrics = [
+        { name: 'Total Pendaftar', sma: data.sma.total, smk: data.smk.total },
+        { name: 'Approved', sma: data.sma.status.approved, smk: data.smk.status.approved },
+        { name: 'Payment Confirmed', sma: data.sma.status.payment_confirmed, smk: data.smk.status.payment_confirmed },
+        { name: 'Pending Payment', sma: data.sma.status.pending_payment, smk: data.smk.status.pending_payment },
+        { name: 'Rejected', sma: data.sma.status.rejected, smk: data.smk.status.rejected },
+        { name: 'Draft', sma: data.sma.status.draft, smk: data.smk.status.draft },
+        { name: 'Validated', sma: data.sma.validated, smk: data.smk.validated },
+        { name: 'Test Ready', sma: data.sma.test_ready, smk: data.smk.test_ready }
+      ];
+
+      tbody.innerHTML = metrics.map(m => {
+        const total = m.sma + m.smk;
+        const smaPercentage = total > 0 ? Math.round((m.sma / total) * 100) : 0;
+        const smkPercentage = total > 0 ? Math.round((m.smk / total) * 100) : 0;
+
+        return `
+          <tr>
+            <td class="px-6 py-4 text-sm font-medium text-gray-900">${m.name}</td>
+            <td class="px-6 py-4 text-center">
+              <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">${m.sma}</span>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">${m.smk}</span>
+            </td>
+            <td class="px-6 py-4 text-center font-semibold">${total}</td>
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-2">
+                <div class="flex-1 flex h-4 rounded-full overflow-hidden">
+                  <div class="bg-blue-500" style="width: ${smaPercentage}%"></div>
+                  <div class="bg-purple-500" style="width: ${smkPercentage}%"></div>
+                </div>
+                <span class="text-xs text-gray-500 whitespace-nowrap">${smaPercentage}% : ${smkPercentage}%</span>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function exportPDF(): Promise<void> {
+      const btn = document.getElementById('btn-export') as HTMLButtonElement;
+      if (!btn) return;
+
+      const originalText = btn.innerHTML;
+
+      try {
+        btn.disabled = true;
+        btn.innerHTML = `
+          <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Generating...
+        `;
+
+        const params = new URLSearchParams();
+        const startDate = document.getElementById('startDate') as HTMLInputElement | null;
+        const endDate = document.getElementById('endDate') as HTMLInputElement | null;
+
+        if (startDate?.value) params.append('date_from', startDate.value);
+        if (endDate?.value) params.append('date_to', endDate.value);
+
+        const response = await api.get(`/api/admin/reports/superadmin/comparison/export-pdf?${params}`, {
+          responseType: 'blob'
+        });
+
+        const blob = new Blob([response.data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `perbandingan-sekolah-${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+      } catch (err) {
+        console.error('Export error:', err);
+        alert('Gagal export PDF');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
+    }
+
+    function show(id: string): void {
+      ['loading', 'error', 'content'].forEach(el => {
+        document.getElementById(el)?.classList.add('hidden');
+      });
+      document.getElementById(id)?.classList.remove('hidden');
+    }
+
+    function showError(msg: string): void {
+      const errorText = document.getElementById('error-text');
+      if (errorText) errorText.textContent = msg;
+      show('error');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadData();
+
+      document.getElementById('applyFilterBtn')?.addEventListener('click', loadData);
+      document.getElementById('btn-refresh')?.addEventListener('click', loadData);
+      document.getElementById('btn-retry')?.addEventListener('click', loadData);
+      document.getElementById('btn-export')?.addEventListener('click', exportPDF);
+    });
+  </script>
+</DashboardLayout>

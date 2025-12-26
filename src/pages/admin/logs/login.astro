@@ -1,0 +1,390 @@
+---
+import AdminLayout from '../../../layouts/DashboardLayout.astro';
+---
+
+<AdminLayout title="Login Logs">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Login Logs</h1>
+        <p class="text-gray-600">Monitor user login activity and security events</p>
+      </div>
+      <button
+        id="cleanupBtn"
+        class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+      >
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+        Cleanup Old Logs
+      </button>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div id="statsContainer" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      <!-- Stats will be loaded here -->
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <select id="filterStatus" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+            <option value="">All Status</option>
+            <option value="success">Success</option>
+            <option value="failed">Failed</option>
+            <option value="blocked">Blocked</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input type="text" id="filterEmail" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="Search email...">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">IP Address</label>
+          <input type="text" id="filterIp" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="Filter by IP...">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">From Date</label>
+          <input type="date" id="filterStartDate" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">To Date</label>
+          <input type="date" id="filterEndDate" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+        </div>
+      </div>
+      <div class="mt-4 flex gap-2">
+        <button id="applyFilters" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          Apply Filters
+        </button>
+        <button id="clearFilters" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+          Clear
+        </button>
+      </div>
+    </div>
+
+    <!-- Suspicious Activity Alert -->
+    <div id="suspiciousAlert" class="hidden bg-red-50 border border-red-200 rounded-lg p-4">
+      <div class="flex items-center">
+        <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span class="font-medium text-red-800">Suspicious Activity Detected</span>
+      </div>
+      <div id="suspiciousContent" class="mt-2 text-sm text-red-700"></div>
+    </div>
+
+    <!-- Logs Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP Address</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+            </tr>
+          </thead>
+          <tbody id="logsTableBody" class="bg-white divide-y divide-gray-200">
+            <!-- Logs will be loaded here -->
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Pagination -->
+      <div id="pagination" class="bg-gray-50 px-4 py-3 flex items-center justify-between border-t border-gray-200">
+        <!-- Pagination will be loaded here -->
+      </div>
+    </div>
+
+    <!-- Statistics Modal -->
+    <div id="statsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+      <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">Detailed Statistics</h2>
+            <button id="closeStatsModal" class="text-gray-500 hover:text-gray-700">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div id="statsModalContent">
+            <!-- Stats content will be loaded here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cleanup Confirmation Modal -->
+    <div id="cleanupModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Cleanup Old Logs</h2>
+        <p class="text-gray-600 mb-4">This will permanently delete login logs older than the specified number of days.</p>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Days to keep</label>
+          <input type="number" id="cleanupDays" value="30" min="7" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+          <p class="text-xs text-gray-500 mt-1">Minimum: 7 days</p>
+        </div>
+        <div class="flex justify-end gap-2">
+          <button id="cancelCleanup" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+            Cancel
+          </button>
+          <button id="confirmCleanup" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+            Delete Logs
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  import { api } from '../../../lib/api';
+
+  let currentPage = 1;
+  let currentFilters: Record<string, string> = {};
+
+  // Load logs
+  async function loadLogs(page = 1) {
+    try {
+      const params = new URLSearchParams({ page: page.toString(), per_page: '20', ...currentFilters });
+      const response = await api.get(`/api/admin/logs/login?${params}`);
+      
+      if (response.data.success) {
+        renderLogs(response.data.data.data);
+        renderPagination(response.data.data);
+        renderStats(response.data.statistics);
+      }
+    } catch (error) {
+      console.error('Failed to load logs:', error);
+    }
+  }
+
+  // Render logs table
+  function renderLogs(logs: any[]) {
+    const tbody = document.getElementById('logsTableBody');
+    if (!tbody) return;
+
+    if (logs.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+            No login logs found
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = logs.map(log => `
+      <tr class="hover:bg-gray-50">
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+          ${new Date(log.logged_at).toLocaleString('id-ID')}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+          ${log.user ? `
+            <div class="text-sm font-medium text-gray-900">${log.user.name}</div>
+            <div class="text-xs text-gray-500">${log.user.role}</div>
+          ` : '<span class="text-gray-400">-</span>'}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+          ${log.email}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
+          ${log.ip_address || '-'}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusClass(log.status)}">
+            ${log.status}
+          </span>
+        </td>
+        <td class="px-6 py-4 text-sm text-gray-500">
+          ${log.failure_reason || '-'}
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // Get status badge class
+  function getStatusClass(status: string): string {
+    switch (status) {
+      case 'success': return 'bg-green-100 text-green-800';
+      case 'failed': return 'bg-red-100 text-red-800';
+      case 'blocked': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  }
+
+  // Render statistics
+  function renderStats(stats: any) {
+    const container = document.getElementById('statsContainer');
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="bg-white rounded-lg shadow p-4">
+        <div class="text-2xl font-bold text-gray-900">${stats.total}</div>
+        <div class="text-sm text-gray-500">Total Attempts</div>
+      </div>
+      <div class="bg-white rounded-lg shadow p-4">
+        <div class="text-2xl font-bold text-green-600">${stats.successful}</div>
+        <div class="text-sm text-gray-500">Successful</div>
+      </div>
+      <div class="bg-white rounded-lg shadow p-4">
+        <div class="text-2xl font-bold text-red-600">${stats.failed}</div>
+        <div class="text-sm text-gray-500">Failed</div>
+      </div>
+      <div class="bg-white rounded-lg shadow p-4">
+        <div class="text-2xl font-bold text-yellow-600">${stats.blocked}</div>
+        <div class="text-sm text-gray-500">Blocked</div>
+      </div>
+      <div class="bg-white rounded-lg shadow p-4">
+        <div class="text-2xl font-bold text-blue-600">${stats.unique_ips}</div>
+        <div class="text-sm text-gray-500">Unique IPs</div>
+      </div>
+      <div class="bg-white rounded-lg shadow p-4">
+        <div class="text-2xl font-bold text-purple-600">${stats.unique_users}</div>
+        <div class="text-sm text-gray-500">Unique Users</div>
+      </div>
+    `;
+  }
+
+  // Render pagination
+  function renderPagination(data: any) {
+    const container = document.getElementById('pagination');
+    if (!container) return;
+
+    const { current_page, last_page, from, to, total } = data;
+
+    container.innerHTML = `
+      <div class="flex-1 text-sm text-gray-700">
+        Showing <span class="font-medium">${from || 0}</span> to <span class="font-medium">${to || 0}</span> of <span class="font-medium">${total}</span> results
+      </div>
+      <div class="flex gap-2">
+        <button 
+          class="px-3 py-1 rounded border ${current_page === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white hover:bg-gray-50'}"
+          ${current_page === 1 ? 'disabled' : ''}
+          data-page="${current_page - 1}"
+        >
+          Previous
+        </button>
+        <span class="px-3 py-1">Page ${current_page} of ${last_page}</span>
+        <button 
+          class="px-3 py-1 rounded border ${current_page === last_page ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white hover:bg-gray-50'}"
+          ${current_page === last_page ? 'disabled' : ''}
+          data-page="${current_page + 1}"
+        >
+          Next
+        </button>
+      </div>
+    `;
+
+    // Add pagination event listeners
+    container.querySelectorAll('button[data-page]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const page = parseInt(btn.getAttribute('data-page') || '1');
+        currentPage = page;
+        loadLogs(page);
+      });
+    });
+  }
+
+  // Load suspicious activity
+  async function loadSuspiciousActivity() {
+    try {
+      const response = await api.get('/api/admin/logs/login/statistics?days=1');
+      
+      if (response.data.success && response.data.data.suspicious_activity.length > 0) {
+        const alert = document.getElementById('suspiciousAlert');
+        const content = document.getElementById('suspiciousContent');
+        
+        if (alert && content) {
+          alert.classList.remove('hidden');
+          content.innerHTML = response.data.data.suspicious_activity.map((item: any) => 
+            `<div>IP ${item.ip_address}: ${item.failed_attempts} failed attempts</div>`
+          ).join('');
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load suspicious activity:', error);
+    }
+  }
+
+  // Apply filters
+  function applyFilters() {
+    const status = (document.getElementById('filterStatus') as HTMLSelectElement)?.value;
+    const email = (document.getElementById('filterEmail') as HTMLInputElement)?.value;
+    const ip = (document.getElementById('filterIp') as HTMLInputElement)?.value;
+    const startDate = (document.getElementById('filterStartDate') as HTMLInputElement)?.value;
+    const endDate = (document.getElementById('filterEndDate') as HTMLInputElement)?.value;
+
+    currentFilters = {};
+    if (status) currentFilters.status = status;
+    if (email) currentFilters.email = email;
+    if (ip) currentFilters.ip_address = ip;
+    if (startDate) currentFilters.start_date = startDate;
+    if (endDate) currentFilters.end_date = endDate;
+
+    currentPage = 1;
+    loadLogs(1);
+  }
+
+  // Clear filters
+  function clearFilters() {
+    (document.getElementById('filterStatus') as HTMLSelectElement).value = '';
+    (document.getElementById('filterEmail') as HTMLInputElement).value = '';
+    (document.getElementById('filterIp') as HTMLInputElement).value = '';
+    (document.getElementById('filterStartDate') as HTMLInputElement).value = '';
+    (document.getElementById('filterEndDate') as HTMLInputElement).value = '';
+    
+    currentFilters = {};
+    currentPage = 1;
+    loadLogs(1);
+  }
+
+  // Cleanup logs
+  async function cleanupLogs() {
+    const days = parseInt((document.getElementById('cleanupDays') as HTMLInputElement)?.value || '30');
+    
+    if (days < 7) {
+      alert('Minimum retention period is 7 days');
+      return;
+    }
+
+    try {
+      const response = await api.delete(`/api/admin/logs/login/cleanup?days=${days}`);
+      
+      if (response.data.success) {
+        alert(response.data.message);
+        document.getElementById('cleanupModal')?.classList.add('hidden');
+        loadLogs(currentPage);
+      }
+    } catch (error) {
+      console.error('Failed to cleanup logs:', error);
+      alert('Failed to cleanup logs');
+    }
+  }
+
+  // Event listeners
+  document.getElementById('applyFilters')?.addEventListener('click', applyFilters);
+  document.getElementById('clearFilters')?.addEventListener('click', clearFilters);
+  
+  document.getElementById('cleanupBtn')?.addEventListener('click', () => {
+    document.getElementById('cleanupModal')?.classList.remove('hidden');
+  });
+  
+  document.getElementById('cancelCleanup')?.addEventListener('click', () => {
+    document.getElementById('cleanupModal')?.classList.add('hidden');
+  });
+  
+  document.getElementById('confirmCleanup')?.addEventListener('click', cleanupLogs);
+
+  // Initial load
+  loadLogs();
+  loadSuspiciousActivity();
+</script>

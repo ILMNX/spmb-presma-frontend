@@ -1,0 +1,642 @@
+---
+import DashboardLayout from '../../../layouts/DashboardLayout.astro';
+
+export const prerender = false;
+---
+
+<DashboardLayout title="Perlu Tindak Lanjut">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">Perlu Tindak Lanjut</h1>
+        <p class="text-gray-600 mt-1">Pendaftar dengan status draft atau pembayaran kedaluwarsa</p>
+      </div>
+      <button id="btnRefresh" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        Refresh
+      </button>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-gradient-to-br from-gray-500 to-gray-700 rounded-lg shadow p-5">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-200">Status Draft</p>
+            <p id="statDraft" class="text-3xl font-bold text-white">0</p>
+            <p class="text-xs text-gray-300 mt-1">Belum bayar / proses</p>
+          </div>
+          <div class="p-3 bg-white/20 rounded-lg">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-red-500 to-red-700 rounded-lg shadow p-5">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-red-200">VA Expired</p>
+            <p id="statExpired" class="text-3xl font-bold text-white">0</p>
+            <p class="text-xs text-red-200 mt-1">Perlu regenerate VA</p>
+          </div>
+          <div class="p-3 bg-white/20 rounded-lg">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-orange-500 to-orange-700 rounded-lg shadow p-5">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-orange-200">Total Perlu Aksi</p>
+            <p id="statTotal" class="text-3xl font-bold text-white">0</p>
+            <p class="text-xs text-orange-200 mt-1">Draft + Expired</p>
+          </div>
+          <div class="p-3 bg-white/20 rounded-lg">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="border-b border-gray-200">
+        <nav class="flex -mb-px">
+          <button id="tabDraft" class="tab-btn active px-6 py-4 text-sm font-medium border-b-2 border-purple-500 text-purple-600">
+            <span class="flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              Pendaftar Draft
+              <span id="tabDraftCount" class="px-2 py-0.5 text-xs bg-gray-200 text-gray-700 rounded-full">0</span>
+            </span>
+          </button>
+          <button id="tabExpired" class="tab-btn px-6 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+            <span class="flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Pembayaran Expired
+              <span id="tabExpiredCount" class="px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded-full">0</span>
+            </span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="p-6">
+        <!-- Draft Content -->
+        <div id="contentDraft" class="tab-content">
+          <!-- Bulk Actions -->
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <input type="checkbox" id="selectAllDraft" class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
+              <label for="selectAllDraft" class="text-sm text-gray-600">Pilih Semua</label>
+            </div>
+            <div class="flex gap-2">
+              <button id="btnBulkReminderDraft" class="px-4 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 flex items-center gap-2 disabled:opacity-50" disabled>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                Kirim Pengingat (<span id="selectedDraftCount">0</span>)
+              </button>
+            </div>
+          </div>
+
+          <!-- Loading -->
+          <div id="loadingDraft" class="text-center py-8">
+            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600 mx-auto"></div>
+            <p class="mt-3 text-gray-600">Memuat data...</p>
+          </div>
+
+          <!-- Table -->
+          <div id="tableDraft" class="hidden overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-10"></th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">No. Pendaftaran</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jurusan</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tgl Daftar</th>
+                  <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyDraft" class="bg-white divide-y divide-gray-200">
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Empty State -->
+          <div id="emptyDraft" class="hidden text-center py-12">
+            <svg class="w-16 h-16 mx-auto text-green-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <h3 class="text-lg font-medium text-gray-900">Tidak ada pendaftar draft</h3>
+            <p class="mt-1 text-gray-500">Semua pendaftar sudah melanjutkan ke tahap pembayaran.</p>
+          </div>
+        </div>
+
+        <!-- Expired Content -->
+        <div id="contentExpired" class="tab-content hidden">
+          <!-- Bulk Actions -->
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <input type="checkbox" id="selectAllExpired" class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+              <label for="selectAllExpired" class="text-sm text-gray-600">Pilih Semua</label>
+            </div>
+            <div class="flex gap-2">
+              <button id="btnBulkRegenerateVA" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50" disabled>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Regenerate VA (<span id="selectedExpiredCountVA">0</span>)
+              </button>
+              <button id="btnBulkReminderExpired" class="px-4 py-2 bg-orange-600 text-white text-sm rounded-lg hover:bg-orange-700 flex items-center gap-2 disabled:opacity-50" disabled>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                Kirim Pengingat (<span id="selectedExpiredCount">0</span>)
+              </button>
+            </div>
+          </div>
+
+          <!-- Loading -->
+          <div id="loadingExpired" class="text-center py-8">
+            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-red-600 mx-auto"></div>
+            <p class="mt-3 text-gray-600">Memuat data...</p>
+          </div>
+
+          <!-- Table -->
+          <div id="tableExpired" class="hidden overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-10"></th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">No. Pendaftaran</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jurusan</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status Pembayaran</th>
+                  <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyExpired" class="bg-white divide-y divide-gray-200">
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Empty State -->
+          <div id="emptyExpired" class="hidden text-center py-12">
+            <svg class="w-16 h-16 mx-auto text-green-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <h3 class="text-lg font-medium text-gray-900">Tidak ada pembayaran expired</h3>
+            <p class="mt-1 text-gray-500">Semua VA masih aktif atau sudah dibayar.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { api } from '../../../lib/api';
+
+    // Data storage
+    let draftRegistrations: any[] = [];
+    let expiredPayments: any[] = [];
+    let selectedDraftIds: Set<number> = new Set();
+    let selectedExpiredIds: Set<number> = new Set();
+
+    // ==================== TAB NAVIGATION ====================
+    const tabDraft = document.getElementById('tabDraft');
+    const tabExpired = document.getElementById('tabExpired');
+    const contentDraft = document.getElementById('contentDraft');
+    const contentExpired = document.getElementById('contentExpired');
+
+    tabDraft?.addEventListener('click', () => {
+      tabDraft.classList.add('border-purple-500', 'text-purple-600');
+      tabDraft.classList.remove('border-transparent', 'text-gray-500');
+      tabExpired?.classList.remove('border-red-500', 'text-red-600');
+      tabExpired?.classList.add('border-transparent', 'text-gray-500');
+      contentDraft?.classList.remove('hidden');
+      contentExpired?.classList.add('hidden');
+    });
+
+    tabExpired?.addEventListener('click', () => {
+      tabExpired.classList.add('border-red-500', 'text-red-600');
+      tabExpired.classList.remove('border-transparent', 'text-gray-500');
+      tabDraft?.classList.remove('border-purple-500', 'text-purple-600');
+      tabDraft?.classList.add('border-transparent', 'text-gray-500');
+      contentExpired?.classList.remove('hidden');
+      contentDraft?.classList.add('hidden');
+    });
+
+    // ==================== LOAD DATA ====================
+    async function loadDraftRegistrations() {
+      const loading = document.getElementById('loadingDraft');
+      const table = document.getElementById('tableDraft');
+      const empty = document.getElementById('emptyDraft');
+
+      loading?.classList.remove('hidden');
+      table?.classList.add('hidden');
+      empty?.classList.add('hidden');
+
+      try {
+        const response = await api.get('/api/admin/registrations?status=draft&per_page=100');
+        
+        if (response.data.success) {
+          draftRegistrations = response.data.data || [];
+          updateStats();
+          renderDraftTable();
+        }
+      } catch (error) {
+        console.error('Error loading draft registrations:', error);
+      } finally {
+        loading?.classList.add('hidden');
+      }
+    }
+
+    async function loadExpiredPayments() {
+      const loading = document.getElementById('loadingExpired');
+      const table = document.getElementById('tableExpired');
+      const empty = document.getElementById('emptyExpired');
+
+      loading?.classList.remove('hidden');
+      table?.classList.add('hidden');
+      empty?.classList.add('hidden');
+
+      try {
+        const response = await api.get('/api/admin/registrations?status=pending_payment&per_page=100');
+        
+        if (response.data.success) {
+          // Filter for expired payments
+          expiredPayments = (response.data.data || []).filter((reg: any) => 
+            reg.payment_status === 'expired'
+          );
+          updateStats();
+          renderExpiredTable();
+        }
+      } catch (error) {
+        console.error('Error loading expired payments:', error);
+      } finally {
+        loading?.classList.add('hidden');
+      }
+    }
+
+    function updateStats() {
+      const draftCount = draftRegistrations.length;
+      const expiredCount = expiredPayments.length;
+      const total = draftCount + expiredCount;
+
+      document.getElementById('statDraft')!.textContent = draftCount.toString();
+      document.getElementById('statExpired')!.textContent = expiredCount.toString();
+      document.getElementById('statTotal')!.textContent = total.toString();
+      document.getElementById('tabDraftCount')!.textContent = draftCount.toString();
+      document.getElementById('tabExpiredCount')!.textContent = expiredCount.toString();
+    }
+
+    // ==================== RENDER TABLES ====================
+    function renderDraftTable() {
+      const tbody = document.getElementById('tbodyDraft');
+      const table = document.getElementById('tableDraft');
+      const empty = document.getElementById('emptyDraft');
+
+      if (!tbody) return;
+
+      if (draftRegistrations.length === 0) {
+        empty?.classList.remove('hidden');
+        table?.classList.add('hidden');
+        return;
+      }
+
+      table?.classList.remove('hidden');
+      empty?.classList.add('hidden');
+
+      tbody.innerHTML = draftRegistrations.map(reg => `
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3">
+            <input type="checkbox" class="draft-checkbox rounded border-gray-300 text-purple-600 focus:ring-purple-500" data-id="${reg.id}">
+          </td>
+          <td class="px-4 py-3 text-sm font-medium text-gray-900">${reg.registration_number || '-'}</td>
+          <td class="px-4 py-3">
+            <div class="text-sm font-medium text-gray-900">${reg.name}</div>
+            <div class="text-xs text-gray-500">${reg.type}</div>
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-600">${reg.major_name || reg.major || '-'}</td>
+          <td class="px-4 py-3 text-sm text-gray-600">${reg.email}</td>
+          <td class="px-4 py-3 text-sm text-gray-500">${formatDate(reg.registered_at || reg.created_at)}</td>
+          <td class="px-4 py-3 text-center">
+            <div class="flex items-center justify-center gap-1">
+              <button onclick="window.sendReminder(${reg.id}, 'draft')" class="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded" title="Kirim Pengingat">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+              </button>
+              <a href="/admin/registrations?search=${encodeURIComponent(reg.registration_number || reg.name)}" class="p-1.5 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded" title="Lihat Detail">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+              </a>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      // Add checkbox listeners
+      document.querySelectorAll('.draft-checkbox').forEach(cb => {
+        cb.addEventListener('change', (e) => {
+          const id = parseInt((e.target as HTMLInputElement).dataset.id!);
+          if ((e.target as HTMLInputElement).checked) {
+            selectedDraftIds.add(id);
+          } else {
+            selectedDraftIds.delete(id);
+          }
+          updateDraftSelection();
+        });
+      });
+    }
+
+    function renderExpiredTable() {
+      const tbody = document.getElementById('tbodyExpired');
+      const table = document.getElementById('tableExpired');
+      const empty = document.getElementById('emptyExpired');
+
+      if (!tbody) return;
+
+      if (expiredPayments.length === 0) {
+        empty?.classList.remove('hidden');
+        table?.classList.add('hidden');
+        return;
+      }
+
+      table?.classList.remove('hidden');
+      empty?.classList.add('hidden');
+
+      tbody.innerHTML = expiredPayments.map(reg => `
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3">
+            <input type="checkbox" class="expired-checkbox rounded border-gray-300 text-red-600 focus:ring-red-500" data-id="${reg.id}">
+          </td>
+          <td class="px-4 py-3 text-sm font-medium text-gray-900">${reg.registration_number || '-'}</td>
+          <td class="px-4 py-3">
+            <div class="text-sm font-medium text-gray-900">${reg.name}</div>
+            <div class="text-xs text-gray-500">${reg.type}</div>
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-600">${reg.major_name || reg.major || '-'}</td>
+          <td class="px-4 py-3 text-sm text-gray-600">${reg.email}</td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+              Expired
+            </span>
+          </td>
+          <td class="px-4 py-3 text-center">
+            <div class="flex items-center justify-center gap-1">
+              <button onclick="window.regenerateVA(${reg.id})" class="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded" title="Regenerate VA">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+              </button>
+              <button onclick="window.sendReminder(${reg.id}, 'expired')" class="p-1.5 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded" title="Kirim Pengingat">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+              </button>
+              <a href="/admin/registrations?search=${encodeURIComponent(reg.registration_number || reg.name)}" class="p-1.5 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded" title="Lihat Detail">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+              </a>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      // Add checkbox listeners
+      document.querySelectorAll('.expired-checkbox').forEach(cb => {
+        cb.addEventListener('change', (e) => {
+          const id = parseInt((e.target as HTMLInputElement).dataset.id!);
+          if ((e.target as HTMLInputElement).checked) {
+            selectedExpiredIds.add(id);
+          } else {
+            selectedExpiredIds.delete(id);
+          }
+          updateExpiredSelection();
+        });
+      });
+    }
+
+    // ==================== SELECTION HANDLERS ====================
+    function updateDraftSelection() {
+      const count = selectedDraftIds.size;
+      document.getElementById('selectedDraftCount')!.textContent = count.toString();
+      (document.getElementById('btnBulkReminderDraft') as HTMLButtonElement).disabled = count === 0;
+      
+      // Update select all checkbox
+      const selectAll = document.getElementById('selectAllDraft') as HTMLInputElement;
+      selectAll.checked = count > 0 && count === draftRegistrations.length;
+      selectAll.indeterminate = count > 0 && count < draftRegistrations.length;
+    }
+
+    function updateExpiredSelection() {
+      const count = selectedExpiredIds.size;
+      document.getElementById('selectedExpiredCount')!.textContent = count.toString();
+      document.getElementById('selectedExpiredCountVA')!.textContent = count.toString();
+      (document.getElementById('btnBulkReminderExpired') as HTMLButtonElement).disabled = count === 0;
+      (document.getElementById('btnBulkRegenerateVA') as HTMLButtonElement).disabled = count === 0;
+      
+      // Update select all checkbox
+      const selectAll = document.getElementById('selectAllExpired') as HTMLInputElement;
+      selectAll.checked = count > 0 && count === expiredPayments.length;
+      selectAll.indeterminate = count > 0 && count < expiredPayments.length;
+    }
+
+    // Select all handlers
+    document.getElementById('selectAllDraft')?.addEventListener('change', (e) => {
+      const checked = (e.target as HTMLInputElement).checked;
+      selectedDraftIds.clear();
+      if (checked) {
+        draftRegistrations.forEach(r => selectedDraftIds.add(r.id));
+      }
+      document.querySelectorAll('.draft-checkbox').forEach(cb => {
+        (cb as HTMLInputElement).checked = checked;
+      });
+      updateDraftSelection();
+    });
+
+    document.getElementById('selectAllExpired')?.addEventListener('change', (e) => {
+      const checked = (e.target as HTMLInputElement).checked;
+      selectedExpiredIds.clear();
+      if (checked) {
+        expiredPayments.forEach(r => selectedExpiredIds.add(r.id));
+      }
+      document.querySelectorAll('.expired-checkbox').forEach(cb => {
+        (cb as HTMLInputElement).checked = checked;
+      });
+      updateExpiredSelection();
+    });
+
+    // ==================== ACTION HANDLERS ====================
+    async function sendReminder(id: number, type: 'draft' | 'expired') {
+      if (!confirm('Kirim email pengingat ke pendaftar ini?')) return;
+      
+      try {
+        const response = await api.post(`/api/admin/registrations/${id}/send-reminder`, { type });
+        
+        if (response.data.success) {
+          alert('Pengingat berhasil dikirim!');
+        } else {
+          alert(response.data.message || 'Gagal mengirim pengingat');
+        }
+      } catch (error: any) {
+        console.error('Error sending reminder:', error);
+        if (error.response?.status === 404) {
+          alert('Fitur pengiriman pengingat belum tersedia.');
+        } else {
+          alert('Gagal mengirim pengingat: ' + (error.response?.data?.message || error.message));
+        }
+      }
+    }
+
+    async function regenerateVA(id: number) {
+      if (!confirm('Regenerate Virtual Account untuk pendaftar ini?')) return;
+      
+      try {
+        const response = await api.post(`/api/payments/${id}/retry-finance`);
+        
+        if (response.data.success) {
+          alert('VA berhasil di-regenerate!');
+          loadExpiredPayments();
+        } else {
+          alert(response.data.message || 'Gagal regenerate VA');
+        }
+      } catch (error: any) {
+        console.error('Error regenerating VA:', error);
+        alert('Gagal regenerate VA: ' + (error.response?.data?.message || error.message));
+      }
+    }
+
+    // Bulk reminder for draft
+    document.getElementById('btnBulkReminderDraft')?.addEventListener('click', async () => {
+      if (selectedDraftIds.size === 0) return;
+      if (!confirm(`Kirim pengingat ke ${selectedDraftIds.size} pendaftar?`)) return;
+      
+      const btn = document.getElementById('btnBulkReminderDraft') as HTMLButtonElement;
+      btn.disabled = true;
+      btn.innerHTML = '<svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Mengirim...';
+      
+      try {
+        const response = await api.post('/api/admin/registrations/bulk-send-reminder', {
+          ids: Array.from(selectedDraftIds),
+          type: 'draft'
+        });
+        
+        if (response.data.success) {
+          alert(`Berhasil mengirim ${response.data.sent || selectedDraftIds.size} pengingat!`);
+          selectedDraftIds.clear();
+          loadDraftRegistrations();
+        } else {
+          alert(response.data.message || 'Gagal mengirim pengingat');
+        }
+      } catch (error: any) {
+        alert('Gagal mengirim pengingat: ' + (error.response?.data?.message || error.message));
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Kirim Pengingat (<span id="selectedDraftCount">${selectedDraftIds.size}</span>)`;
+      }
+    });
+
+    // Bulk regenerate VA
+    document.getElementById('btnBulkRegenerateVA')?.addEventListener('click', async () => {
+      if (selectedExpiredIds.size === 0) return;
+      if (!confirm(`Regenerate VA untuk ${selectedExpiredIds.size} pendaftar?`)) return;
+      
+      const btn = document.getElementById('btnBulkRegenerateVA') as HTMLButtonElement;
+      btn.disabled = true;
+      btn.innerHTML = '<svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Memproses...';
+      
+      let success = 0, failed = 0;
+      for (const id of selectedExpiredIds) {
+        try {
+          const response = await api.post(`/api/payments/${id}/retry-finance`);
+          if (response.data.success) success++;
+          else failed++;
+        } catch {
+          failed++;
+        }
+      }
+      
+      alert(`Selesai! Berhasil: ${success}, Gagal: ${failed}`);
+      selectedExpiredIds.clear();
+      loadExpiredPayments();
+    });
+
+    // Bulk reminder for expired
+    document.getElementById('btnBulkReminderExpired')?.addEventListener('click', async () => {
+      if (selectedExpiredIds.size === 0) return;
+      if (!confirm(`Kirim pengingat ke ${selectedExpiredIds.size} pendaftar?`)) return;
+      
+      const btn = document.getElementById('btnBulkReminderExpired') as HTMLButtonElement;
+      btn.disabled = true;
+      btn.innerHTML = '<svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Mengirim...';
+      
+      try {
+        const response = await api.post('/api/admin/registrations/bulk-send-reminder', {
+          ids: Array.from(selectedExpiredIds),
+          type: 'expired'
+        });
+        
+        if (response.data.success) {
+          alert(`Berhasil mengirim ${response.data.sent || selectedExpiredIds.size} pengingat!`);
+          selectedExpiredIds.clear();
+          loadExpiredPayments();
+        } else {
+          alert(response.data.message || 'Gagal mengirim pengingat');
+        }
+      } catch (error: any) {
+        alert('Gagal mengirim pengingat: ' + (error.response?.data?.message || error.message));
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Kirim Pengingat (<span id="selectedExpiredCount">${selectedExpiredIds.size}</span>)`;
+      }
+    });
+
+    // ==================== UTILITIES ====================
+    function formatDate(dateString: string): string {
+      if (!dateString) return '-';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
+
+    // Expose functions to window
+    (window as any).sendReminder = sendReminder;
+    (window as any).regenerateVA = regenerateVA;
+
+    // Refresh button
+    document.getElementById('btnRefresh')?.addEventListener('click', () => {
+      loadDraftRegistrations();
+      loadExpiredPayments();
+    });
+
+    // Initial load
+    loadDraftRegistrations();
+    loadExpiredPayments();
+  </script>
+</DashboardLayout>

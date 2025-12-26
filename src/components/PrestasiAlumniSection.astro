@@ -1,0 +1,254 @@
+---
+import AlumniCard from './AlumniCard.astro';
+import AchievementCard from './AchievementCard.astro';
+
+// Use environment variable for API URL
+const API_URL = import.meta.env.PUBLIC_API_URL ;
+
+// Fetch data
+let testimonialsData = { data: { alumni: [], regular: [] } };
+let achievementsData = { data: [] };
+
+try {
+  const [testimonialsRes, achievementsRes] = await Promise.all([
+    fetch(`${API_URL}/api/testimonials`),
+    fetch(`${API_URL}/api/achievements`)
+  ]);
+  
+  if (testimonialsRes.ok) testimonialsData = await testimonialsRes.json();
+  if (achievementsRes.ok) achievementsData = await achievementsRes.json();
+} catch (error) {
+  console.error('Error fetching data:', error);
+}
+
+const alumni = testimonialsData.data?.alumni || [];
+const achievements = achievementsData.data || [];
+
+// Static statistics
+const stats = [
+  { number: "95%", label: "Lulusan Diterima PTN", icon: "🎓" },
+  { number: "100+", label: "Alumni Sukses", icon: "👨‍🎓" },
+  { number: "15", label: "Tahun Berpengalaman", icon: "⭐" },
+  { number: "50+", label: "Penghargaan", icon: "🏆" }
+];
+---
+
+<section class="scroll-mt-20 py-16 bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 text-white relative overflow-hidden" id="prestasi-alumni">
+  <!-- Background Effects -->
+  <div class="absolute inset-0 bg-black bg-opacity-20"></div>
+  <div class="absolute top-0 left-0 w-full h-full">
+    <div class="absolute top-20 left-10 w-32 h-32 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse"></div>
+    <div class="absolute bottom-20 right-10 w-40 h-40 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse animation-delay-2s"></div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-6 relative z-10">
+    <!-- Section Header -->
+    <div class="text-center mb-16">
+      <h2 class="text-4xl md:text-5xl font-bold mb-6">
+        <span class="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+          Prestasi & Alumni
+        </span>
+      </h2>
+      <p class="text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
+        Bangga dengan pencapaian luar biasa dan kesuksesan alumni yang menginspirasi generasi mendatang
+      </p>
+    </div>
+
+    <!-- Statistics -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+      {stats.map((stat) => (
+        <div class="text-center group">
+          <div class="bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-6 hover:bg-opacity-20 transition-all duration-300 group-hover:scale-105">
+            <div class="text-3xl mb-2">{stat.icon}</div>
+            <div class="text-3xl md:text-4xl font-bold text-yellow-400 mb-2">{stat.number}</div>
+            <div class="text-blue-100 font-medium">{stat.label}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Achievements Section -->
+    {achievements.length > 0 && (
+      <div class="mb-16">
+        <h3 class="text-3xl font-bold text-center mb-8 text-yellow-400">Prestasi Sekolah</h3>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {achievements.slice(0, 6).map((achievement: any) => (
+            <AchievementCard achievement={achievement} />
+          ))}
+        </div>
+      </div>
+    )}
+
+    <!-- Alumni Testimonials Carousel -->
+    {alumni.length > 0 && (
+      <div>
+        <h3 class="text-3xl font-bold text-center mb-8 text-yellow-400">Kata Alumni</h3>
+        
+        <!-- Carousel Container -->
+        <div class="carousel-wrapper">
+          <div 
+            class="carousel-track flex gap-6 transition-transform duration-500 ease-in-out"
+            id="alumniCarousel"
+          >
+            {[...alumni, ...alumni].map((testimonial: any, index: number) => (
+              <div class="carousel-slide flex-shrink-0 w-full md:w-1/2 lg:w-1/3">
+                <AlumniCard testimonial={testimonial} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <!-- Carousel Controls -->
+        <div class="flex justify-center mt-8 space-x-4">
+          <button 
+            class="carousel-btn bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full p-3 transition-all duration-300"
+            onclick="prevSlide()"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+          </button>
+          <button 
+            class="carousel-btn bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full p-3 transition-all duration-300"
+            onclick="nextSlide()"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Carousel Indicators -->
+        <div class="flex justify-center mt-6 space-x-2" id="carouselIndicators">
+          <!-- Will be populated by JavaScript -->
+        </div>
+      </div>
+    )}
+  </div>
+</section>
+
+<script is:inline>
+  let currentSlide = 0;
+  let totalSlides = 0;
+  let track = null;
+  let autoSlideInterval;
+  
+  function autoSlide() {
+    nextSlide();
+  }
+  
+  window.nextSlide = function() {
+    currentSlide = (currentSlide + 1) % totalSlides;
+    updateCarousel();
+  }
+  
+  window.prevSlide = function() {
+    currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+    updateCarousel();
+  }
+  
+  function updateCarousel() {
+    const slideWidth = document.querySelector('.carousel-slide').offsetWidth + 24; // 24px gap
+    const offset = -currentSlide * slideWidth;
+    track.style.transform = `translateX(${offset}px)`;
+    updateIndicators();
+  }
+  
+  function updateIndicators() {
+    const indicators = document.getElementById('carouselIndicators');
+    indicators.innerHTML = '';
+    
+    for (let i = 0; i < totalSlides; i++) {
+      const indicator = document.createElement('button');
+      indicator.className = `w-3 h-3 rounded-full transition-all duration-300 ${
+        i === currentSlide 
+          ? 'bg-yellow-400' 
+          : 'bg-white bg-opacity-30 hover:bg-opacity-50'
+      }`;
+      indicator.onclick = () => goToSlide(i);
+      indicators.appendChild(indicator);
+    }
+  }
+  
+  function goToSlide(index) {
+    currentSlide = index;
+    updateCarousel();
+    clearInterval(autoSlideInterval);
+    autoSlideInterval = setInterval(autoSlide, 4000);
+  }
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    track = document.getElementById('alumniCarousel');
+    totalSlides = document.querySelectorAll('.carousel-slide').length / 2;
+    updateIndicators();
+    updateCarousel();
+  
+    // Touch/swipe support for mobile
+    let startX = 0;
+    let isDragging = false;
+  
+    track.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+      isDragging = true;
+      clearInterval(autoSlideInterval);
+    });
+  
+    track.addEventListener('touchmove', (e) => {
+      if (!isDragging) return;
+      e.preventDefault();
+    });
+  
+    track.addEventListener('touchend', (e) => {
+      if (!isDragging) return;
+      const endX = e.changedTouches[0].clientX;
+      const diffX = startX - endX;
+      if (Math.abs(diffX) > 50) {
+        if (diffX > 0) {
+          nextSlide();
+        } else {
+          prevSlide();
+        }
+      }
+      isDragging = false;
+      autoSlideInterval = setInterval(autoSlide, 4000);
+    });
+  
+    // Pause on hover
+    track.addEventListener('mouseenter', () => {
+      clearInterval(autoSlideInterval);
+    });
+  
+    track.addEventListener('mouseleave', () => {
+      autoSlideInterval = setInterval(autoSlide, 4000);
+    });
+  
+    autoSlideInterval = setInterval(autoSlide, 4000);
+  });
+</script>
+
+<style>
+  .carousel-wrapper {
+    overflow: hidden;
+    width: 100%;
+  }
+  
+  .carousel-track {
+    width: fit-content;
+  }
+  
+  .animation-delay-2s {
+    animation-delay: 2s;
+  }
+  
+  @media (max-width: 768px) {
+    .carousel-slide {
+      width: 100% !important;
+    }
+  }
+  
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .carousel-slide {
+      width: 50% !important;
+    }
+  }
+</style>

@@ -1,0 +1,411 @@
+---
+import DashboardLayout from '../../../layouts/DashboardLayout.astro';
+const pageTitle = 'Activity Logs';
+const apiBaseUrl =
+  import.meta.env.PUBLIC_API_URL ||
+  import.meta.env.API_URL ||
+  'http://localhost:8000';
+---
+<DashboardLayout title={pageTitle}>
+  <section class="space-y-6">
+    <header class="flex flex-col gap-2">
+      <h1 class="text-2xl font-semibold text-gray-900">Activity Logs</h1>
+      <p class="text-sm text-gray-500">Monitor key actions performed by SMA/SMK admins in real time.</p>
+    </header>
+
+    <div class="grid gap-4 sm:grid-cols-3" id="logStats">
+      <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <p class="text-sm text-gray-500">SMA Actions</p>
+        <p class="mt-2 text-2xl font-semibold text-gray-900" id="statSMA">0</p>
+      </div>
+      <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <p class="text-sm text-gray-500">SMK Actions</p>
+        <p class="mt-2 text-2xl font-semibold text-gray-900" id="statSMK">0</p>
+      </div>
+      <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <p class="text-sm text-gray-500">Unknown/Other</p>
+        <p class="mt-2 text-2xl font-semibold text-gray-900" id="statOTHER">0</p>
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div class="grid gap-4 md:grid-cols-3">
+        <div>
+          <label class="mb-1 block text-sm font-medium text-gray-700">School Type</label>
+          <select id="schoolTypeFilter" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <option value="all">All</option>
+            <option value="SMA">SMA</option>
+            <option value="SMK">SMK</option>
+          </select>
+        </div>
+        <div>
+          <label class="mb-1 block text-sm font-medium text-gray-700">Action</label>
+          <select id="actionFilter" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <option value="all">All actions</option>
+          </select>
+        </div>
+        <div>
+          <label class="mb-1 block text-sm font-medium text-gray-700">Date Range</label>
+          <select id="dateRangeFilter" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <option value="7">Last 7 days</option>
+            <option value="30" selected>Last 30 days</option>
+            <option value="90">Last 90 days</option>
+            <option value="custom">Custom</option>
+            <option value="all">All time</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="customDateContainer" class="mt-4 hidden grid gap-4 md:grid-cols-2">
+        <div>
+          <label class="mb-1 block text-sm font-medium text-gray-700">Start date</label>
+          <input type="date" id="startDateFilter" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="mb-1 block text-sm font-medium text-gray-700">End date</label>
+          <input type="date" id="endDateFilter" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+        </div>
+      </div>
+
+      <div class="mt-4 flex flex-col gap-3 md:flex-row md:items-end">
+        <div class="flex-1">
+          <label class="mb-1 block text-sm font-medium text-gray-700">Search</label>
+          <input id="searchFilter" type="search" placeholder="Search admin, action, or notes" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+        </div>
+        <button id="resetFilters" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50">
+          Reset
+        </button>
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div id="logSkeleton" class="divide-y divide-gray-100">
+        {Array.from({ length: 6 }).map(() => (
+          <div class="animate-pulse px-6 py-4">
+            <div class="mb-2 h-4 w-1/3 rounded bg-gray-200"></div>
+            <div class="h-3 w-2/3 rounded bg-gray-100"></div>
+          </div>
+        ))}
+      </div>
+
+      <div class="hidden overflow-x-auto" id="logTableWrapper">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Timestamp</th>
+              <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Admin</th>
+              <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Action</th>
+              <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Details</th>
+            </tr>
+          </thead>
+          <tbody id="logTableBody" class="divide-y divide-gray-100 bg-white"></tbody>
+        </table>
+      </div>
+
+      <div id="logEmpty" class="hidden px-6 py-8 text-center text-sm text-gray-500">
+        No activity logs found for the selected filters.
+      </div>
+
+      <div id="logPagination" class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 px-6 py-4 text-sm"></div>
+    </div>
+  </section>
+</DashboardLayout>
+
+<script type="module" define:vars={{ apiBaseUrl }}>
+import { getToken, $authStore, clearAuth } from '../../../stores/authStore';
+
+const API_BASE_URL = window.__API_BASE_URL || apiBaseUrl;
+
+// Get user from verified auth store
+const authState = $authStore.get();
+const user = authState?.user || {};
+const hasSuperAdminAccess = user?.role === 'superadmin'
+  || user?.school_type === 'both'
+  || user?.admin_permission?.school_type === 'both';
+
+if (!hasSuperAdminAccess) {
+  window.location.href = '/admin/dashboard';
+}
+
+let filters = {
+  schoolType: 'all',
+  action: 'all',
+  dateRange: '30',
+  startDate: '',
+  endDate: '',
+  search: ''
+};
+
+const state = {
+  page: 1,
+  perPage: 15,
+  totalPages: 1,
+  meta: {},
+};
+
+const elements = {
+  stats: {
+    SMA: document.getElementById('statSMA'),
+    SMK: document.getElementById('statSMK'),
+    OTHER: document.getElementById('statOTHER')
+  },
+  tableWrapper: document.getElementById('logTableWrapper'),
+  skeleton: document.getElementById('logSkeleton'),
+  tableBody: document.getElementById('logTableBody'),
+  empty: document.getElementById('logEmpty'),
+  pagination: document.getElementById('logPagination'),
+  schoolType: document.getElementById('schoolTypeFilter'),
+  action: document.getElementById('actionFilter'),
+  dateRange: document.getElementById('dateRangeFilter'),
+  startDate: document.getElementById('startDateFilter'),
+  endDate: document.getElementById('endDateFilter'),
+  customDates: document.getElementById('customDateContainer'),
+  search: document.getElementById('searchFilter'),
+  reset: document.getElementById('resetFilters'),
+};
+
+function getAuthToken() {
+  return getToken();
+}
+
+function toggleSkeleton(show) {
+  elements.skeleton.classList.toggle('hidden', !show);
+  elements.tableWrapper.classList.toggle('hidden', show);
+  elements.empty.classList.add('hidden');
+}
+
+function updateActionOptions(actions = []) {
+  const currentOptions = new Set([...elements.action.options].map((opt) => opt.value));
+  actions.forEach((action) => {
+    if (!currentOptions.has(action)) {
+      const opt = document.createElement('option');
+      opt.value = action;
+      opt.textContent = action;
+      elements.action.appendChild(opt);
+    }
+  });
+}
+
+function renderStats(stats = {}) {
+  const sma = stats.SMA || stats.sma || 0;
+  const smk = stats.SMK || stats.smk || 0;
+  const other = stats.BOTH || stats.unknown || stats.UNKNOWN || 0;
+  elements.stats.SMA.textContent = sma;
+  elements.stats.SMK.textContent = smk;
+  elements.stats.OTHER.textContent = other;
+}
+
+function renderLogs(logs) {
+  elements.tableBody.innerHTML = '';
+  if (!logs.length) {
+    elements.tableWrapper.classList.add('hidden');
+    elements.empty.classList.remove('hidden');
+    return;
+  }
+
+  elements.tableWrapper.classList.remove('hidden');
+  elements.empty.classList.add('hidden');
+
+  logs.forEach((log) => {
+    const tr = document.createElement('tr');
+    tr.className = 'hover:bg-gray-50';
+    tr.innerHTML = `
+      <td class="px-6 py-4 text-sm text-gray-900">${formatDate(log.created_at)}</td>
+      <td class="px-6 py-4 text-sm">
+        <div class="font-medium text-gray-900">${log.admin?.name || '-'}</div>
+        <div class="text-gray-500">${log.admin?.email || '-'}</div>
+        <div class="mt-1 text-xs font-semibold uppercase ${badgeClass(log.school_type)}">${log.school_type || 'N/A'}</div>
+      </td>
+      <td class="px-6 py-4 text-sm text-gray-900">
+        <span class="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium">${log.action}</span>
+      </td>
+      <td class="px-6 py-4 text-sm text-gray-700">
+        <p>${log.description || '-'}</p>
+        ${renderMetadata(log.metadata)}
+      </td>
+    `;
+    elements.tableBody.appendChild(tr);
+  });
+}
+
+function badgeClass(type) {
+  if (type === 'SMA') return 'bg-blue-100 text-blue-700';
+  if (type === 'SMK') return 'bg-orange-100 text-orange-700';
+  return 'bg-gray-100 text-gray-700';
+}
+
+function renderMetadata(meta) {
+  if (!meta || typeof meta !== 'object') return '';
+  return `
+    <div class="mt-2 flex flex-wrap gap-1 text-xs text-gray-500">
+      ${Object.entries(meta).map(([key, value]) => `<span class="rounded bg-gray-100 px-2 py-0.5">${key}: ${escapeHtml(String(value))}</span>`).join('')}
+    </div>
+  `;
+}
+
+function escapeHtml(value) {
+  return value.replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    '\'': '&#39;',
+  }[char]));
+}
+
+function renderPagination() {
+  const { current_page: currentPage, last_page: lastPage, total } = state.meta;
+  elements.pagination.innerHTML = '';
+
+  const info = document.createElement('span');
+  info.className = 'text-gray-500';
+  info.textContent = `Page ${currentPage} of ${lastPage} • ${total} records`;
+  elements.pagination.appendChild(info);
+
+  const controls = document.createElement('div');
+  controls.className = 'flex gap-2';
+
+  const prev = document.createElement('button');
+  prev.textContent = 'Previous';
+  prev.disabled = currentPage <= 1;
+  prev.className = buttonClass(!prev.disabled);
+  prev.addEventListener('click', () => fetchLogs(currentPage - 1));
+
+  const next = document.createElement('button');
+  next.textContent = 'Next';
+  next.disabled = currentPage >= lastPage;
+  next.className = buttonClass(!next.disabled);
+  next.addEventListener('click', () => fetchLogs(currentPage + 1));
+
+  controls.append(prev, next);
+  elements.pagination.appendChild(controls);
+}
+
+function buttonClass(enabled) {
+  return enabled
+    ? 'rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50'
+    : 'rounded-lg border border-gray-200 px-4 py-2 font-medium text-gray-400 cursor-not-allowed bg-gray-50';
+}
+
+function buildQueryParams(page) {
+  const params = new URLSearchParams({
+    page,
+    per_page: state.perPage,
+  });
+
+  if (filters.schoolType !== 'all') params.append('school_type', filters.schoolType);
+  if (filters.action !== 'all') params.append('action', filters.action);
+  if (filters.dateRange && !['all', 'custom'].includes(filters.dateRange)) {
+    params.append('date_range', filters.dateRange);
+  }
+  if (filters.dateRange === 'custom') {
+    if (filters.startDate) params.append('start_date', filters.startDate);
+    if (filters.endDate) params.append('end_date', filters.endDate);
+  }
+  if (filters.search.trim()) params.append('search', filters.search.trim());
+  return params;
+}
+
+async function fetchLogs(page = 1) {
+  const token = getAuthToken();
+  if (!token) {
+    window.location.href = '/login';
+    return;
+  }
+
+  state.page = page;
+  toggleSkeleton(true);
+
+  try {
+    const params = buildQueryParams(page);
+    const response = await fetch(`${API_BASE_URL}/api/admin/logs/activity?${params.toString()}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch logs');
+    }
+
+    const payload = await response.json();
+    state.meta = payload.meta;
+    updateActionOptions(payload.meta.available_actions || []);
+    renderStats(payload.meta.stats || {});
+    renderLogs(payload.data || []);
+    renderPagination();
+  } catch (error) {
+    console.error(error);
+    elements.tableWrapper.classList.add('hidden');
+    elements.empty.classList.remove('hidden');
+    elements.empty.textContent = 'Unable to load logs right now.';
+  } finally {
+    toggleSkeleton(false);
+  }
+}
+
+function syncFiltersToUI() {
+  elements.schoolType.value = filters.schoolType;
+  elements.action.value = filters.action;
+  elements.dateRange.value = filters.dateRange;
+  elements.startDate.value = filters.startDate;
+  elements.endDate.value = filters.endDate;
+  elements.customDates.classList.toggle('hidden', filters.dateRange !== 'custom');
+}
+
+elements.schoolType.addEventListener('change', () => {
+  filters.schoolType = elements.schoolType.value;
+  fetchLogs(1);
+});
+
+elements.action.addEventListener('change', () => {
+  filters.action = elements.action.value;
+  fetchLogs(1);
+});
+
+elements.dateRange.addEventListener('change', () => {
+  filters.dateRange = elements.dateRange.value;
+  elements.customDates.classList.toggle('hidden', filters.dateRange !== 'custom');
+  fetchLogs(1);
+});
+
+elements.startDate.addEventListener('change', () => {
+  filters.startDate = elements.startDate.value;
+  fetchLogs(1);
+});
+
+elements.endDate.addEventListener('change', () => {
+  filters.endDate = elements.endDate.value;
+  fetchLogs(1);
+});
+
+let searchTimeout;
+elements.search.addEventListener('input', () => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    filters.search = elements.search.value;
+    fetchLogs(1);
+  }, 350);
+});
+
+elements.reset.addEventListener('click', () => {
+  filters = {
+    schoolType: 'all',
+    action: 'all',
+    dateRange: '30',
+    startDate: '',
+    endDate: '',
+    search: ''
+  };
+  syncFiltersToUI();
+  fetchLogs(1);
+});
+
+function formatDate(value) {
+  return new Date(value).toLocaleString();
+}
+
+syncFiltersToUI();
+fetchLogs();
+</script>

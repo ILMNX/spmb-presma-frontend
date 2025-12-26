@@ -1,0 +1,373 @@
+---
+const navLinks = [
+  { name: "Program Pendidikan", href: "#program-facilities" },
+  { name: "Lokasi & Akses", href: "#lokasi-akses" },
+  { name : "Cek Status", href: "/cek-status" }
+];
+
+// Configuration
+const NAVBAR_HEIGHT = 64;
+const SCROLL_OFFSET = 120;
+---
+
+<nav class="fixed top-0 left-0 w-full z-40 backdrop-blur-lg bg-white/30 border-b border-white/20 shadow-lg transition-all duration-300">
+  <div class="container mx-auto px-4 lg:px-6">
+    <div class="flex items-center justify-between h-16">
+      <!-- Logo -->
+      <a href="/" class="flex items-center space-x-2 flex-shrink-0">
+        <div class="flex items-center space-x-1">
+          <img src="/logo/sma.png" alt="Logo SMA" class="w-8 h-8 object-contain" />
+          <img src="/logo/smk.png" alt="Logo SMK" class="w-8 h-8 object-contain" />
+        </div>
+        <span class="font-bold text-sm sm:text-base lg:text-lg text-gray-900 drop-shadow-sm whitespace-nowrap">
+          SPMB Prestasi Prima
+        </span>
+      </a>
+
+      <!-- Desktop Nav Links (Show on md and up) -->
+      <ul class="hidden md:flex items-center space-x-2 lg:space-x-4 flex-1 justify-center mx-4">
+        {navLinks.map(link => (
+          <li>
+            <a 
+              href={link.href}
+              class="nav-link text-gray-800 font-medium px-2 lg:px-2.5 py-2 rounded-lg hover:bg-white/40 hover:text-blue-600 transition-all duration-200 text-xs lg:text-sm whitespace-nowrap"
+              data-section={link.href}
+            >
+              {link.name}
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      <!-- Desktop Action Buttons (Show on md and up) -->
+      <div class="hidden md:flex items-center space-x-2 lg:space-x-3 flex-shrink-0">
+        <!-- Login Button -->
+        <a 
+          href="/login"
+          class="login-button inline-flex items-center gap-1 lg:gap-1.5 bg-white/60 hover:bg-white/80 text-gray-800 font-semibold px-2.5 lg:px-4 py-2 rounded-full shadow-md hover:shadow-lg transition-all duration-300 text-xs lg:text-sm whitespace-nowrap"
+        >
+          <svg class="w-3.5 h-3.5 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+          </svg>
+          <span>Login</span>
+        </a>
+
+        <!-- CTA Button -->
+        <a 
+          href="/pendaftaran"
+          class="cta-button inline-flex items-center gap-1 lg:gap-1.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold px-2.5 lg:px-5 py-2 rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 animate-pulse-subtle text-xs lg:text-sm whitespace-nowrap"
+        >
+          <svg class="w-3.5 h-3.5 lg:w-4 lg:h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
+          </svg>
+          <span>Daftar</span>
+        </a>
+      </div>
+
+      <!-- Mobile Hamburger (Show only on small screens) -->
+      <button 
+        id="mobile-menu-toggle"
+        class="md:hidden flex items-center justify-center w-10 h-10 rounded-lg bg-white/40 hover:bg-white/60 transition-all duration-200"
+        aria-label="Toggle mobile menu"
+        type="button"
+      >
+        <svg id="hamburger-icon" class="w-6 h-6 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
+        </svg>
+        <svg id="close-icon" class="w-6 h-6 text-blue-700 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Nav (Show only on small screens) -->
+  <div id="mobile-nav" class="md:hidden hidden bg-white/95 backdrop-blur-lg shadow-lg border-b border-white/20">
+    <div class="py-4 px-6 space-y-2 max-h-[calc(100vh-4rem)] overflow-y-auto">
+      <!-- Mobile Nav Links -->
+      <ul class="space-y-1">
+        {navLinks.map(link => (
+          <li>
+            <a 
+              href={link.href}
+              class="nav-link-mobile block text-gray-900 font-semibold px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
+              data-section={link.href}
+            >
+              {link.name}
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      <!-- Mobile Action Buttons -->
+      <div class="pt-4 space-y-2 border-t border-gray-200">
+        <!-- Login Button Mobile -->
+        <a 
+          href="/login"
+          class="login-button-mobile flex items-center justify-center gap-2 bg-white border-2 border-blue-600 text-blue-600 font-bold px-6 py-3 rounded-full shadow-md hover:shadow-lg hover:bg-blue-50 transition-all duration-300"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+          </svg>
+          Login Siswa
+        </a>
+
+        <!-- CTA Button Mobile -->
+        <a 
+          href="/pendaftaran"
+          class="cta-button-mobile flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+        >
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
+          </svg>
+          Daftar Sekarang
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<script define:vars={{ navLinks, NAVBAR_HEIGHT, SCROLL_OFFSET }}>
+  class NavbarController {
+    constructor() {
+      this.mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+      this.mobileNav = document.getElementById('mobile-nav');
+      this.hamburgerIcon = document.getElementById('hamburger-icon');
+      this.closeIcon = document.getElementById('close-icon');
+      this.navLinks = Array.from(document.querySelectorAll('.nav-link'));
+      this.mobileNavLinks = Array.from(document.querySelectorAll('.nav-link-mobile'));
+      this.allNavLinks = [...this.navLinks, ...this.mobileNavLinks];
+      // Filter out non-hash links (like /pendaftaran)
+      this.sections = navLinks.filter(link => link.href.startsWith('#')).map(link => link.href);
+      
+      this.init();
+    }
+
+    init() {
+      this.setupMobileMenu();
+      this.setupSmoothScroll();
+      this.setupScrollHighlight();
+      this.updateActiveNav(); // Initial highlight
+      this.setupClickOutside();
+    }
+
+    setupMobileMenu() {
+      if (this.mobileMenuToggle && this.mobileNav) {
+        this.mobileMenuToggle.addEventListener('click', () => {
+          const isHidden = this.mobileNav.classList.toggle('hidden');
+          this.toggleMenuIcons(!isHidden);
+        });
+      }
+    }
+
+    toggleMenuIcons(isOpen) {
+      if (this.hamburgerIcon && this.closeIcon) {
+        if (isOpen) {
+          this.hamburgerIcon.classList.add('hidden');
+          this.closeIcon.classList.remove('hidden');
+        } else {
+          this.hamburgerIcon.classList.remove('hidden');
+          this.closeIcon.classList.add('hidden');
+        }
+      }
+    }
+
+    setupClickOutside() {
+      document.addEventListener('click', (e) => {
+        const target = e.target;
+        if (this.mobileNav && !this.mobileNav.classList.contains('hidden')) {
+          if (!this.mobileNav.contains(target) && !this.mobileMenuToggle.contains(target)) {
+            this.closeMobileMenu();
+          }
+        }
+      });
+    }
+
+    setupSmoothScroll() {
+      this.allNavLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+          const href = link.getAttribute('href');
+          if (href && href.startsWith('#')) {
+            const target = document.querySelector(href);
+            if (target && target instanceof HTMLElement) {
+              e.preventDefault();
+              this.scrollToSection(href);
+              this.closeMobileMenu();
+            } else {
+              // Not on the page that contains the section — navigate to home with the hash.
+              // Browser will jump to the anchor on the homepage. Adjust base if your site
+              // isn't served at root.
+              window.location.href = `/${href}`;
+            }
+          }
+        });
+      });
+    }
+
+    scrollToSection(href) {
+      const target = document.querySelector(href);
+      if (target && target instanceof HTMLElement) {
+        const targetTop = target.offsetTop - NAVBAR_HEIGHT;
+        window.scrollTo({
+          top: targetTop,
+          behavior: 'smooth'
+        });
+      }
+    }
+
+    closeMobileMenu() {
+      if (this.mobileNav && !this.mobileNav.classList.contains('hidden')) {
+        this.mobileNav.classList.add('hidden');
+        this.toggleMenuIcons(false);
+      }
+    }
+
+    setupScrollHighlight() {
+      let ticking = false;
+      
+      const handleScroll = () => {
+        if (!ticking) {
+          requestAnimationFrame(() => {
+            this.updateActiveNav();
+            ticking = false;
+          });
+          ticking = true;
+        }
+      };
+
+      window.addEventListener('scroll', handleScroll, { passive: true });
+    }
+
+    updateActiveNav() {
+      const scrollY = window.pageYOffset;
+      let activeHref = '';
+
+      // Find the current active section (only for hash links)
+      for (const href of this.sections) {
+        const section = document.querySelector(href);
+        if (section && section instanceof HTMLElement) {
+          const sectionTop = section.offsetTop - SCROLL_OFFSET;
+          if (scrollY >= sectionTop) {
+            activeHref = href;
+          }
+        }
+      }
+
+      // Update desktop nav links
+      this.navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href === activeHref) {
+          this.setActiveStyles(link, true);
+        } else {
+          this.setActiveStyles(link, false);
+        }
+      });
+
+      // Update mobile nav links
+      this.mobileNavLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href === activeHref) {
+          this.setMobileActiveStyles(link, true);
+        } else {
+          this.setMobileActiveStyles(link, false);
+        }
+      });
+    }
+
+    setActiveStyles(element, isActive) {
+      if (isActive) {
+        element.classList.add('text-blue-600', 'font-bold', 'bg-white/60');
+        element.classList.remove('text-gray-800');
+      } else {
+        element.classList.remove('text-blue-600', 'font-bold', 'bg-white/60');
+        element.classList.add('text-gray-800');
+      }
+    }
+
+    setMobileActiveStyles(element, isActive) {
+      if (isActive) {
+        element.classList.add('text-blue-600', 'font-bold', 'bg-blue-50');
+        element.classList.remove('text-gray-900');
+      } else {
+        element.classList.remove('text-blue-600', 'font-bold', 'bg-blue-50');
+        element.classList.add('text-gray-900');
+      }
+    }
+  }
+
+  // Initialize when DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    new NavbarController();
+  });
+</script>
+
+<style>
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  nav {
+    /* Glassmorphism effect */
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    border-radius: 0 0 1rem 1rem;
+  }
+
+  /* Prevent horizontal overflow */
+  nav .container {
+    max-width: 100%;
+  }
+
+  /* CTA Button Animation */
+  @keyframes pulse-subtle {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+    }
+    50% {
+      box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+    }
+  }
+
+  .animate-pulse-subtle {
+    animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .cta-button:hover, .cta-button-mobile:hover {
+    background: linear-gradient(to right, #1d4ed8, #7c3aed);
+    transform: scale(1.05) translateY(-2px);
+  }
+
+  .cta-button:active, .cta-button-mobile:active {
+    transform: scale(0.98);
+  }
+
+  .login-button:hover, .login-button-mobile:hover {
+    transform: scale(1.02) translateY(-1px);
+  }
+
+  .login-button:active, .login-button-mobile:active {
+    transform: scale(0.98);
+  }
+
+  /* Responsive adjustments for very small screens */
+  @media (max-width: 360px) {
+    nav .container {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+    
+    nav a span {
+      font-size: 0.75rem;
+    }
+  }
+
+  /* Smooth transition for mobile menu */
+  #mobile-nav {
+    transition: all 0.3s ease-in-out;
+  }
+
+  /* Ensure mobile menu doesn't cause horizontal scroll */
+  #mobile-nav {
+    left: 0;
+    right: 0;
+  }
+</style>

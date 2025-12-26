@@ -1,0 +1,409 @@
+---
+import DashboardLayout from '../../../layouts/DashboardLayout.astro';
+
+export const prerender = false;
+---
+
+<DashboardLayout title="Validation Status">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">Status Validasi</h1>
+        <p class="text-gray-600 mt-1">Monitoring status validasi berkas pendaftar</p>
+      </div>
+      <div class="flex gap-3">
+        <select id="filterStatus" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+          <option value="">Semua Status</option>
+          <option value="valid">Valid</option>
+          <option value="not_valid">Belum Valid</option>
+        </select>
+        <button id="btnExport" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          Export
+        </button>
+      </div>
+    </div>
+
+    <!-- Progress Overview -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-lg font-semibold mb-4">Progress Validasi</h3>
+      <div class="flex items-center gap-4 mb-4">
+        <div class="flex-1 bg-gray-200 rounded-full h-4 overflow-hidden">
+          <div id="progressBar" class="bg-gradient-to-r from-green-500 to-green-600 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+        <span id="progressText" class="text-lg font-bold text-gray-700">0%</span>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="text-center p-4 bg-green-50 rounded-lg">
+          <div id="validCount" class="text-3xl font-bold text-green-600">0</div>
+          <div class="text-sm text-gray-600">Valid</div>
+        </div>
+        <div class="text-center p-4 bg-red-50 rounded-lg">
+          <div id="notValidCount" class="text-3xl font-bold text-red-600">0</div>
+          <div class="text-sm text-gray-600">Belum Valid</div>
+        </div>
+        <div class="text-center p-4 bg-blue-50 rounded-lg">
+          <div id="totalRegistrations" class="text-3xl font-bold text-blue-600">0</div>
+          <div class="text-sm text-gray-600">Total Pendaftar</div>
+        </div>
+        <div class="text-center p-4 bg-orange-50 rounded-lg">
+          <div id="needsAttention" class="text-3xl font-bold text-orange-600">0</div>
+          <div class="text-sm text-gray-600">Perlu Perhatian</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- By Major Chart -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold mb-4">Per Jurusan</h3>
+        <div class="relative" style="height: 300px;">
+          <canvas id="byMajorChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Validation Types Chart -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold mb-4">Detail Checklist</h3>
+        <div id="checklistDetails" class="space-y-3">
+          <!-- Dynamic content -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="hidden text-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+      <p class="mt-4 text-gray-600">Memuat data...</p>
+    </div>
+
+    <!-- Table -->
+    <div id="tableContainer" class="bg-white rounded-lg shadow">
+      <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+        <h3 class="text-lg font-semibold">Detail Per Jurusan</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jurusan</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Valid</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Belum Valid</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Progress</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody" class="divide-y divide-gray-200">
+            <tr>
+              <td colspan="5" class="px-6 py-4 text-center text-gray-500">Memuat data...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Not Valid List -->
+    <div id="notValidContainer" class="bg-white rounded-lg shadow">
+      <div class="p-6 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-red-600">Pendaftar Belum Valid</h3>
+        <p class="text-sm text-gray-600 mt-1">Daftar pendaftar yang masih memerlukan validasi</p>
+      </div>
+      <div id="notValidList" class="divide-y divide-gray-200">
+        <!-- Dynamic content -->
+      </div>
+      <div id="notValidPagination" class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+        <span id="notValidCount2" class="text-sm text-gray-600">0 pendaftar</span>
+        <div class="flex gap-2">
+          <button id="btnPrevNotValid" class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50" disabled>
+            Previous
+          </button>
+          <button id="btnNextNotValid" class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50" disabled>
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { api } from '../../../lib/api';
+    import Chart from 'chart.js/auto';
+
+    let byMajorChart: Chart | null = null;
+    let currentPage = 1;
+
+    async function loadData() {
+      const loading = document.getElementById('loading');
+      loading?.classList.remove('hidden');
+
+      try {
+        const response = await api.get('/api/admin/reports/validation-status');
+        
+        if (response.data.success) {
+          renderData(response.data.data);
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        loading?.classList.add('hidden');
+      }
+    }
+
+    function renderData(data: any) {
+      // Summary - API returns: validated, pending, partial, revision_needed (counts as strings)
+      const validCount = parseInt(data.validated?.count) || 0;
+      const pendingCount = parseInt(data.pending?.count) || 0;
+      const partialCount = parseInt(data.partial?.count) || 0;
+      const revisionCount = parseInt(data.revision_needed?.count) || 0;
+      const notValidCount = pendingCount + partialCount + revisionCount;
+      const total = data.total || (validCount + notValidCount);
+      const progress = total > 0 ? Math.round((validCount / total) * 100) : 0;
+
+      document.getElementById('validCount')!.textContent = validCount.toString();
+      document.getElementById('notValidCount')!.textContent = notValidCount.toString();
+      document.getElementById('totalRegistrations')!.textContent = total.toString();
+      document.getElementById('needsAttention')!.textContent = (partialCount + revisionCount).toString();
+      
+      document.getElementById('progressBar')!.style.width = `${progress}%`;
+      document.getElementById('progressText')!.textContent = `${progress}%`;
+
+      // Checklist details - not available from current API, show validation breakdown instead
+      renderValidationBreakdown(data);
+
+      // By Major table and chart
+      if (data.by_major) {
+        renderByMajorTable(data.by_major);
+        renderByMajorChart(data.by_major);
+      }
+
+      // Not valid list
+      if (data.not_valid_details) {
+        renderNotValidList(data.not_valid_details);
+      }
+    }
+
+    // Update draft and expired stats after loading those sections
+    function updateSpecialStats(draftCount: number, expiredCount: number) {
+      const draftStatEl = document.getElementById('draftStat');
+      const expiredStatEl = document.getElementById('expiredStat');
+      
+      if (draftStatEl) draftStatEl.textContent = draftCount.toString();
+      if (expiredStatEl) expiredStatEl.textContent = expiredCount.toString();
+    }
+
+    function renderValidationBreakdown(data: any) {
+      const container = document.getElementById('checklistDetails');
+      if (!container) return;
+
+      const validCount = parseInt(data.validated?.count) || 0;
+      const pendingCount = parseInt(data.pending?.count) || 0;
+      const partialCount = parseInt(data.partial?.count) || 0;
+      const revisionCount = parseInt(data.revision_needed?.count) || 0;
+      const total = data.total || (validCount + pendingCount + partialCount + revisionCount);
+
+      const items = [
+        { label: 'Lengkap (Complete)', count: validCount, color: 'green', icon: '✅' },
+        { label: 'Menunggu (Pending)', count: pendingCount, color: 'yellow', icon: '⏳' },
+        { label: 'Sebagian (Partial)', count: partialCount, color: 'orange', icon: '📝' },
+        { label: 'Perlu Revisi', count: revisionCount, color: 'red', icon: '🔄' },
+      ];
+
+      container.innerHTML = items.map(item => {
+        const percentage = total > 0 ? Math.round((item.count / total) * 100) : 0;
+        const colorClasses: Record<string, string> = {
+          green: 'bg-green-500',
+          yellow: 'bg-yellow-500',
+          orange: 'bg-orange-500',
+          red: 'bg-red-500'
+        };
+        const textColorClasses: Record<string, string> = {
+          green: 'text-green-600',
+          yellow: 'text-yellow-600',
+          orange: 'text-orange-600',
+          red: 'text-red-600'
+        };
+        
+        return `
+          <div class="flex items-center gap-4">
+            <span class="text-2xl">${item.icon}</span>
+            <div class="flex-1">
+              <div class="flex justify-between text-sm mb-1">
+                <span class="font-medium">${item.label}</span>
+                <span class="text-gray-600">${item.count}/${total}</span>
+              </div>
+              <div class="bg-gray-200 rounded-full h-2 overflow-hidden">
+                <div class="${colorClasses[item.color]} h-full rounded-full" style="width: ${percentage}%"></div>
+              </div>
+            </div>
+            <span class="text-sm font-bold ${textColorClasses[item.color]}">
+              ${percentage}%
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderByMajorTable(byMajor: any[]) {
+      const tbody = document.getElementById('tableBody');
+      if (!tbody) return;
+
+      if (!byMajor || byMajor.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+              Tidak ada data per jurusan
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = byMajor.map(row => {
+        const valid = parseInt(row.valid) || parseInt(row.validated) || 0;
+        const notValid = parseInt(row.not_valid) || parseInt(row.pending) || 0;
+        const total = valid + notValid;
+        const progress = total > 0 ? Math.round((valid / total) * 100) : 0;
+        
+        return `
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 font-medium">${row.display_name || row.major || '-'}</td>
+            <td class="px-6 py-4 text-center">${total}</td>
+            <td class="px-6 py-4 text-center">
+              <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">${valid}</span>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-sm">${notValid}</span>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-2">
+                <div class="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div class="bg-green-500 h-full rounded-full" style="width: ${progress}%"></div>
+                </div>
+                <span class="text-sm font-medium w-12 text-right">${progress}%</span>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderByMajorChart(byMajor: any[]) {
+      const canvas = document.getElementById('byMajorChart') as HTMLCanvasElement;
+      if (!canvas) return;
+
+      if (byMajorChart) {
+        byMajorChart.destroy();
+      }
+
+      if (!byMajor || byMajor.length === 0) {
+        return;
+      }
+
+      const labels = byMajor.map(m => m.display_name || m.major || '-');
+      const validData = byMajor.map(m => parseInt(m.valid) || parseInt(m.validated) || 0);
+      const notValidData = byMajor.map(m => parseInt(m.not_valid) || parseInt(m.pending) || 0);
+
+      byMajorChart = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Valid',
+              data: validData,
+              backgroundColor: 'rgba(34, 197, 94, 0.8)',
+              borderColor: 'rgba(34, 197, 94, 1)',
+              borderWidth: 1
+            },
+            {
+              label: 'Belum Valid',
+              data: notValidData,
+              backgroundColor: 'rgba(239, 68, 68, 0.8)',
+              borderColor: 'rgba(239, 68, 68, 1)',
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { stacked: true },
+            y: { stacked: true, beginAtZero: true }
+          },
+          plugins: {
+            legend: { position: 'top' }
+          }
+        }
+      });
+    }
+
+    function renderNotValidList(list: any[]) {
+      const container = document.getElementById('notValidList');
+      if (!container) return;
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="px-6 py-8 text-center text-gray-500">
+            <svg class="w-12 h-12 mx-auto text-green-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Semua pendaftar sudah tervalidasi
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = list.slice(0, 10).map((item: any) => `
+        <div class="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
+          <div>
+            <div class="font-medium">${item.name}</div>
+            <div class="text-sm text-gray-600">${item.registration_number} • ${item.display_name || item.major}</div>
+            <div class="text-xs text-red-600 mt-1">
+              ${item.missing_validations?.join(', ') || 'Validasi belum lengkap'}
+            </div>
+          </div>
+          <a href="/admin/registrations/${item.id}/validate" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
+            Validasi
+          </a>
+        </div>
+      `).join('');
+
+      document.getElementById('notValidCount2')!.textContent = `${list.length} pendaftar`;
+    }
+
+    // Filter
+    document.getElementById('filterStatus')?.addEventListener('change', (e) => {
+      const value = (e.target as HTMLSelectElement).value;
+      // Filter logic can be implemented based on API support
+      loadData();
+    });
+
+    // Export
+    document.getElementById('btnExport')?.addEventListener('click', async () => {
+      try {
+        const response = await api.get('/api/admin/reports/validation-status?export=true', {
+          responseType: 'blob'
+        });
+        
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `validation-status-${new Date().toISOString().split('T')[0]}.xlsx`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } catch (error) {
+        console.error('Export error:', error);
+        alert('Gagal export data');
+      }
+    });
+
+    // Initial load
+    loadData();
+  </script>
+</DashboardLayout>

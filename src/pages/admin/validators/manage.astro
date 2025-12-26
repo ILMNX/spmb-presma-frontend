@@ -1,0 +1,531 @@
+---
+import AdminLayout from '../../../layouts/DashboardLayout.astro';
+---
+
+<AdminLayout title="Manage Validators">
+  <div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold text-gray-800">Validator Management</h1>
+      <button id="addValidatorBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Add New Validator
+      </button>
+    </div>
+
+    <!-- Info Card -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <div class="flex items-start">
+        <svg class="w-5 h-5 text-blue-600 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+        </svg>
+        <div>
+          <h3 class="text-sm font-medium text-blue-800">About Validators</h3>
+          <p class="text-sm text-blue-700 mt-1">
+            Validators are responsible for verifying registration documents and data. 
+            They can approve, reject, or request revisions for student registrations based on their assigned school type (SMA/SMK).
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="bg-white rounded-lg shadow-md p-8 text-center">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+      <p class="mt-4 text-gray-600">Loading validators...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="errorState" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+      <div class="flex items-center">
+        <svg class="w-5 h-5 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        <span id="errorMessage" class="text-red-800"></span>
+      </div>
+    </div>
+
+    <!-- Validator Table -->
+    <div id="tableContainer" class="hidden bg-white rounded-lg shadow-md overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">School Type</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="validatorTableBody" class="bg-white divide-y divide-gray-200">
+            <!-- Data will be loaded dynamically -->
+          </tbody>
+        </table>
+      </div>
+      
+      <div id="emptyState" class="hidden p-8 text-center text-gray-500">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        <p class="mt-2">No validators found</p>
+        <p class="text-sm">Click "Add New Validator" to create one.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Validator Modal -->
+  <div id="validatorModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+      <div class="flex justify-between items-center p-6 border-b">
+        <h2 id="modalTitle" class="text-xl font-bold text-gray-800">Add New Validator</h2>
+        <button id="closeModal" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      
+      <form id="validatorForm" class="p-6 space-y-4">
+        <input type="hidden" id="validatorId" />
+        
+        <div>
+          <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+          <input type="text" id="name" required
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+            placeholder="Enter validator's full name" />
+        </div>
+        
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input type="email" id="email" required
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+            placeholder="validator@example.com" />
+        </div>
+        
+        <div id="passwordField">
+          <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <input type="password" id="password"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+            placeholder="Minimum 8 characters" />
+          <p class="text-xs text-gray-500 mt-1">Leave blank to keep current password (when editing)</p>
+        </div>
+        
+        <div>
+          <label for="schoolType" class="block text-sm font-medium text-gray-700 mb-1">School Type</label>
+          <select id="schoolType" required
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="">Select School Type</option>
+            <option value="sma">SMA - Can only validate SMA registrations</option>
+            <option value="smk">SMK - Can only validate SMK registrations</option>
+            <option value="both">Both - Can validate all registrations</option>
+          </select>
+          <p class="text-xs text-gray-500 mt-1">Determines which registrations the validator can access</p>
+        </div>
+        
+        <div class="flex justify-end gap-3 pt-4">
+          <button type="button" id="cancelBtn"
+            class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+            Cancel
+          </button>
+          <button type="submit" id="submitBtn"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
+            <span id="submitBtnText">Save Validator</span>
+            <svg id="submitBtnSpinner" class="hidden animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+      <div class="flex items-center mb-4">
+        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mr-3">
+          <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+        </div>
+        <h3 class="text-lg font-bold text-gray-800">Confirm Delete</h3>
+      </div>
+      <p class="text-gray-600 mb-6">Are you sure you want to delete this validator? This action cannot be undone and will revoke their access to the system.</p>
+      <div class="flex justify-end gap-3">
+        <button id="cancelDelete"
+          class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+          Cancel
+        </button>
+        <button id="confirmDelete"
+          class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+          Delete Validator
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="hidden fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transition-all transform translate-y-full opacity-0">
+    <div class="flex items-center gap-2">
+      <svg id="toastIconSuccess" class="hidden w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+      </svg>
+      <svg id="toastIconError" class="hidden w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+      </svg>
+      <span id="toastMessage" class="text-white font-medium"></span>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  import { getToken, clearAuth } from '../../../stores/authStore';
+  
+  const API_BASE_URL = import.meta.env.PUBLIC_API_URL;
+  
+  let currentValidatorId: number | null = null;
+  let deleteValidatorId: number | null = null;
+
+  // Show/hide elements
+  function showLoading() {
+    document.getElementById('loadingState')?.classList.remove('hidden');
+    document.getElementById('tableContainer')?.classList.add('hidden');
+    document.getElementById('errorState')?.classList.add('hidden');
+  }
+
+  function showError(message: string) {
+    const errorState = document.getElementById('errorState');
+    const errorMessage = document.getElementById('errorMessage');
+    if (errorMessage) errorMessage.textContent = message;
+    errorState?.classList.remove('hidden');
+    document.getElementById('loadingState')?.classList.add('hidden');
+    document.getElementById('tableContainer')?.classList.add('hidden');
+  }
+
+  function showTable() {
+    document.getElementById('tableContainer')?.classList.remove('hidden');
+    document.getElementById('loadingState')?.classList.add('hidden');
+    document.getElementById('errorState')?.classList.add('hidden');
+  }
+
+  // Toast notification
+  function showToast(message: string, type: 'success' | 'error' = 'success') {
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+    const successIcon = document.getElementById('toastIconSuccess');
+    const errorIcon = document.getElementById('toastIconError');
+
+    if (!toast || !toastMessage) return;
+
+    toastMessage.textContent = message;
+    
+    // Set colors and icons based on type
+    toast.className = toast.className.replace(/bg-\w+-\d+/g, '');
+    successIcon?.classList.add('hidden');
+    errorIcon?.classList.add('hidden');
+
+    if (type === 'success') {
+      toast.classList.add('bg-green-600');
+      successIcon?.classList.remove('hidden');
+    } else {
+      toast.classList.add('bg-red-600');
+      errorIcon?.classList.remove('hidden');
+    }
+
+    // Show toast
+    toast.classList.remove('hidden', 'translate-y-full', 'opacity-0');
+    toast.classList.add('translate-y-0', 'opacity-100');
+
+    // Hide after 3 seconds
+    setTimeout(() => {
+      toast.classList.add('translate-y-full', 'opacity-0');
+      toast.classList.remove('translate-y-0', 'opacity-100');
+      setTimeout(() => toast.classList.add('hidden'), 300);
+    }, 3000);
+  }
+
+  // Fetch validators
+  async function fetchValidators() {
+    showLoading();
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/admin/validators`, {
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP ${response.status}: Failed to fetch validators`);
+      }
+
+      const validators = await response.json();
+      renderValidators(validators);
+      showTable();
+    } catch (error: any) {
+      console.error('Error fetching validators:', error);
+      showError(error.message || 'Failed to load validators. Please check your permissions.');
+    }
+  }
+
+  // Render validators table
+  function renderValidators(validators: any[]) {
+    const tbody = document.getElementById('validatorTableBody');
+    const emptyState = document.getElementById('emptyState');
+
+    if (!tbody) return;
+
+    if (validators.length === 0) {
+      tbody.innerHTML = '';
+      emptyState?.classList.remove('hidden');
+      return;
+    }
+
+    emptyState?.classList.add('hidden');
+
+    tbody.innerHTML = validators.map(validator => `
+      <tr class="hover:bg-gray-50">
+        <td class="px-6 py-4 whitespace-nowrap">
+          <div class="flex items-center">
+            <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
+              <span class="text-indigo-600 font-medium text-sm">${validator.name.charAt(0).toUpperCase()}</span>
+            </div>
+            <span class="text-sm font-medium text-gray-900">${validator.name}</span>
+          </div>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${validator.email}</td>
+        <td class="px-6 py-4 whitespace-nowrap">
+          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+            validator.school_type === 'sma' ? 'bg-blue-100 text-blue-800' : 
+            validator.school_type === 'smk' ? 'bg-green-100 text-green-800' :
+            'bg-purple-100 text-purple-800'
+          }">
+            ${validator.school_type ? validator.school_type.toUpperCase() : 'N/A'}
+          </span>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+          <button onclick="toggleValidatorStatus(${validator.id}, ${validator.is_active})" 
+            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer hover:opacity-80 ${
+              validator.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            }">
+            ${validator.is_active ? 'Active' : 'Inactive'}
+          </button>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(validator.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+          <button onclick="editValidator(${validator.id})" class="text-blue-600 hover:text-blue-900 hover:underline">Edit</button>
+          <button onclick="deleteValidator(${validator.id})" class="text-red-600 hover:text-red-900 hover:underline">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // Modal controls
+  const modal = document.getElementById('validatorModal');
+  const deleteModal = document.getElementById('deleteModal');
+
+  function setSubmitLoading(loading: boolean) {
+    const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+    const submitBtnText = document.getElementById('submitBtnText');
+    const submitBtnSpinner = document.getElementById('submitBtnSpinner');
+    
+    if (loading) {
+      submitBtn.disabled = true;
+      submitBtnText?.classList.add('opacity-0');
+      submitBtnSpinner?.classList.remove('hidden');
+    } else {
+      submitBtn.disabled = false;
+      submitBtnText?.classList.remove('opacity-0');
+      submitBtnSpinner?.classList.add('hidden');
+    }
+  }
+
+  document.getElementById('addValidatorBtn')?.addEventListener('click', () => {
+    currentValidatorId = null;
+    document.getElementById('modalTitle')!.textContent = 'Add New Validator';
+    (document.getElementById('validatorForm') as HTMLFormElement).reset();
+    const passwordInput = document.getElementById('password') as HTMLInputElement;
+    passwordInput.required = true;
+    passwordInput.placeholder = 'Minimum 8 characters';
+    modal?.classList.remove('hidden');
+  });
+
+  document.getElementById('closeModal')?.addEventListener('click', () => {
+    modal?.classList.add('hidden');
+  });
+
+  document.getElementById('cancelBtn')?.addEventListener('click', () => {
+    modal?.classList.add('hidden');
+  });
+
+  // Close modal on backdrop click
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.add('hidden');
+    }
+  });
+
+  deleteModal?.addEventListener('click', (e) => {
+    if (e.target === deleteModal) {
+      deleteModal.classList.add('hidden');
+      deleteValidatorId = null;
+    }
+  });
+
+  // Form submission
+  document.getElementById('validatorForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    setSubmitLoading(true);
+
+    const formData: any = {
+      name: (document.getElementById('name') as HTMLInputElement).value,
+      email: (document.getElementById('email') as HTMLInputElement).value,
+      school_type: (document.getElementById('schoolType') as HTMLSelectElement).value,
+    };
+
+    const password = (document.getElementById('password') as HTMLInputElement).value;
+    if (password) {
+      formData.password = password;
+    }
+
+    try {
+      const url = currentValidatorId 
+        ? `${API_BASE_URL}/api/admin/validators/${currentValidatorId}`
+        : `${API_BASE_URL}/api/admin/validators`;
+      
+      const method = currentValidatorId ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || error.errors?.email?.[0] || 'Failed to save validator');
+      }
+
+      showToast(`Validator ${currentValidatorId ? 'updated' : 'created'} successfully`, 'success');
+      modal?.classList.add('hidden');
+      fetchValidators();
+    } catch (error: any) {
+      showToast(error.message, 'error');
+    } finally {
+      setSubmitLoading(false);
+    }
+  });
+
+  // Global functions for inline event handlers
+  (window as any).editValidator = async (id: number) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/admin/validators/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch validator details');
+      }
+      
+      const validator = await response.json();
+
+      currentValidatorId = id;
+      document.getElementById('modalTitle')!.textContent = 'Edit Validator';
+      (document.getElementById('name') as HTMLInputElement).value = validator.name;
+      (document.getElementById('email') as HTMLInputElement).value = validator.email;
+      (document.getElementById('schoolType') as HTMLSelectElement).value = validator.school_type || '';
+      
+      const passwordInput = document.getElementById('password') as HTMLInputElement;
+      passwordInput.value = '';
+      passwordInput.required = false;
+      passwordInput.placeholder = 'Leave blank to keep current';
+      
+      modal?.classList.remove('hidden');
+    } catch (error) {
+      showToast('Failed to load validator details', 'error');
+    }
+  };
+
+  (window as any).toggleValidatorStatus = async (id: number, currentStatus: boolean) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/admin/validators/${id}/toggle-status`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) throw new Error('Failed to toggle status');
+
+      const result = await response.json();
+      showToast(`Validator ${result.is_active ? 'activated' : 'deactivated'} successfully`, 'success');
+      fetchValidators();
+    } catch (error) {
+      showToast('Failed to update status', 'error');
+    }
+  };
+
+  (window as any).deleteValidator = (id: number) => {
+    deleteValidatorId = id;
+    deleteModal?.classList.remove('hidden');
+  };
+
+  document.getElementById('cancelDelete')?.addEventListener('click', () => {
+    deleteModal?.classList.add('hidden');
+    deleteValidatorId = null;
+  });
+
+  document.getElementById('confirmDelete')?.addEventListener('click', async () => {
+    if (!deleteValidatorId) return;
+
+    const confirmBtn = document.getElementById('confirmDelete') as HTMLButtonElement;
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Deleting...';
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/admin/validators/${deleteValidatorId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) throw new Error('Failed to delete validator');
+
+      showToast('Validator deleted successfully', 'success');
+      deleteModal?.classList.add('hidden');
+      deleteValidatorId = null;
+      fetchValidators();
+    } catch (error) {
+      showToast('Failed to delete validator', 'error');
+    } finally {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Delete Validator';
+    }
+  });
+
+  // Load validators on page load
+  fetchValidators();
+</script>
+
+<style>
+  /* Smooth transitions for toast */
+  #toast {
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+  }
+</style>

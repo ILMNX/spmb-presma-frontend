@@ -1,0 +1,812 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+
+export const prerender = false;
+---
+
+<DashboardLayout title="Announcements Management">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="sm:flex sm:items-center sm:justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Announcements</h1>
+        <p class="mt-1 text-sm text-gray-500">Manage announcements that appear on the landing page for visitors</p>
+      </div>
+      <div class="mt-4 sm:mt-0">
+        <button
+          id="addAnnouncementBtn"
+          class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Add Announcement
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <label for="filterStatus" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <select id="filterStatus" class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900">
+            <option value="">All Status</option>
+            <option value="draft">Draft</option>
+            <option value="published">Published</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
+        <div>
+          <label for="filterType" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+          <select id="filterType" class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900">
+            <option value="">All Types</option>
+            <option value="general">General</option>
+            <option value="info">Info</option>
+            <option value="important">Important</option>
+            <option value="exam">Exam</option>
+            <option value="payment">Payment</option>
+          </select>
+        </div>
+        <div>
+          <label for="filterPriority" class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+          <select id="filterPriority" class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900">
+            <option value="">All Priorities</option>
+            <option value="urgent">Urgent</option>
+            <option value="high">High</option>
+            <option value="normal">Normal</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+        <div>
+          <label for="searchQuery" class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+          <input type="text" id="searchQuery" placeholder="Search announcements..." class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 placeholder-gray-400">
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="flex items-center">
+          <div class="flex-shrink-0 p-3 bg-blue-100 rounded-full">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+            </svg>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Total</p>
+            <p id="statTotal" class="text-2xl font-semibold text-gray-900">0</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="flex items-center">
+          <div class="flex-shrink-0 p-3 bg-green-100 rounded-full">
+            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Published</p>
+            <p id="statPublished" class="text-2xl font-semibold text-gray-900">0</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="flex items-center">
+          <div class="flex-shrink-0 p-3 bg-yellow-100 rounded-full">
+            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Scheduled</p>
+            <p id="statScheduled" class="text-2xl font-semibold text-gray-900">0</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="flex items-center">
+          <div class="flex-shrink-0 p-3 bg-gray-100 rounded-full">
+            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Draft</p>
+            <p id="statDraft" class="text-2xl font-semibold text-gray-900">0</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Announcements List -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div id="announcementsList" class="divide-y divide-gray-200">
+        <!-- Loading State -->
+        <div class="flex justify-center items-center py-12">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </div>
+      
+      <!-- Pagination -->
+      <div id="pagination" class="bg-gray-50 px-4 py-3 border-t border-gray-200 hidden">
+        <div class="flex items-center justify-between">
+          <div>
+            <p id="paginationInfo" class="text-sm text-gray-700"></p>
+          </div>
+          <div>
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" id="paginationButtons">
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Announcement Modal -->
+  <div id="announcementModal" class="hidden fixed inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto z-50">
+    <div class="flex min-h-full items-center justify-center p-4">
+      <div class="relative bg-white rounded-lg shadow-xl max-w-3xl w-full">
+        <div class="flex items-center justify-between p-6 border-b border-gray-200">
+          <h3 id="modalTitle" class="text-lg font-medium text-gray-900">Add Announcement</h3>
+          <button id="closeModal" class="text-gray-400 hover:text-gray-500">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <form id="announcementForm" class="p-6 space-y-6">
+          <input type="hidden" id="announcementId" name="id">
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="md:col-span-2">
+              <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Title <span class="text-red-500">*</span></label>
+              <input
+                type="text"
+                id="title"
+                name="title"
+                required
+                maxlength="255"
+                class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 placeholder-gray-400"
+                placeholder="e.g., Pendaftaran SPMB Gelombang 2 Dibuka!"
+              >
+            </div>
+
+            <div class="md:col-span-2">
+              <label for="content" class="block text-sm font-medium text-gray-700 mb-1">Content <span class="text-red-500">*</span></label>
+              <textarea
+                id="content"
+                name="content"
+                required
+                rows="4"
+                class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 placeholder-gray-400 resize-none"
+                placeholder="Announcement details..."
+              ></textarea>
+            </div>
+
+            <div>
+              <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type <span class="text-red-500">*</span></label>
+              <select id="type" name="type" required class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900">
+                <option value="general">General</option>
+                <option value="info">Info</option>
+                <option value="important">Important</option>
+                <option value="exam">Exam</option>
+                <option value="payment">Payment</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="priority" class="block text-sm font-medium text-gray-700 mb-1">Priority <span class="text-red-500">*</span></label>
+              <select id="priority" name="priority" required class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900">
+                <option value="low">Low</option>
+                <option value="normal" selected>Normal</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="target_type" class="block text-sm font-medium text-gray-700 mb-1">Target Audience <span class="text-red-500">*</span></label>
+              <select id="target_type" name="target_type" required class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900">
+                <option value="all">All (Public - Landing Page)</option>
+                <option value="school_type">By School Type</option>
+              </select>
+            </div>
+
+            <div id="targetValueContainer" class="hidden">
+              <label for="target_value" class="block text-sm font-medium text-gray-700 mb-1">School Type</label>
+              <select id="target_value" name="target_value" class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900">
+                <option value="">Select school type</option>
+                <option value="sma">SMA</option>
+                <option value="smk">SMK</option>
+                <option value="both">Both (SMA & SMK)</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="published_at" class="block text-sm font-medium text-gray-700 mb-1">Publish Date</label>
+              <input
+                type="datetime-local"
+                id="published_at"
+                name="published_at"
+                class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900"
+              >
+              <p class="mt-1 text-xs text-gray-500">Leave empty to publish immediately when status is set to Published</p>
+            </div>
+
+            <div>
+              <label for="expires_at" class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+              <input
+                type="datetime-local"
+                id="expires_at"
+                name="expires_at"
+                class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900"
+              >
+              <p class="mt-1 text-xs text-gray-500">Leave empty for no expiration</p>
+            </div>
+
+            <div>
+              <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status <span class="text-red-500">*</span></label>
+              <select id="status" name="status" required class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900">
+                <option value="draft">Draft</option>
+                <option value="published">Published</option>
+                <option value="scheduled">Scheduled</option>
+                <option value="archived">Archived</option>
+              </select>
+            </div>
+
+            <div class="flex items-center pt-6">
+              <input
+                type="checkbox"
+                id="is_pinned"
+                name="is_pinned"
+                class="h-4 w-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+              >
+              <label for="is_pinned" class="ml-2 block text-sm text-gray-900 cursor-pointer">Pin to top</label>
+            </div>
+          </div>
+
+          <div id="formError" class="hidden rounded-md bg-red-50 p-4">
+            <div class="flex">
+              <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+              </svg>
+              <div class="ml-3">
+                <p id="formErrorText" class="text-sm text-red-800"></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+            <button
+              type="button"
+              id="cancelBtn"
+              class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Save Announcement
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" class="hidden fixed inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto z-50">
+    <div class="flex min-h-full items-center justify-center p-4">
+      <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+        <div class="sm:flex sm:items-start">
+          <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+            <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+          </div>
+          <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+            <h3 class="text-lg font-medium text-gray-900">Delete Announcement</h3>
+            <p class="mt-2 text-sm text-gray-500">Are you sure you want to delete this announcement? This action cannot be undone.</p>
+          </div>
+        </div>
+        <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+          <button
+            id="confirmDelete"
+            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+          >
+            Delete
+          </button>
+          <button
+            id="cancelDelete"
+            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:w-auto sm:text-sm"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</DashboardLayout>
+
+<script>
+  import { api } from '../../lib/api';
+
+  interface Announcement {
+    id: number;
+    title: string;
+    content: string;
+    type: string;
+    target_type: string;
+    target_value: string | null;
+    priority: string;
+    is_pinned: boolean;
+    status: string;
+    published_at: string | null;
+    expires_at: string | null;
+    created_at: string;
+    is_expired: boolean;
+    creator?: {
+      name: string;
+    };
+  }
+
+  interface PaginatedResponse {
+    data: Announcement[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  }
+
+  let announcements: Announcement[] = [];
+  let deleteId: number | null = null;
+  let currentPage = 1;
+  let lastPage = 1;
+  let totalItems = 0;
+
+  // DOM Elements
+  const announcementsList = document.getElementById('announcementsList')!;
+  const announcementModal = document.getElementById('announcementModal')!;
+  const deleteModal = document.getElementById('deleteModal')!;
+  const announcementForm = document.getElementById('announcementForm') as HTMLFormElement;
+  const pagination = document.getElementById('pagination')!;
+
+  // Filters
+  const filterStatus = document.getElementById('filterStatus') as HTMLSelectElement;
+  const filterType = document.getElementById('filterType') as HTMLSelectElement;
+  const filterPriority = document.getElementById('filterPriority') as HTMLSelectElement;
+  const searchQuery = document.getElementById('searchQuery') as HTMLInputElement;
+  const targetTypeSelect = document.getElementById('target_type') as HTMLSelectElement;
+  const targetValueContainer = document.getElementById('targetValueContainer')!;
+
+  // Load announcements
+  async function loadAnnouncements(page = 1) {
+    try {
+      const params = new URLSearchParams();
+      params.append('page', String(page));
+      params.append('per_page', '10');
+      
+      if (filterStatus.value) params.append('status', filterStatus.value);
+      if (filterType.value) params.append('type', filterType.value);
+      if (filterPriority.value) params.append('priority', filterPriority.value);
+      if (searchQuery.value) params.append('search', searchQuery.value);
+
+      const response = await api.get(`/api/admin/announcements?${params.toString()}`);
+      const data: PaginatedResponse = response.data.data;
+      
+      announcements = data.data;
+      currentPage = data.current_page;
+      lastPage = data.last_page;
+      totalItems = data.total;
+      
+      renderAnnouncements();
+      updateStats();
+      renderPagination();
+    } catch (error) {
+      console.error('Failed to load announcements:', error);
+      showError(announcementsList, 'Failed to load announcements');
+    }
+  }
+
+  // Update stats
+  function updateStats() {
+    const total = announcements.length;
+    const published = announcements.filter(a => a.status === 'published').length;
+    const scheduled = announcements.filter(a => a.status === 'scheduled').length;
+    const draft = announcements.filter(a => a.status === 'draft').length;
+
+    document.getElementById('statTotal')!.textContent = String(totalItems);
+    document.getElementById('statPublished')!.textContent = String(published);
+    document.getElementById('statScheduled')!.textContent = String(scheduled);
+    document.getElementById('statDraft')!.textContent = String(draft);
+  }
+
+  // Render announcements
+  function renderAnnouncements() {
+    if (announcements.length === 0) {
+      announcementsList.innerHTML = `
+        <div class="text-center py-12">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+          </svg>
+          <p class="mt-2 text-sm text-gray-500">No announcements yet. Click "Add Announcement" to create one.</p>
+        </div>
+      `;
+      return;
+    }
+
+    announcementsList.innerHTML = announcements.map(announcement => `
+      <div class="p-6 hover:bg-gray-50 transition-colors ${announcement.is_pinned ? 'bg-yellow-50' : ''}">
+        <div class="flex items-start justify-between">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-2">
+              ${announcement.is_pinned ? `
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                  <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/>
+                  </svg>
+                  Pinned
+                </span>
+              ` : ''}
+              ${getStatusBadge(announcement.status)}
+              ${getTypeBadge(announcement.type)}
+              ${getPriorityBadge(announcement.priority)}
+              ${announcement.is_expired ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Expired</span>' : ''}
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 truncate">${announcement.title}</h3>
+            <p class="mt-1 text-sm text-gray-500 line-clamp-2">${announcement.content}</p>
+            <div class="mt-2 flex items-center gap-4 text-xs text-gray-400">
+              <span>Target: ${getTargetLabel(announcement.target_type, announcement.target_value)}</span>
+              ${announcement.published_at ? `<span>Published: ${formatDate(announcement.published_at)}</span>` : ''}
+              ${announcement.expires_at ? `<span>Expires: ${formatDate(announcement.expires_at)}</span>` : ''}
+            </div>
+          </div>
+          <div class="ml-4 flex-shrink-0 flex items-center gap-2">
+            ${announcement.status === 'draft' ? `
+              <button
+                onclick="publishAnnouncement(${announcement.id})"
+                class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700"
+                title="Publish"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+              </button>
+            ` : ''}
+            <button
+              onclick="togglePin(${announcement.id})"
+              class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded ${announcement.is_pinned ? 'text-yellow-700 bg-yellow-50 border-yellow-300' : 'text-gray-700 bg-white'} hover:bg-gray-50"
+              title="${announcement.is_pinned ? 'Unpin' : 'Pin'}"
+            >
+              <svg class="w-4 h-4" fill="${announcement.is_pinned ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/>
+              </svg>
+            </button>
+            <button
+              onclick="editAnnouncement(${announcement.id})"
+              class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50"
+              title="Edit"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+            </button>
+            <button
+              onclick="showDeleteModal(${announcement.id})"
+              class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700"
+              title="Delete"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Badge helpers
+  function getStatusBadge(status: string): string {
+    const badges: Record<string, string> = {
+      draft: '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">Draft</span>',
+      published: '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Published</span>',
+      scheduled: '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">Scheduled</span>',
+      archived: '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">Archived</span>',
+    };
+    return badges[status] || '';
+  }
+
+  function getTypeBadge(type: string): string {
+    const badges: Record<string, string> = {
+      general: '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">General</span>',
+      info: '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-cyan-100 text-cyan-800">Info</span>',
+      important: '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">Important</span>',
+      exam: '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">Exam</span>',
+      payment: '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">Payment</span>',
+    };
+    return badges[type] || '';
+  }
+
+  function getPriorityBadge(priority: string): string {
+    const badges: Record<string, string> = {
+      low: '',
+      normal: '',
+      high: '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">High</span>',
+      urgent: '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Urgent</span>',
+    };
+    return badges[priority] || '';
+  }
+
+  function getTargetLabel(targetType: string, targetValue: string | null): string {
+    if (targetType === 'all') return 'All (Public)';
+    if (targetType === 'school_type' && targetValue) {
+      return targetValue.toUpperCase();
+    }
+    return targetType;
+  }
+
+  function formatDate(dateStr: string): string {
+    return new Date(dateStr).toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  // Render pagination
+  function renderPagination() {
+    if (lastPage <= 1) {
+      pagination.classList.add('hidden');
+      return;
+    }
+
+    pagination.classList.remove('hidden');
+    document.getElementById('paginationInfo')!.innerHTML = `
+      Showing page <span class="font-medium">${currentPage}</span> of <span class="font-medium">${lastPage}</span>
+      (<span class="font-medium">${totalItems}</span> total)
+    `;
+
+    const buttons = document.getElementById('paginationButtons')!;
+    let html = '';
+
+    // Previous button
+    html += `
+      <button
+        ${currentPage === 1 ? 'disabled' : ''}
+        onclick="goToPage(${currentPage - 1})"
+        class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}"
+      >
+        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+        </svg>
+      </button>
+    `;
+
+    // Page numbers
+    for (let i = 1; i <= lastPage; i++) {
+      if (i === 1 || i === lastPage || (i >= currentPage - 1 && i <= currentPage + 1)) {
+        html += `
+          <button
+            onclick="goToPage(${i})"
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium ${i === currentPage ? 'z-10 bg-blue-50 border-blue-500 text-blue-600' : 'bg-white text-gray-700 hover:bg-gray-50'}"
+          >
+            ${i}
+          </button>
+        `;
+      } else if (i === currentPage - 2 || i === currentPage + 2) {
+        html += `<span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>`;
+      }
+    }
+
+    // Next button
+    html += `
+      <button
+        ${currentPage === lastPage ? 'disabled' : ''}
+        onclick="goToPage(${currentPage + 1})"
+        class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 ${currentPage === lastPage ? 'opacity-50 cursor-not-allowed' : ''}"
+      >
+        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+      </button>
+    `;
+
+    buttons.innerHTML = html;
+  }
+
+  // Modal functions
+  function showModal(announcement?: Announcement) {
+    document.getElementById('formError')!.classList.add('hidden');
+    announcementForm.reset();
+    targetValueContainer.classList.add('hidden');
+    
+    if (announcement) {
+      document.getElementById('modalTitle')!.textContent = 'Edit Announcement';
+      (document.getElementById('announcementId') as HTMLInputElement).value = String(announcement.id);
+      (document.getElementById('title') as HTMLInputElement).value = announcement.title;
+      (document.getElementById('content') as HTMLTextAreaElement).value = announcement.content;
+      (document.getElementById('type') as HTMLSelectElement).value = announcement.type;
+      (document.getElementById('priority') as HTMLSelectElement).value = announcement.priority;
+      (document.getElementById('target_type') as HTMLSelectElement).value = announcement.target_type;
+      (document.getElementById('status') as HTMLSelectElement).value = announcement.status;
+      (document.getElementById('is_pinned') as HTMLInputElement).checked = announcement.is_pinned;
+      
+      if (announcement.target_type === 'school_type') {
+        targetValueContainer.classList.remove('hidden');
+        (document.getElementById('target_value') as HTMLSelectElement).value = announcement.target_value || '';
+      }
+      
+      if (announcement.published_at) {
+        (document.getElementById('published_at') as HTMLInputElement).value = announcement.published_at.slice(0, 16);
+      }
+      if (announcement.expires_at) {
+        (document.getElementById('expires_at') as HTMLInputElement).value = announcement.expires_at.slice(0, 16);
+      }
+    } else {
+      document.getElementById('modalTitle')!.textContent = 'Add Announcement';
+      (document.getElementById('announcementId') as HTMLInputElement).value = '';
+    }
+    
+    announcementModal.classList.remove('hidden');
+  }
+
+  // Global functions
+  (window as any).editAnnouncement = (id: number) => {
+    const announcement = announcements.find(a => a.id === id);
+    if (announcement) showModal(announcement);
+  };
+
+  (window as any).showDeleteModal = (id: number) => {
+    deleteId = id;
+    deleteModal.classList.remove('hidden');
+  };
+
+  (window as any).goToPage = (page: number) => {
+    if (page >= 1 && page <= lastPage) {
+      loadAnnouncements(page);
+    }
+  };
+
+  (window as any).publishAnnouncement = async (id: number) => {
+    try {
+      await api.patch(`/api/admin/announcements/${id}/publish`);
+      await loadAnnouncements(currentPage);
+    } catch (error) {
+      console.error('Failed to publish:', error);
+      alert('Failed to publish announcement');
+    }
+  };
+
+  (window as any).togglePin = async (id: number) => {
+    try {
+      await api.patch(`/api/admin/announcements/${id}/pin`);
+      await loadAnnouncements(currentPage);
+    } catch (error) {
+      console.error('Failed to toggle pin:', error);
+      alert('Failed to toggle pin');
+    }
+  };
+
+  // Form submission
+  announcementForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formError = document.getElementById('formError')!;
+    formError.classList.add('hidden');
+
+    const formData = new FormData(announcementForm);
+    const id = formData.get('id');
+    
+    const data: any = {
+      title: formData.get('title'),
+      content: formData.get('content'),
+      type: formData.get('type'),
+      priority: formData.get('priority'),
+      target_type: formData.get('target_type'),
+      status: formData.get('status'),
+      is_pinned: (document.getElementById('is_pinned') as HTMLInputElement).checked,
+    };
+
+    if (data.target_type === 'school_type') {
+      data.target_value = formData.get('target_value');
+    }
+
+    const publishedAt = formData.get('published_at');
+    if (publishedAt) {
+      data.published_at = publishedAt;
+    }
+
+    const expiresAt = formData.get('expires_at');
+    if (expiresAt) {
+      data.expires_at = expiresAt;
+    }
+
+    try {
+      if (id) {
+        await api.put(`/api/admin/announcements/${id}`, data);
+      } else {
+        await api.post('/api/admin/announcements', data);
+      }
+      
+      announcementModal.classList.add('hidden');
+      await loadAnnouncements(currentPage);
+    } catch (error: any) {
+      document.getElementById('formErrorText')!.textContent = error.response?.data?.message || 'Failed to save announcement';
+      formError.classList.remove('hidden');
+    }
+  });
+
+  // Delete confirmation
+  document.getElementById('confirmDelete')?.addEventListener('click', async () => {
+    if (!deleteId) return;
+
+    try {
+      await api.delete(`/api/admin/announcements/${deleteId}`);
+      deleteModal.classList.add('hidden');
+      await loadAnnouncements(currentPage);
+    } catch (error) {
+      console.error('Failed to delete:', error);
+      alert('Failed to delete announcement');
+    }
+  });
+
+  // Event listeners
+  document.getElementById('addAnnouncementBtn')?.addEventListener('click', () => showModal());
+  document.getElementById('closeModal')?.addEventListener('click', () => announcementModal.classList.add('hidden'));
+  document.getElementById('cancelBtn')?.addEventListener('click', () => announcementModal.classList.add('hidden'));
+  document.getElementById('cancelDelete')?.addEventListener('click', () => deleteModal.classList.add('hidden'));
+
+  // Target type change
+  targetTypeSelect.addEventListener('change', () => {
+    if (targetTypeSelect.value === 'school_type') {
+      targetValueContainer.classList.remove('hidden');
+    } else {
+      targetValueContainer.classList.add('hidden');
+    }
+  });
+
+  // Filters
+  let filterTimeout: ReturnType<typeof setTimeout>;
+  const debounceFilter = () => {
+    clearTimeout(filterTimeout);
+    filterTimeout = setTimeout(() => loadAnnouncements(1), 300);
+  };
+
+  filterStatus.addEventListener('change', () => loadAnnouncements(1));
+  filterType.addEventListener('change', () => loadAnnouncements(1));
+  filterPriority.addEventListener('change', () => loadAnnouncements(1));
+  searchQuery.addEventListener('input', debounceFilter);
+
+  // Helper functions
+  function showError(element: HTMLElement, message: string) {
+    element.innerHTML = `
+      <div class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <p class="mt-2 text-sm text-gray-500">${message}</p>
+      </div>
+    `;
+  }
+
+  // Initialize
+  loadAnnouncements();
+</script>
+
+<style>
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

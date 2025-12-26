@@ -1,0 +1,69 @@
+---
+import Hero from "../components/Hero.astro";
+import HighlightsSection from "../components/HighlightSection.astro";
+import ProgramAndFacilitiesSection from "../components/ProgramAndFacilitiesSection.astro";
+import PrestasiAlumniSection from "../components/PrestasiAlumniSection.astro";
+import LocationAccessSection from "../components/LocationAccessSection.astro";
+import Footer from "../components/Footer.astro";
+import NavbarPublic from "../components/NavbarPublic.astro";
+import UniversityCarousel from "../components/UniversityCarousel.astro";
+import AnnouncementBanner from "../components/AnnouncementBanner.astro";
+
+// Import the API URL from environment variable
+const API_URL = import.meta.env.PUBLIC_API_URL ;
+
+// Helper function for API calls with error handling
+async function fetchAPI(endpoint: string) {
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching ${endpoint}:`, error);
+    return null;
+  }
+}
+
+// Fetch data with error handling
+const facilities = await fetchAPI('/api/facilities');
+const announcements = await fetchAPI('/api/announcements');
+const timeline = await fetchAPI('/api/timeline');
+const stats = await fetchAPI('/api/stats');
+---
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPMB - SMA & SMK Prestasi Prima | Pendaftaran Siswa Baru</title>
+  <meta name="description" content="Daftar sekarang di SMA & SMK Prestasi Prima. Sekolah unggulan dengan fasilitas modern dan program pendidikan berkualitas di Jakarta Timur.">
+  <meta name="keywords" content="SPMB, Prestasi Prima, SMA, SMK, pendaftaran siswa baru, sekolah Jakarta Timur">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="canonical" href="https://spmb.prestasiprima.sch.id">
+</head>
+<body>
+  <!-- Announcement Banner/Modal -->
+  <AnnouncementBanner />
+  
+  <NavbarPublic />
+  <main class="font-sans">
+    <Hero/>
+
+    <UniversityCarousel />
+
+
+    <!-- Program & Facilities Section -->
+    {facilities && <ProgramAndFacilitiesSection data={facilities} />}
+
+
+    <!-- Location & Access Section -->
+    <LocationAccessSection />
+  </main>
+
+  <!-- Footer Section -->
+  <Footer />
+</body>
+</html>

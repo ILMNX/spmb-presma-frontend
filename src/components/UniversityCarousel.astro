@@ -1,0 +1,178 @@
+---
+const API = import.meta.env.PUBLIC_API_URL ;
+
+type University = {
+  id: number;
+  name: string;
+  logo: string;
+  order: number;
+  is_active: boolean;
+};
+
+let universities: University[] = [];
+let error = '';
+
+try {
+  const response = await fetch(`${API}/api/universities`);
+  
+  if (response.ok) {
+    const data = await response.json();
+    
+    // FIX: Handle both response formats
+    if (data.data && Array.isArray(data.data)) {
+      universities = data.data;
+    } else if (Array.isArray(data)) {
+      universities = data;
+    }
+  } else {
+    error = 'Failed to load universities';
+    console.error('API Error:', response.status);
+  }
+} catch (err) {
+  error = 'Failed to fetch universities';
+  console.error('Fetch Error:', err);
+}
+
+// Duplikasi array untuk seamless loop (minimum 4x untuk smooth animation)
+const allUniversities = universities.length > 0 
+  ? [...universities, ...universities, ...universities, ...universities]
+  : [];
+
+const hasData = universities.length > 0;
+---
+
+{hasData && (
+  <div class="university-carousel-wrapper py-16 md:py-20 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40 overflow-hidden relative">
+    <!-- Decorative Elements -->
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-100/20 via-transparent to-transparent"></div>
+    
+    <div class="container mx-auto px-4 relative z-10">
+      <div class="text-center mb-12 md:mb-16">
+        <h3 class="text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent mb-3 md:mb-4">
+          Alumni Kami Diterima Di
+        </h3>
+        <p class="text-sm md:text-base text-gray-600 max-w-2xl mx-auto px-4">
+          Siswa-siswi Prestasi Prima telah diterima di universitas terkemuka Indonesia
+        </p>
+      </div>
+
+      <div class="relative">
+        <!-- Gradient Overlays for fade effect -->
+        
+
+        <!-- Carousel Track -->
+        <div class="carousel-track flex gap-8 md:gap-12 lg:gap-16 items-center py-4">
+          {allUniversities.map((uni) => (
+            <div class="carousel-item flex-shrink-0 group relative">
+              <div class="relative w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 flex items-center justify-center">
+                <!-- Shine effect overlay -->
+                <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                  <div class="shine-effect"></div>
+                </div>
+                
+                <img 
+                  src={uni.logo} 
+                  alt={uni.name}
+                  title={uni.name}
+                  class="max-w-full max-h-full object-contain filter grayscale brightness-90 contrast-90 group-hover:grayscale-0 group-hover:brightness-100 group-hover:contrast-100 group-hover:saturate-110 transition-all duration-500 transform group-hover:scale-110 relative z-10"
+                  loading="lazy"
+                  onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23ddd%22 width=%22100%22 height=%22100%22/%3E%3Ctext fill=%22%23999%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3ENo Image%3C/text%3E%3C/svg%3E'"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+{error && (
+  <div class="py-8 text-center">
+    <p class="text-red-600 text-sm">{error}</p>
+  </div>
+)}
+
+<style>
+  .carousel-track {
+    animation: scroll 40s linear infinite;
+    will-change: transform;
+  }
+
+  .carousel-track:hover {
+    animation-play-state: paused;
+  }
+
+  @keyframes scroll {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-25%); /* Changed from -33.333% to -25% for 4x duplication */
+    }
+  }
+
+  /* Shine effect animation */
+  .shine-effect {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      120deg,
+      transparent,
+      rgba(255, 255, 255, 0.3) 40%,
+      rgba(255, 255, 255, 0.6) 50%,
+      rgba(255, 255, 255, 0.3) 60%,
+      transparent
+    );
+    animation: shine 0.8s ease-in-out;
+  }
+
+  @keyframes shine {
+    0% {
+      transform: translateX(-100%) translateY(-100%) rotate(30deg);
+    }
+    100% {
+      transform: translateX(100%) translateY(100%) rotate(30deg);
+    }
+  }
+
+  .carousel-item:hover .shine-effect {
+    animation: shine 0.8s ease-in-out;
+  }
+
+  /* Mobile optimization */
+  @media (max-width: 640px) {
+    .carousel-track {
+      animation: scroll 30s linear infinite;
+      gap: 2rem;
+    }
+  }
+
+  @media (min-width: 641px) and (max-width: 768px) {
+    .carousel-track {
+      animation: scroll 35s linear infinite;
+    }
+  }
+
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .carousel-track {
+      animation: scroll 40s linear infinite;
+    }
+  }
+
+  @media (min-width: 1025px) {
+    .carousel-track {
+      animation: scroll 45s linear infinite;
+    }
+  }
+
+  /* Smooth animation performance */
+  @media (prefers-reduced-motion: reduce) {
+    .carousel-track {
+      animation: none;
+    }
+  }
+</style>

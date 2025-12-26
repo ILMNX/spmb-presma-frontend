@@ -1,0 +1,107 @@
+---
+// filepath: /home/gibe/Projects/spmb-presma/frontend/src/layouts/DashboardLayout.astro
+import { initAuth } from '../stores/authStore';
+import Sidebar from '../components/sidebar/Sidebar.astro';
+
+export const prerender = false;
+
+interface Props {
+  title?: string;
+}
+
+const { title = 'Dashboard' } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title} - SPMB PRESMA</title>
+</head>
+<body class="bg-gray-50">
+
+  <div class="min-h-screen flex">
+    <!-- Sidebar Component -->
+    <Sidebar />
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-x-hidden w-full">
+      <!-- Header -->
+      <header class="bg-white shadow-sm">
+        <div class="px-4 lg:px-8 py-4 flex items-center justify-between">
+          <div class="flex items-center">
+            <div class="lg:hidden w-12"></div>
+            <h2 class="text-xl lg:text-2xl font-bold text-gray-900">{title}</h2>
+          </div>
+          
+          <div class="flex items-center space-x-4">
+            <button id="notificationBtn" class="p-2 text-gray-400 hover:text-gray-600 relative">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+              </svg>
+              <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <div class="p-4 lg:p-8">
+        <slot />
+      </div>
+    </main>
+  </div>
+
+  <script>
+    import { authStore, clearAuth, getToken } from '../stores/authStore';
+    import { api } from '../lib/api';
+    import { setupTokenValidation } from '../utils/tokenValidator';
+    import { initAuthGuard } from '../utils/authGuard';
+
+    // Flag to track if initial auth check is complete
+    let authInitialized = false;
+
+    // Initialize auth guard FIRST - this validates with backend
+    // and sets verified user data before any UI loads
+    (async () => {
+      await initAuthGuard();
+      authInitialized = true;
+      
+      // Setup automatic token validation for ongoing protection
+      setupTokenValidation();
+      
+      // Subscribe to auth changes AFTER initial auth is complete
+      authStore.subscribe((state) => {
+        // Don't act on state changes until initial auth check is done
+        if (!authInitialized) {
+          return;
+        }
+        
+        // Only redirect if explicitly logged out (no token and no user)
+        // after being previously authenticated
+        if (!state.token && !state.user && !state.isAuthenticated) {
+          window.location.href = '/login';
+        }
+      });
+    })();
+
+    // Logout handler
+    const logoutBtn = document.getElementById('logoutBtn');
+    logoutBtn?.addEventListener('click', async () => {
+      try {
+        await api.post('/api/auth/logout');
+      } catch (error) {
+        // Ignore logout API errors - we're logging out anyway
+        if (import.meta.env.DEV) {
+          console.error('Logout API error:', error);
+        }
+      } finally {
+        clearAuth();
+        document.cookie = 'auth_token=; path=/; max-age=0';
+        window.location.href = '/login';
+      }
+    });
+  </script>
+</body>
+</html>

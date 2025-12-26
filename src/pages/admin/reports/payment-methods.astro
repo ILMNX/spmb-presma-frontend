@@ -1,0 +1,676 @@
+---
+import DashboardLayout from '../../../layouts/DashboardLayout.astro';
+
+export const prerender = false;
+---
+
+<DashboardLayout title="Laporan Pembayaran">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-gray-900">Laporan Pembayaran</h2>
+          <p class="text-sm text-gray-500 mt-1">Statistik metode pembayaran VA vs Tunai</p>
+        </div>
+        <div class="flex gap-2">
+          <button id="btn-refresh" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Refresh
+          </button>
+          <button id="btnExport" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            Export
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-lg font-semibold mb-4">Filter</h3>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div id="schoolTypeFilterContainer" class="hidden">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Sekolah</label>
+          <select id="schoolTypeFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="all">Semua</option>
+            <option value="sma">SMA</option>
+            <option value="smk">SMK</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Mulai</label>
+          <input type="date" id="startDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Akhir</label>
+          <input type="date" id="endDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">&nbsp;</label>
+          <button id="applyFilterBtn" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            Terapkan Filter
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="hidden">
+      <div class="bg-white rounded-lg shadow p-12 text-center">
+        <div class="animate-spin inline-block w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+        <p class="mt-4 text-gray-600">Memuat data...</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div id="error" class="hidden">
+      <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+        <svg class="mx-auto h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <p id="error-text" class="mt-4 text-red-600">Terjadi kesalahan</p>
+        <button id="btn-retry" class="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Coba Lagi</button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div id="content" class="hidden space-y-6">
+
+    <!-- Statistics Cards -->
+      <div id="statsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg shadow-lg p-6">
+          <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-emerald-100">Total Pembayaran</p>
+          <p id="totalPaid" class="text-2xl font-bold text-white">0</p>
+          <p id="totalPaidAmount" class="text-sm text-emerald-100">Rp 0</p>
+        </div>
+        <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-lg p-6">
+          <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-blue-100">Virtual Account</p>
+          <p id="totalVA" class="text-2xl font-bold text-white">0</p>
+          <p id="totalVAAmount" class="text-sm text-blue-100">Rp 0</p>
+        </div>
+        <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+          </svg>
+        </div>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg shadow-lg p-6">
+          <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-amber-100">Tunai (Cash)</p>
+          <p id="totalCash" class="text-2xl font-bold text-white">0</p>
+          <p id="totalCashAmount" class="text-sm text-amber-100">Rp 0</p>
+        </div>
+        <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+        </div>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-rose-500 to-red-600 rounded-lg shadow-lg p-6">
+          <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-rose-100">Cash Pending</p>
+          <p id="totalPending" class="text-2xl font-bold text-white">0</p>
+        </div>
+        <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Partial/Cicilan Section -->
+      <div id="partialSection" class="hidden">
+        <div class="bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg shadow-lg p-6 text-white">
+          <div class="flex items-center justify-between">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <h3 class="text-lg font-semibold">Statistik Pembayaran Cicilan</h3>
+              </div>
+              <div class="grid grid-cols-4 gap-6">
+                <div>
+                  <p class="text-sm text-orange-100">Total Cicilan</p>
+                  <p id="totalPartial" class="text-3xl font-bold">0</p>
+                  <p class="text-xs text-orange-200">Termasuk yang sudah lunas</p>
+                </div>
+                <div>
+                  <p class="text-sm text-orange-100">Masih Berjalan</p>
+                  <p id="partialOngoing" class="text-2xl font-bold">0</p>
+                </div>
+                <div>
+                  <p class="text-sm text-orange-100">Sudah Dibayar</p>
+                  <p id="partialPaidAmount" class="text-2xl font-bold">Rp 0</p>
+                  <p class="text-xs text-orange-200">Dari cicilan berjalan</p>
+                </div>
+                <div>
+                  <p class="text-sm text-orange-100">Sisa Piutang</p>
+                  <p id="partialRemainingAmount" class="text-2xl font-bold">Rp 0</p>
+                </div>
+              </div>
+            </div>
+            <div class="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="text-lg font-semibold mb-4">Perbandingan Metode Pembayaran</h3>
+          <div class="h-64">
+            <canvas id="methodChart"></canvas>
+          </div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="text-lg font-semibold mb-4">Breakdown by Tipe Sekolah</h3>
+          <div class="h-64">
+            <canvas id="typeChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detail Table -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200">
+          <h3 class="text-lg font-semibold">Detail Pembayaran per Metode</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Metode</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jumlah</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Nominal</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Persentase</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Progress</th>
+              </tr>
+            </thead>
+            <tbody id="table-body" class="divide-y divide-gray-200">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Modal -->
+  <div id="exportModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-gray-900">Export Laporan Pembayaran</h3>
+        <button id="closeModal" class="text-gray-400 hover:text-gray-500">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Format Export</label>
+          <div class="space-y-2">
+            <label class="flex items-center">
+              <input type="radio" name="exportFormat" value="pdf" checked class="mr-2">
+              <svg class="w-5 h-5 mr-2 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/>
+              </svg>
+              <span class="text-sm">PDF Document</span>
+            </label>
+            <label class="flex items-center">
+              <input type="radio" name="exportFormat" value="excel" class="mr-2">
+              <svg class="w-5 h-5 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/>
+              </svg>
+              <span class="text-sm">Excel Spreadsheet</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p class="text-xs text-blue-800">
+            <strong>Filter yang diterapkan:</strong>
+          </p>
+          <ul id="exportFilterSummary" class="text-xs text-blue-700 mt-1 space-y-1">
+          </ul>
+        </div>
+
+        <div class="flex gap-3 pt-4">
+          <button id="btnCancelExport" class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+            Batal
+          </button>
+          <button id="btnConfirmExport" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            Download
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { api } from '../../../lib/api';
+    import Chart from 'chart.js/auto';
+
+    interface PaymentMethodData {
+      virtual_account: {
+        total: number;
+        paid: number;
+        pending: number;
+        expired: number;
+        total_amount: number;
+      };
+      cash: {
+        total: number;
+        paid: number;
+        paid_full: number;
+        paid_installment: number;
+        pending: number;
+        partial_ongoing: number;
+        total_installment: number;
+        total_amount: number;
+        partial_paid_amount: number;
+        partial_remaining_amount: number;
+      };
+      no_payment: number;
+      summary: {
+        total_payments: number;
+        total_paid: number;
+        total_installment: number;
+        partial_ongoing: number;
+        total_amount: number;
+        va_percentage: number;
+        cash_percentage: number;
+      };
+    }
+
+    let data: PaymentMethodData | null = null;
+    let adminSchoolType: string | null = null;
+    let methodChart: Chart | null = null;
+    let typeChart: Chart | null = null;
+
+    function formatCurrency(amount: number): string {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+      }).format(amount);
+    }
+
+    async function loadReport(): Promise<void> {
+      show('loading');
+
+      try {
+        const params = new URLSearchParams();
+        
+        const schoolTypeFilter = document.getElementById('schoolTypeFilter') as HTMLSelectElement | null;
+        const startDate = document.getElementById('startDate') as HTMLInputElement | null;
+        const endDate = document.getElementById('endDate') as HTMLInputElement | null;
+
+        if (schoolTypeFilter && schoolTypeFilter.value !== 'all') {
+          params.append('school_type', schoolTypeFilter.value);
+        }
+        if (startDate?.value) {
+          params.append('start_date', startDate.value);
+        }
+        if (endDate?.value) {
+          params.append('end_date', endDate.value);
+        }
+
+        const response = await api.get(`/api/admin/reports/payment-methods?${params}`);
+        
+        if (response.data.success) {
+          data = response.data.data;
+          adminSchoolType = response.data.meta?.school_type || null;
+          
+          // Show school type filter for superadmin
+          if (adminSchoolType === 'both') {
+            document.getElementById('schoolTypeFilterContainer')?.classList.remove('hidden');
+          }
+
+          updateUI();
+          renderCharts();
+          renderTable();
+          show('content');
+        } else {
+          throw new Error(response.data.message || 'Failed to load data');
+        }
+      } catch (error) {
+        console.error('Error loading report:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        showError(errorMessage);
+      }
+    }
+
+    function updateUI(): void {
+      if (!data) return;
+
+      // Update stats cards
+      const totalPaid = document.getElementById('totalPaid');
+      const totalPaidAmount = document.getElementById('totalPaidAmount');
+      const totalVA = document.getElementById('totalVA');
+      const totalVAAmount = document.getElementById('totalVAAmount');
+      const totalCash = document.getElementById('totalCash');
+      const totalCashAmount = document.getElementById('totalCashAmount');
+      const totalPending = document.getElementById('totalPending');
+
+      if (totalPaid) totalPaid.textContent = String(data.summary.total_paid);
+      if (totalPaidAmount) totalPaidAmount.textContent = formatCurrency(data.summary.total_amount);
+      if (totalVA) totalVA.textContent = String(data.virtual_account.paid);
+      if (totalVAAmount) totalVAAmount.textContent = formatCurrency(data.virtual_account.total_amount);
+      if (totalCash) totalCash.textContent = String(data.cash.paid);
+      if (totalCashAmount) totalCashAmount.textContent = formatCurrency(data.cash.total_amount);
+      if (totalPending) totalPending.textContent = String(data.cash.pending);
+
+      // Update partial/cicilan section
+      const partialSection = document.getElementById('partialSection');
+      const totalPartial = document.getElementById('totalPartial');
+      const partialOngoing = document.getElementById('partialOngoing');
+      const partialPaidAmount = document.getElementById('partialPaidAmount');
+      const partialRemainingAmount = document.getElementById('partialRemainingAmount');
+
+      // Show installment section if there are any installments (ongoing or completed)
+      const hasInstallments = data.summary.total_installment > 0 || data.cash.partial_ongoing > 0;
+      if (hasInstallments && partialSection) {
+        partialSection.classList.remove('hidden');
+        // Show total installment count (including completed)
+        if (totalPartial) totalPartial.textContent = String(data.summary.total_installment);
+        if (partialOngoing) partialOngoing.textContent = String(data.cash.partial_ongoing);
+        if (partialPaidAmount) partialPaidAmount.textContent = formatCurrency(data.cash.partial_paid_amount);
+        if (partialRemainingAmount) partialRemainingAmount.textContent = formatCurrency(data.cash.partial_remaining_amount);
+      } else if (partialSection) {
+        partialSection.classList.add('hidden');
+      }
+    }
+
+    function renderCharts(): void {
+      if (!data) return;
+
+      // Method comparison chart
+      const methodCanvas = document.getElementById('methodChart') as HTMLCanvasElement;
+      if (methodCanvas) {
+        if (methodChart) methodChart.destroy();
+
+        methodChart = new Chart(methodCanvas, {
+          type: 'doughnut',
+          data: {
+            labels: ['Virtual Account', 'Tunai'],
+            datasets: [{
+              data: [data.virtual_account.total, data.cash.total],
+              backgroundColor: ['rgba(59, 130, 246, 0.8)', 'rgba(251, 191, 36, 0.8)'],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom' }
+            }
+          }
+        });
+      }
+
+      // Status breakdown chart
+      const typeCanvas = document.getElementById('typeChart') as HTMLCanvasElement;
+      if (typeCanvas) {
+        if (typeChart) typeChart.destroy();
+
+        typeChart = new Chart(typeCanvas, {
+          type: 'bar',
+          data: {
+            labels: ['Virtual Account', 'Tunai'],
+            datasets: [
+              {
+                label: 'Paid',
+                data: [data.virtual_account.paid, data.cash.paid],
+                backgroundColor: 'rgba(34, 197, 94, 0.8)'
+              },
+              {
+                label: 'Pending',
+                data: [data.virtual_account.pending, data.cash.pending],
+                backgroundColor: 'rgba(251, 191, 36, 0.8)'
+              },
+              {
+                label: 'Expired',
+                data: [data.virtual_account.expired, 0],
+                backgroundColor: 'rgba(239, 68, 68, 0.8)'
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom' }
+            },
+            scales: {
+              x: { stacked: false },
+              y: { beginAtZero: true }
+            }
+          }
+        });
+      }
+    }
+
+    function renderTable(): void {
+      const tbody = document.getElementById('table-body');
+      if (!tbody || !data) return;
+
+      const total = data.virtual_account.total + data.cash.total;
+      
+      const rows = [
+        {
+          label: 'Virtual Account (Paid)',
+          count: data.virtual_account.paid,
+          amount: data.virtual_account.total_amount,
+          percentage: total > 0 ? (data.virtual_account.total / total * 100).toFixed(1) : '0',
+          color: 'bg-blue-500'
+        },
+        {
+          label: 'Virtual Account (Pending)',
+          count: data.virtual_account.pending,
+          amount: 0,
+          percentage: '-',
+          color: 'bg-blue-300'
+        },
+        {
+          label: 'Virtual Account (Expired)',
+          count: data.virtual_account.expired,
+          amount: 0,
+          percentage: '-',
+          color: 'bg-gray-500'
+        },
+        {
+          label: 'Tunai (Bayar Langsung)',
+          count: data.cash.paid_full,
+          amount: 0,
+          percentage: total > 0 ? (data.cash.paid_full / total * 100).toFixed(1) : '0',
+          color: 'bg-green-500'
+        },
+        {
+          label: 'Tunai (Cicilan Lunas)',
+          count: data.cash.paid_installment,
+          amount: 0,
+          percentage: total > 0 ? (data.cash.paid_installment / total * 100).toFixed(1) : '0',
+          color: 'bg-emerald-500',
+          extra: 'Sudah lunas melalui cicilan'
+        },
+        {
+          label: 'Tunai (Cicilan Berjalan)',
+          count: data.cash.partial_ongoing,
+          amount: data.cash.partial_paid_amount,
+          percentage: total > 0 ? (data.cash.partial_ongoing / total * 100).toFixed(1) : '0',
+          color: 'bg-yellow-500',
+          extra: data.cash.partial_ongoing > 0 ? `Sisa: ${formatCurrency(data.cash.partial_remaining_amount)}` : null
+        },
+        {
+          label: 'Tunai (Pending)',
+          count: data.cash.pending,
+          amount: 0,
+          percentage: '-',
+          color: 'bg-red-500'
+        }
+      ];
+
+      tbody.innerHTML = rows.map(row => `
+        <tr>
+          <td class="px-6 py-4 text-sm font-medium text-gray-900">${row.label}</td>
+          <td class="px-6 py-4 text-sm text-gray-600">${row.count}</td>
+          <td class="px-6 py-4 text-sm text-gray-600">
+            ${row.amount > 0 ? formatCurrency(row.amount) : '-'}
+            ${(row as any).extra ? `<br><span class="text-xs text-orange-600">${(row as any).extra}</span>` : ''}
+          </td>
+          <td class="px-6 py-4 text-sm text-gray-600">${row.percentage}${row.percentage !== '-' ? '%' : ''}</td>
+          <td class="px-6 py-4">
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              <div class="${row.color} h-2 rounded-full" style="width: ${row.percentage !== '-' ? row.percentage : '0'}%"></div>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function show(id: string): void {
+      ['loading', 'error', 'content'].forEach(el => {
+        document.getElementById(el)?.classList.add('hidden');
+      });
+      document.getElementById(id)?.classList.remove('hidden');
+    }
+
+    function showError(msg: string): void {
+      const errorText = document.getElementById('error-text');
+      if (errorText) errorText.textContent = msg;
+      show('error');
+    }
+
+    async function doExport(format: string): Promise<void> {
+      try {
+        const params = new URLSearchParams();
+        
+        const schoolTypeFilter = document.getElementById('schoolTypeFilter') as HTMLSelectElement | null;
+        const startDate = document.getElementById('startDate') as HTMLInputElement | null;
+        const endDate = document.getElementById('endDate') as HTMLInputElement | null;
+
+        if (schoolTypeFilter && schoolTypeFilter.value !== 'all') {
+          params.append('school_type', schoolTypeFilter.value);
+        }
+        if (startDate?.value) {
+          params.append('start_date', startDate.value);
+        }
+        if (endDate?.value) {
+          params.append('end_date', endDate.value);
+        }
+
+        const endpoint = format === 'pdf' 
+          ? `/api/admin/reports/payment/export-pdf?${params}`
+          : `/api/admin/reports/payment/export-excel?${params}`;
+        
+        const response = await api.get(endpoint, { responseType: 'blob' });
+
+        const blob = new Blob([response.data], { 
+          type: format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `laporan-pembayaran-${new Date().toISOString().split('T')[0]}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        document.getElementById('exportModal')?.classList.add('hidden');
+      } catch (error) {
+        console.error('Export error:', error);
+        alert('Gagal export laporan');
+      }
+    }
+
+    function updateExportFilterSummary(): void {
+      const summary = document.getElementById('exportFilterSummary');
+      if (!summary) return;
+
+      const filters: string[] = [];
+      
+      const schoolTypeFilter = document.getElementById('schoolTypeFilter') as HTMLSelectElement | null;
+      const startDate = document.getElementById('startDate') as HTMLInputElement | null;
+      const endDate = document.getElementById('endDate') as HTMLInputElement | null;
+      
+      if (schoolTypeFilter && schoolTypeFilter.value !== 'all') {
+        filters.push(`• Jenis Sekolah: ${schoolTypeFilter.value.toUpperCase()}`);
+      }
+      if (startDate?.value) {
+        filters.push(`• Dari: ${startDate.value}`);
+      }
+      if (endDate?.value) {
+        filters.push(`• Sampai: ${endDate.value}`);
+      }
+      
+      if (filters.length === 0) {
+        filters.push('• Semua data');
+      }
+      
+      summary.innerHTML = filters.map(f => `<li>${f}</li>`).join('');
+    }
+
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      loadReport();
+
+      document.getElementById('applyFilterBtn')?.addEventListener('click', loadReport);
+      document.getElementById('btn-refresh')?.addEventListener('click', loadReport);
+      document.getElementById('btn-retry')?.addEventListener('click', loadReport);
+
+      document.getElementById('btnExport')?.addEventListener('click', () => {
+        updateExportFilterSummary();
+        document.getElementById('exportModal')?.classList.remove('hidden');
+      });
+
+      document.getElementById('closeModal')?.addEventListener('click', () => {
+        document.getElementById('exportModal')?.classList.add('hidden');
+      });
+
+      document.getElementById('btnCancelExport')?.addEventListener('click', () => {
+        document.getElementById('exportModal')?.classList.add('hidden');
+      });
+
+      document.getElementById('btnConfirmExport')?.addEventListener('click', () => {
+        const format = (document.querySelector('input[name="exportFormat"]:checked') as HTMLInputElement)?.value || 'pdf';
+        doExport(format);
+      });
+    });
+  </script>
+</DashboardLayout>

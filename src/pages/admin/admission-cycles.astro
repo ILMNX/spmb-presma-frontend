@@ -1,0 +1,714 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+
+export const prerender = false;
+---
+
+<DashboardLayout title="Admission Cycles">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="sm:flex sm:items-center sm:justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Admission Cycles</h1>
+        <p class="mt-1 text-sm text-gray-500">Kelola periode pendaftaran per tahun ajaran</p>
+      </div>
+      <div class="mt-4 sm:mt-0">
+        <button
+          id="createCycleBtn"
+          class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+          </svg>
+          Buat Cycle Baru
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <label for="filterSchoolType" class="block text-sm font-medium text-gray-700">Jenis Sekolah</label>
+          <select id="filterSchoolType" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            <option value="all">Semua</option>
+            <option value="sma">SMA</option>
+            <option value="smk">SMK</option>
+          </select>
+        </div>
+        <div>
+          <label for="filterStatus" class="block text-sm font-medium text-gray-700">Status</label>
+          <select id="filterStatus" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            <option value="all">Semua</option>
+            <option value="draft">Draft</option>
+            <option value="open">Aktif</option>
+            <option value="closed">Ditutup</option>
+            <option value="archived">Diarsipkan</option>
+          </select>
+        </div>
+        <div class="flex items-end">
+          <label class="inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="includeArchived" class="h-4 w-4 rounded border border-gray-300 text-blue-600 shadow-sm focus:ring-2 focus:ring-blue-500 focus:ring-offset-0">
+            <span class="ml-2 text-sm text-gray-600">Tampilkan yang diarsipkan</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden text-center py-12">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada admission cycle</h3>
+      <p class="mt-1 text-sm text-gray-500">Mulai dengan membuat cycle baru untuk periode pendaftaran.</p>
+    </div>
+
+    <!-- Cycles Grid -->
+    <div id="cyclesGrid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Cards will be rendered here -->
+    </div>
+  </div>
+
+  <!-- Create/Edit Modal -->
+  <div id="cycleModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" id="modalBackdrop"></div>
+      
+      <div class="inline-block w-full max-w-2xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg">
+        <div class="flex justify-between items-center mb-6">
+          <h3 id="modalTitle" class="text-lg font-medium text-gray-900">Buat Admission Cycle Baru</h3>
+          <button id="closeModalBtn" class="text-gray-400 hover:text-gray-500">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <form id="cycleForm" class="space-y-4">
+          <input type="hidden" id="cycleId" name="id">
+          
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="yearStart" class="block text-sm font-medium text-gray-700">Tahun Mulai</label>
+              <input type="number" id="yearStart" name="year_start" min="2020" max="2100" required
+                class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div>
+              <label for="yearEnd" class="block text-sm font-medium text-gray-700">Tahun Selesai</label>
+              <input type="number" id="yearEnd" name="year_end" min="2020" max="2100" required
+                class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+          </div>
+
+          <div>
+            <label for="schoolType" class="block text-sm font-medium text-gray-700">Jenis Sekolah</label>
+            <select id="schoolType" name="school_type" required
+              class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+              <option value="">Pilih jenis sekolah</option>
+              <option value="sma">SMA</option>
+              <option value="smk">SMK</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="registrationStart" class="block text-sm font-medium text-gray-700">Tanggal Mulai Pendaftaran</label>
+              <input type="date" id="registrationStart" name="registration_start" required
+                class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div>
+              <label for="registrationEnd" class="block text-sm font-medium text-gray-700">Tanggal Akhir Pendaftaran</label>
+              <input type="date" id="registrationEnd" name="registration_end" required
+                class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="maxRegistrations" class="block text-sm font-medium text-gray-700">Kuota Maksimal (Opsional)</label>
+              <input type="number" id="maxRegistrations" name="max_registrations" min="1"
+                class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div>
+              <label for="registrationFee" class="block text-sm font-medium text-gray-700">Biaya Pendaftaran (Rp)</label>
+              <input type="number" id="registrationFee" name="registration_fee" min="0" step="1000"
+                class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="paymentDeadlineDays" class="block text-sm font-medium text-gray-700">Batas Pembayaran (Hari)</label>
+              <input type="number" id="paymentDeadlineDays" name="payment_deadline_days" min="1" max="30" value="7"
+                class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div>
+              <label for="announcementDate" class="block text-sm font-medium text-gray-700">Tanggal Pengumuman</label>
+              <input type="date" id="announcementDate" name="announcement_date"
+                class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+          </div>
+
+          <div>
+            <label for="description" class="block text-sm font-medium text-gray-700">Deskripsi (Opsional)</label>
+            <textarea id="description" name="description" rows="3"
+              class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              placeholder="Deskripsi atau catatan untuk cycle ini..."></textarea>
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-4 border-t">
+            <button type="button" id="cancelBtn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+              Batal
+            </button>
+            <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700">
+              Simpan
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Modal -->
+  <div id="statsModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" id="statsModalBackdrop"></div>
+      
+      <div class="inline-block w-full max-w-lg p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg">
+        <div class="flex justify-between items-center mb-6">
+          <h3 id="statsModalTitle" class="text-lg font-medium text-gray-900">Statistik Cycle</h3>
+          <button id="closeStatsModalBtn" class="text-gray-400 hover:text-gray-500">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div id="statsContent">
+          <!-- Stats will be loaded here -->
+        </div>
+      </div>
+    </div>
+  </div>
+</DashboardLayout>
+
+<script>
+  import { authStore } from '../../stores/authStore';
+
+  // Type definitions
+  interface AdmissionCycle {
+    id: number;
+    name: string;
+    year_start: number;
+    year_end: number;
+    school_type: string;
+    registration_start: string;
+    registration_end: string;
+    max_registrations: number | null;
+    registration_fee: number | null;
+    registration_count: number;
+    payment_deadline_days: number;
+    announcement_date: string | null;
+    description: string | null;
+    status: 'draft' | 'open' | 'closed' | 'archived';
+    is_active: boolean;
+  }
+
+  interface CustomWindow extends Window {
+    editCycle: (id: number) => void;
+    activateCycle: (id: number) => void;
+    deactivateCycle: (id: number) => void;
+    closeCycle: (id: number) => void;
+    archiveCycle: (id: number) => void;
+    showStats: (id: number) => void;
+  }
+
+  declare const window: CustomWindow;
+
+  const API_BASE = import.meta.env.PUBLIC_API_URL;
+  let cycles: AdmissionCycle[] = [];
+  let currentCycleId: number | null = null;
+
+  // DOM elements
+  const loadingState = document.getElementById('loadingState');
+  const emptyState = document.getElementById('emptyState');
+  const cyclesGrid = document.getElementById('cyclesGrid');
+  const cycleModal = document.getElementById('cycleModal');
+  const statsModal = document.getElementById('statsModal');
+  const cycleForm = document.getElementById('cycleForm') as HTMLFormElement | null;
+
+  // Load cycles on page load
+  document.addEventListener('DOMContentLoaded', () => {
+    loadCycles();
+    setupEventListeners();
+  });
+
+  function setupEventListeners(): void {
+    // Create button
+    document.getElementById('createCycleBtn')?.addEventListener('click', () => openModal());
+    
+    // Modal close buttons
+    document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
+    document.getElementById('modalBackdrop')?.addEventListener('click', closeModal);
+    document.getElementById('cancelBtn')?.addEventListener('click', closeModal);
+    
+    // Stats modal
+    document.getElementById('closeStatsModalBtn')?.addEventListener('click', closeStatsModal);
+    document.getElementById('statsModalBackdrop')?.addEventListener('click', closeStatsModal);
+    
+    // Form submit
+    cycleForm?.addEventListener('submit', handleFormSubmit);
+    
+    // Filters
+    document.getElementById('filterSchoolType')?.addEventListener('change', loadCycles);
+    document.getElementById('filterStatus')?.addEventListener('change', loadCycles);
+    document.getElementById('includeArchived')?.addEventListener('change', loadCycles);
+    
+    // Year auto-fill
+    document.getElementById('yearStart')?.addEventListener('change', (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      const yearEnd = document.getElementById('yearEnd') as HTMLInputElement | null;
+      if (yearEnd && !yearEnd.value) {
+        yearEnd.value = String(parseInt(target.value) + 1);
+      }
+    });
+  }
+
+  async function loadCycles(): Promise<void> {
+    showLoading();
+    
+    try {
+      const state = authStore.get();
+      const token = state.token;
+      const params = new URLSearchParams();
+      
+      const schoolTypeEl = document.getElementById('filterSchoolType') as HTMLSelectElement | null;
+      const statusEl = document.getElementById('filterStatus') as HTMLSelectElement | null;
+      const includeArchivedEl = document.getElementById('includeArchived') as HTMLInputElement | null;
+      
+      const schoolType = schoolTypeEl?.value;
+      const status = statusEl?.value;
+      const includeArchived = includeArchivedEl?.checked;
+      
+      if (schoolType && schoolType !== 'all') params.append('school_type', schoolType);
+      if (status && status !== 'all') params.append('status', status);
+      if (includeArchived) params.append('include_archived', '1');
+      params.append('all', '1');
+      
+      const response = await fetch(`${API_BASE}/api/admin/admission-cycles?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        cycles = result.data;
+        renderCycles();
+      } else {
+        showError(result.message || 'Gagal memuat data');
+      }
+    } catch (error) {
+      console.error('Error loading cycles:', error);
+      showError('Terjadi kesalahan saat memuat data');
+    }
+  }
+
+  function renderCycles(): void {
+    if (!cycles.length) {
+      loadingState?.classList.add('hidden');
+      cyclesGrid?.classList.add('hidden');
+      emptyState?.classList.remove('hidden');
+      return;
+    }
+    
+    loadingState?.classList.add('hidden');
+    emptyState?.classList.add('hidden');
+    cyclesGrid?.classList.remove('hidden');
+    
+    if (cyclesGrid) {
+      cyclesGrid.innerHTML = cycles.map(cycle => `
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div class="p-5">
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900">${cycle.name}</h3>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSchoolTypeBadge(cycle.school_type)}">
+                  ${cycle.school_type.toUpperCase()}
+                </span>
+              </div>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(cycle.status)}">
+                ${getStatusLabel(cycle.status)}
+              </span>
+            </div>
+            
+            <div class="space-y-2 text-sm text-gray-600">
+              <div class="flex justify-between">
+                <span>Periode Pendaftaran:</span>
+                <span class="font-medium">${formatDate(cycle.registration_start)} - ${formatDate(cycle.registration_end)}</span>
+              </div>
+              ${cycle.max_registrations ? `
+              <div class="flex justify-between">
+                <span>Kuota:</span>
+                <span class="font-medium">${cycle.registration_count || 0} / ${cycle.max_registrations}</span>
+              </div>
+              ` : ''}
+              ${cycle.registration_fee ? `
+              <div class="flex justify-between">
+                <span>Biaya:</span>
+                <span class="font-medium">Rp ${formatNumber(cycle.registration_fee)}</span>
+              </div>
+              ` : ''}
+            </div>
+            
+            ${cycle.is_active ? `
+            <div class="mt-4 flex items-center text-green-600">
+              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+              <span class="text-sm font-medium">Cycle Aktif</span>
+            </div>
+            ` : ''}
+          </div>
+          
+          <div class="bg-gray-50 px-5 py-3 border-t border-gray-200">
+            <div class="flex justify-between items-center">
+              <button onclick="showStats(${cycle.id})" class="text-sm text-blue-600 hover:text-blue-800">
+                Lihat Statistik
+              </button>
+              <div class="flex space-x-2">
+                ${cycle.status !== 'archived' ? `
+                  ${!cycle.is_active ? `
+                    <button onclick="activateCycle(${cycle.id})" class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200">
+                      Aktifkan
+                    </button>
+                  ` : `
+                    <button onclick="deactivateCycle(${cycle.id})" class="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200">
+                      Nonaktifkan
+                    </button>
+                  `}
+                  ${cycle.status === 'open' ? `
+                    <button onclick="closeCycle(${cycle.id})" class="text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
+                      Tutup
+                    </button>
+                  ` : ''}
+                  <button onclick="editCycle(${cycle.id})" class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
+                    Edit
+                  </button>
+                ` : ''}
+                ${cycle.status === 'closed' ? `
+                  <button onclick="archiveCycle(${cycle.id})" class="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200">
+                    Arsipkan
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  function showLoading(): void {
+    loadingState?.classList.remove('hidden');
+    cyclesGrid?.classList.add('hidden');
+    emptyState?.classList.add('hidden');
+  }
+
+  function openModal(cycle: AdmissionCycle | null = null): void {
+    currentCycleId = cycle?.id || null;
+    const modalTitle = document.getElementById('modalTitle');
+    if (modalTitle) {
+      modalTitle.textContent = cycle ? 'Edit Admission Cycle' : 'Buat Admission Cycle Baru';
+    }
+    
+    const cycleIdEl = document.getElementById('cycleId') as HTMLInputElement | null;
+    const yearStartEl = document.getElementById('yearStart') as HTMLInputElement | null;
+    const yearEndEl = document.getElementById('yearEnd') as HTMLInputElement | null;
+    const schoolTypeEl = document.getElementById('schoolType') as HTMLSelectElement | null;
+    const registrationStartEl = document.getElementById('registrationStart') as HTMLInputElement | null;
+    const registrationEndEl = document.getElementById('registrationEnd') as HTMLInputElement | null;
+    const maxRegistrationsEl = document.getElementById('maxRegistrations') as HTMLInputElement | null;
+    const registrationFeeEl = document.getElementById('registrationFee') as HTMLInputElement | null;
+    const paymentDeadlineDaysEl = document.getElementById('paymentDeadlineDays') as HTMLInputElement | null;
+    const announcementDateEl = document.getElementById('announcementDate') as HTMLInputElement | null;
+    const descriptionEl = document.getElementById('description') as HTMLTextAreaElement | null;
+    
+    if (cycle) {
+      if (cycleIdEl) cycleIdEl.value = String(cycle.id);
+      if (yearStartEl) yearStartEl.value = String(cycle.year_start);
+      if (yearEndEl) yearEndEl.value = String(cycle.year_end);
+      if (schoolTypeEl) schoolTypeEl.value = cycle.school_type;
+      if (registrationStartEl) registrationStartEl.value = cycle.registration_start;
+      if (registrationEndEl) registrationEndEl.value = cycle.registration_end;
+      if (maxRegistrationsEl) maxRegistrationsEl.value = cycle.max_registrations ? String(cycle.max_registrations) : '';
+      if (registrationFeeEl) registrationFeeEl.value = cycle.registration_fee ? String(cycle.registration_fee) : '';
+      if (paymentDeadlineDaysEl) paymentDeadlineDaysEl.value = String(cycle.payment_deadline_days || 7);
+      if (announcementDateEl) announcementDateEl.value = cycle.announcement_date || '';
+      if (descriptionEl) descriptionEl.value = cycle.description || '';
+      if (schoolTypeEl) schoolTypeEl.disabled = true;
+    } else {
+      cycleForm?.reset();
+      if (yearStartEl) yearStartEl.value = String(new Date().getFullYear());
+      if (yearEndEl) yearEndEl.value = String(new Date().getFullYear() + 1);
+      if (schoolTypeEl) schoolTypeEl.disabled = false;
+    }
+    
+    cycleModal?.classList.remove('hidden');
+  }
+
+  function closeModal(): void {
+    cycleModal?.classList.add('hidden');
+    currentCycleId = null;
+  }
+
+  function closeStatsModal(): void {
+    statsModal?.classList.add('hidden');
+  }
+
+  async function handleFormSubmit(e: Event): Promise<void> {
+    e.preventDefault();
+    
+    if (!cycleForm) return;
+    
+    const formData = new FormData(cycleForm);
+    const data: Record<string, string | null> = {};
+    
+    formData.forEach((value, key) => {
+      data[key] = value === '' ? null : String(value);
+    });
+    
+    try {
+      const state = authStore.get();
+      const token = state.token;
+      const isEdit = currentCycleId !== null;
+      const url = isEdit 
+        ? `${API_BASE}/api/admin/admission-cycles/${currentCycleId}`
+        : `${API_BASE}/api/admin/admission-cycles`;
+      
+      const response = await fetch(url, {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        closeModal();
+        loadCycles();
+        showToast(result.message || 'Berhasil disimpan', 'success');
+      } else {
+        showToast(result.message || 'Gagal menyimpan', 'error');
+      }
+    } catch (error) {
+      console.error('Error saving cycle:', error);
+      showToast('Terjadi kesalahan', 'error');
+    }
+  }
+
+  window.editCycle = function(id: number): void {
+    const cycle = cycles.find(c => c.id === id);
+    if (cycle) openModal(cycle);
+  };
+
+  window.activateCycle = async function(id: number): Promise<void> {
+    if (!confirm('Aktifkan cycle ini? Cycle lain untuk jenis sekolah yang sama akan dinonaktifkan.')) return;
+    await performAction(id, 'activate', 'Cycle berhasil diaktifkan');
+  };
+
+  window.deactivateCycle = async function(id: number): Promise<void> {
+    if (!confirm('Nonaktifkan cycle ini?')) return;
+    await performAction(id, 'deactivate', 'Cycle berhasil dinonaktifkan');
+  };
+
+  window.closeCycle = async function(id: number): Promise<void> {
+    if (!confirm('Tutup cycle ini? Pendaftaran baru tidak akan diterima.')) return;
+    await performAction(id, 'close', 'Cycle berhasil ditutup');
+  };
+
+  window.archiveCycle = async function(id: number): Promise<void> {
+    if (!confirm('Arsipkan cycle ini? Data tidak dapat diubah setelah diarsipkan.')) return;
+    await performAction(id, 'archive', 'Cycle berhasil diarsipkan');
+  };
+
+  async function performAction(id: number, action: string, successMessage: string): Promise<void> {
+    try {
+      const state = authStore.get();
+      const token = state.token;
+      const response = await fetch(`${API_BASE}/api/admin/admission-cycles/${id}/${action}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        loadCycles();
+        showToast(successMessage, 'success');
+      } else {
+        showToast(result.message || 'Gagal melakukan aksi', 'error');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      showToast('Terjadi kesalahan', 'error');
+    }
+  }
+
+  window.showStats = async function(id: number): Promise<void> {
+    try {
+      const state = authStore.get();
+      const token = state.token;
+      const response = await fetch(`${API_BASE}/api/admin/admission-cycles/${id}/statistics`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        const stats = result.data;
+        const cycle = cycles.find(c => c.id === id);
+        
+        const statsModalTitle = document.getElementById('statsModalTitle');
+        const statsContent = document.getElementById('statsContent');
+        
+        if (statsModalTitle) {
+          statsModalTitle.textContent = `Statistik ${cycle?.name || 'Cycle'}`;
+        }
+        
+        if (statsContent) {
+          statsContent.innerHTML = `
+            <div class="space-y-4">
+              <div class="grid grid-cols-2 gap-4">
+                <div class="bg-blue-50 rounded-lg p-4">
+                  <div class="text-2xl font-bold text-blue-600">${stats.total}</div>
+                  <div class="text-sm text-gray-600">Total Registrasi</div>
+                </div>
+                ${stats.quota_used !== null ? `
+                <div class="bg-green-50 rounded-lg p-4">
+                  <div class="text-2xl font-bold text-green-600">${stats.quota_used}%</div>
+                  <div class="text-sm text-gray-600">Kuota Terpakai</div>
+                </div>
+                ` : ''}
+              </div>
+              
+              <div>
+                <h4 class="font-medium text-gray-900 mb-2">Status Registrasi</h4>
+                <div class="space-y-1 text-sm">
+                  ${Object.entries(stats.by_status || {}).map(([status, count]) => `
+                    <div class="flex justify-between">
+                      <span class="text-gray-600">${status}</span>
+                      <span class="font-medium">${count}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+              
+              <div>
+                <h4 class="font-medium text-gray-900 mb-2">Status Pembayaran</h4>
+                <div class="space-y-1 text-sm">
+                  ${Object.entries(stats.by_payment || {}).map(([status, count]) => `
+                    <div class="flex justify-between">
+                      <span class="text-gray-600">${status}</span>
+                      <span class="font-medium">${count}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+              
+              <div>
+                <h4 class="font-medium text-gray-900 mb-2">Per Jurusan/Program</h4>
+                <div class="space-y-1 text-sm">
+                  ${Object.entries(stats.by_major || {}).map(([major, count]) => `
+                    <div class="flex justify-between">
+                      <span class="text-gray-600">${major}</span>
+                      <span class="font-medium">${count}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          `;
+        }
+        
+        statsModal?.classList.remove('hidden');
+      }
+    } catch (error) {
+      console.error('Error loading stats:', error);
+      showToast('Gagal memuat statistik', 'error');
+    }
+  };
+
+  // Helper functions
+  function getSchoolTypeBadge(type: string): string {
+    return type === 'sma' 
+      ? 'bg-blue-100 text-blue-800' 
+      : 'bg-purple-100 text-purple-800';
+  }
+
+  function getStatusBadge(status: string): string {
+    const badges: Record<string, string> = {
+      draft: 'bg-gray-100 text-gray-800',
+      open: 'bg-green-100 text-green-800',
+      closed: 'bg-yellow-100 text-yellow-800',
+      archived: 'bg-red-100 text-red-800',
+    };
+    return badges[status] || 'bg-gray-100 text-gray-800';
+  }
+
+  function getStatusLabel(status: string): string {
+    const labels: Record<string, string> = {
+      draft: 'Draft',
+      open: 'Aktif',
+      closed: 'Ditutup',
+      archived: 'Diarsipkan',
+    };
+    return labels[status] || status;
+  }
+
+  function formatDate(dateString: string | null): string {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('id-ID', { 
+      day: 'numeric', 
+      month: 'short', 
+      year: 'numeric' 
+    });
+  }
+
+  function formatNumber(num: number): string {
+    return new Intl.NumberFormat('id-ID').format(num);
+  }
+
+  function showError(message: string): void {
+    loadingState?.classList.add('hidden');
+    showToast(message, 'error');
+  }
+
+  function showToast(message: string, type: 'info' | 'success' | 'error' = 'info'): void {
+    // Simple toast notification
+    const toast = document.createElement('div');
+    toast.className = `fixed bottom-4 right-4 px-4 py-2 rounded-lg text-white z-50 ${
+      type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+    }`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
+</script>
