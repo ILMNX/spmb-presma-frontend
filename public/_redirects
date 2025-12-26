@@ -1,0 +1,9 @@
+# Redirects for SPA-style dynamic routes
+# Payment page - support both /pendaftaran/payment/ORDER_ID and query params
+/pendaftaran/payment/*  /pendaftaran/payment/index.html  200
+
+# Validator registration detail - support /validator/registrations/ID/validate
+/validator/registrations/*/validate  /validator/registrations/validate/index.html  200
+
+# Handle 404s - serve index for client-side routing
+/*  /index.html  404

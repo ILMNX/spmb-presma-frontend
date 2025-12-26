@@ -124,8 +124,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const formData = new FormData(form);
     try {
-      const apiUrl = import.meta.env.API_URL || '/api';
-      const res = await fetch(`${apiUrl}/registration/sma`, {
+      const apiUrl = window.PUBLIC_API_URL || '';
+      const res = await fetch(`${apiUrl}/api/registration/sma`, {
         method: 'POST',
         body: formData,
       });

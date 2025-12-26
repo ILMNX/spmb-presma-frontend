@@ -1,7 +1,6 @@
 ---
 import DashboardLayout from '../../../layouts/DashboardLayout.astro';
 
-export const prerender = false;
 ---
 
 <DashboardLayout title="Laporan Ringkasan">
@@ -381,6 +380,7 @@ export const prerender = false;
   <script>
     import { api } from '../../../lib/api';
     import { getToken } from '../../../stores/authStore';
+    import { API_URL } from '../../../config/api';
 
     let currentFilters = {
       date_from: '',
@@ -737,11 +737,12 @@ export const prerender = false;
           throw new Error('Silakan login terlebih dahulu');
         }
 
-        const response = await fetch(`/api/admin/reports/recapitulation/export-excel?${params}`, {
+        const response = await fetch(`${API_URL}/api/admin/reports/recapitulation/export-excel?${params}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
           },
+          credentials: 'include',
         });
 
         if (!response.ok) {

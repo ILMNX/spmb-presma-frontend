@@ -1,5 +1,5 @@
 ---
-import DashboardLayout from "../../../../layouts/DashboardLayout.astro";
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
 ---
 
 <DashboardLayout title="Validasi Pendaftaran">
@@ -279,7 +279,7 @@ import DashboardLayout from "../../../../layouts/DashboardLayout.astro";
 </DashboardLayout>
 
 <script>
-  import api from '../../../../lib/api';
+  import api from '../../../lib/api';
 
   interface ValidationChecklist {
     [key: string]: {
@@ -325,10 +325,14 @@ import DashboardLayout from "../../../../layouts/DashboardLayout.astro";
   let registrationId: string | null = null;
 
   // Get registration ID from URL
+  // Supports: /validator/registrations/validate?id=123 or /validator/registrations/123/validate
   function getRegistrationId(): string | null {
     const path = window.location.pathname;
     const matches = path.match(/\/registrations\/(\d+)\/validate/);
-    return matches ? matches[1] : null;
+    if (matches) return matches[1];
+    
+    const params = new URLSearchParams(window.location.search);
+    return params.get('id');
   }
 
   // Show toast notification

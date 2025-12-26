@@ -10,12 +10,10 @@
  * - Payment status with auto-polling
  * - Redirect to success page when paid
  * 
- * Route: /pendaftaran/payment/[orderId]
+ * Route: /pendaftaran/payment?orderId=xxx or /pendaftaran/payment/xxx (via _redirects)
  */
 import Layout from '../../../layouts/Layout.astro';
-
-const { orderId } = Astro.params;
-const API_URL = import.meta.env.PUBLIC_API_URL || '';
+import { API_URL } from '../../../config/api';
 ---
 
 <Layout title="Pembayaran - SPMB Prestasi Prima">
@@ -236,12 +234,25 @@ const API_URL = import.meta.env.PUBLIC_API_URL || '';
     </div>
   </main>
 
-  <script define:vars={{ orderId, API_URL }}>
-    // API_URL and orderId are injected via define:vars from Astro frontmatter
+  <script>
+    import { API_URL } from '../../../config/api';
+    
+    // Extract orderId from URL path or query params
+    // Supports: /pendaftaran/payment/ORDER123 or /pendaftaran/payment?orderId=ORDER123
+    function getOrderId() {
+      const path = window.location.pathname;
+      const match = path.match(/\/pendaftaran\/payment\/([^\/]+)/);
+      if (match && match[1]) return match[1];
+      
+      const params = new URLSearchParams(window.location.search);
+      return params.get('orderId') || params.get('order_id');
+    }
+    
+    const orderId = getOrderId();
 
     // State
-    let orderData = null;
-    let pollingInterval = null;
+    let orderData: any = null;
+    let pollingInterval: ReturnType<typeof setTimeout> | null = null;
     let pollCount = 0;
     const INITIAL_POLLING_INTERVAL = 3000; // 3 seconds initially for faster detection
     const NORMAL_POLLING_INTERVAL = 5000; // 5 seconds after initial checks
@@ -266,7 +277,7 @@ const API_URL = import.meta.env.PUBLIC_API_URL || '';
       
       // Handle rate limiting (429)
       if (response.status === 429) {
-        const error = new Error('Rate limited');
+        const error: any = new Error('Rate limited');
         error.status = 429;
         throw error;
       }
@@ -274,7 +285,7 @@ const API_URL = import.meta.env.PUBLIC_API_URL || '';
       // Handle non-JSON responses (like HTML error pages)
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
-        const error = new Error('Server error');
+        const error: any = new Error('Server error');
         error.status = response.status;
         throw error;
       }
@@ -291,14 +302,19 @@ const API_URL = import.meta.env.PUBLIC_API_URL || '';
     /**
      * Update UI with order data
      */
-    function updateUI(data) {
+    function updateUI(data: any) {
       orderData = data;
 
       // Update order info
-      document.getElementById('orderNumber').textContent = data.order_number || '-';
-      document.getElementById('studentName').textContent = data.student_name || '-';
-      document.getElementById('studentEmail').textContent = data.email || '-';
-      document.getElementById('paymentAmount').textContent = data.formatted_amount || 'Rp 100.000';
+      const orderNumber = document.getElementById('orderNumber');
+      const studentName = document.getElementById('studentName');
+      const studentEmail = document.getElementById('studentEmail');
+      const paymentAmount = document.getElementById('paymentAmount');
+      
+      if (orderNumber) orderNumber.textContent = data.order_number || '-';
+      if (studentName) studentName.textContent = data.student_name || '-';
+      if (studentEmail) studentEmail.textContent = data.email || '-';
+      if (paymentAmount) paymentAmount.textContent = data.formatted_amount || 'Rp 100.000';
 
       // Update status badge
       updateStatusBadge(data.status);
@@ -313,9 +329,13 @@ const API_URL = import.meta.env.PUBLIC_API_URL || '';
           vaWaitingState?.classList.add('hidden');
           vaInfoCard?.classList.remove('hidden');
           
-          document.getElementById('vaNumber').textContent = data.va_number;
-          document.getElementById('vaAmount').textContent = data.formatted_amount || 'Rp 100.000';
-          document.getElementById('vaExpiry').textContent = data.va_expired_at 
+          const vaNumber = document.getElementById('vaNumber');
+          const vaAmount = document.getElementById('vaAmount');
+          const vaExpiry = document.getElementById('vaExpiry');
+          
+          if (vaNumber) vaNumber.textContent = data.va_number;
+          if (vaAmount) vaAmount.textContent = data.formatted_amount || 'Rp 100.000';
+          if (vaExpiry) vaExpiry.textContent = data.va_expired_at 
             ? new Date(data.va_expired_at).toLocaleString('id-ID')
             : '-';
         } else {
@@ -338,7 +358,7 @@ const API_URL = import.meta.env.PUBLIC_API_URL || '';
     /**
      * Update status badge appearance
      */
-    function updateStatusBadge(status) {
+    function updateStatusBadge(status: string) {
       const badge = document.getElementById('statusBadge');
       if (!badge) return;
 
@@ -366,7 +386,7 @@ const API_URL = import.meta.env.PUBLIC_API_URL || '';
     /**
      * Show error state
      */
-    function showError(message) {
+    function showError(message: string) {
       loadingState?.classList.add('hidden');
       paymentContent?.classList.add('hidden');
       errorState?.classList.remove('hidden');
@@ -410,11 +430,11 @@ const API_URL = import.meta.env.PUBLIC_API_URL || '';
               : NORMAL_POLLING_INTERVAL;
             pollingInterval = setTimeout(poll, interval);
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Polling error:', error);
           
           // Handle rate limiting with exponential backoff
-          if (error.status === 429) {
+          if (error?.status === 429) {
             backoffMultiplier = Math.min(backoffMultiplier * 2, MAX_BACKOFF);
             const backoffInterval = NORMAL_POLLING_INTERVAL * backoffMultiplier;
             console.log(`Rate limited, backing off to ${backoffInterval}ms`);
@@ -462,25 +482,27 @@ const API_URL = import.meta.env.PUBLIC_API_URL || '';
      * Manual status check
      */
     async function manualCheck() {
-      const btn = document.getElementById('checkStatusBtn');
+      const btn = document.getElementById('checkStatusBtn') as HTMLButtonElement | null;
       const refreshBtn = document.getElementById('refreshVABtn');
       
       try {
         if (btn) btn.disabled = true;
         if (refreshBtn) {
           document.getElementById('refreshSpinner')?.classList.remove('hidden');
-          document.getElementById('refreshBtnText').textContent = 'Memeriksa...';
+          const refreshBtnText = document.getElementById('refreshBtnText');
+          if (refreshBtnText) refreshBtnText.textContent = 'Memeriksa...';
         }
         
         const data = await fetchOrderData();
         updateUI(data);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Manual check error:', error);
       } finally {
         if (btn) btn.disabled = false;
         if (refreshBtn) {
           document.getElementById('refreshSpinner')?.classList.add('hidden');
-          document.getElementById('refreshBtnText').textContent = 'Cek Ulang Status';
+          const refreshBtnText = document.getElementById('refreshBtnText');
+          if (refreshBtnText) refreshBtnText.textContent = 'Cek Ulang Status';
         }
       }
     }
@@ -499,8 +521,8 @@ const API_URL = import.meta.env.PUBLIC_API_URL || '';
         showPaymentContent();
         updateUI(data);
         startPolling();
-      } catch (error) {
-        showError(error.message || 'Gagal memuat data pembayaran');
+      } catch (error: any) {
+        showError(error?.message || 'Gagal memuat data pembayaran');
       }
     }
 
